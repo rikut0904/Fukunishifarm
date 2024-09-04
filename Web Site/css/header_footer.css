@@ -58,6 +58,7 @@ header nav ul li a {
     padding: 10px 0;
     display: block;
 }
+
 /* 切替スイッチの識別 */
 header nav ul li a:hover,
 header nav ul li a:active,
