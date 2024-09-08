@@ -5,7 +5,20 @@
         <title>ふくにしファーム-news</title>
         <meta name="kewords" content="ぶどう,ぶどう狩り,滋賀県,甲賀市" />
         <meta name="description" content="滋賀県甲賀市信楽町にてぶどう狩りを行っています。" />
-        <link rel="stylesheet" href="css/normalize.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <!-- ファビコン -->
+        <link rel="icon" type="pic/png" href="pic/" />
+
+        <!-- リセットcss -->
+        <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css" />
+
+        <!-- Googleフォント -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet" />
+
+        <!-- オリジナルCSS -->
         <link rel="stylesheet" href="css/header_footer.css" />
         <link rel="stylesheet" href="css/widget.css" />
         <link rel="stylesheet" href="css/style.css" />
@@ -13,25 +26,26 @@
     <body>
         <!-- ヘッダー -->
         <header>
-            <div class="header-content">
-                <h1>
-                    <a href="index.HTML">import_photo</a>
-                </h1>
-                <div id="header_visual">
-                    <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
+            <div class="cover-sub">
+                <div class="header-content">
+                    <h1>
+                        <a href="index.HTML">import_photo</a>
+                    </h1>
+                    <div id="header_visual">
+                        <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
+                    </div>
                 </div>
+                <nav>
+                    <ul class="clearfix font-english">
+                        <li><a href="index.html">HOME</a></li>
+                        <li><a href="about.html">ABOUT</a></li>
+                        <li class="current"><a href="news.html">news</a></li>
+                        <li><a href="tirasi.html">ちらし</a></li>
+                        <li><a href="reservation.html">ご予約方法</a></li>
+                        <li><a href="access.html">アクセス</a></li>
+                    </ul>
+                </nav>
             </div>
-            <nav>
-                <ul class="clearfix">
-                    <li><a href="index.html">HOME</a></li>
-                    <li><a href="about.html">ABOUT</a></li>
-                    <li class="current"><a href="news.html">news</a></li>
-                    <li><a href="tirasi.html">ちらし</a></li>
-                    <li><a href="buy_info.html">販売状況</a></li>
-                    <li><a href="access.html">アクセス</a></li>
-                    <li><a href="reservation.html">ご予約方法</a></li>
-                </ul>
-            </nav>
         </header>
         <!-- /ヘッダー -->
         <main class="clearfix">
@@ -46,14 +60,24 @@
         <p class="page_top"><a href="#top">ページトップ</a></p>
         <!-- フッター -->
         <footer>
+            <h3 class="heading font-english">Information</h3>
+            <table class="info">
+                <tr>
+                    <th>郵便番号</th>
+                    <td>〒529-1812</td>
+                </tr>
+                <tr>
+                    <th>住所</th>
+                    <td>滋賀県甲賀市信楽町神山</td>
+                </tr>
+            </table>
             <ul>
                 <li><a href="index.html">HOME</a></li>
                 <li><a href="about.html">ABOUT</a></li>
                 <li><a href="news.html">news</a></li>
                 <li><a href="tirasi.html">ちらし</a></li>
-                <li><a href="buy_info.html">販売状況</a></li>
-                <li><a href="access.html">アクセス</a></li>
                 <li><a href="reservation.html">ご予約方法</a></li>
+                <li><a href="access.html">アクセス</a></li>
             </ul>
             <small>Copyright &copy;2024 ふくにしファーム, All Righits Reserver.</small>
         </footer>

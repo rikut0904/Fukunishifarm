@@ -1,18 +1,53 @@
 @charset "utf-8";
+html {
+    font-size: 100%;
+}
 
 body {
-    font-family: "游ゴシック体", YuGothic, "游ゴシック Medium", "Yu Gothic Medium", "游ゴシック", "Yu Gothic",
-        sans-serif;
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "BIZ UDPGothic", sans-serif;
+    line-height: 1.7;
 }
+
+a {
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* レイアウト */
+.wrapper {
+    max-width: 1120px;
+    margin: auto;
+    padding: 0 1.5rem;
+}
+
+.center {
+    text-align: center;
+}
+
+/* 見出し */
+.font-english {
+    font-family: "Philosopher", sans-serif;
+    font-weight: normal;
+}
+
+.heading {
+    font-size: 3rem;
+    text-align: center;
+    line-height: 1.4;
+}
+
 /* スタイル設定 */
 main {
-    width: 940px;
-    margin: 0 auto;
+    width: 736px;
+    margin: 3rem auto 4rem;
 }
 
 main h1 {
-    border-left: 10px solid #de90f6;
-    border-bottom: 1px solid #de90f6;
+    border-left: 10px solid #0c7309;
+    border-bottom: 2px solid #0c7309;
     padding: 5px 10px;
     margin-bottom: 30px;
     font-size: 1.8em;
@@ -21,11 +56,12 @@ main h1 {
 main h2 {
     font-size: 1.5em;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #de90f6;
 }
 
 main h3 {
-    font-size: 1.3em;
+    font-size: 1.2em;
     text-align: center;
     margin-bottom: 30px;
 }
@@ -42,46 +78,6 @@ main h3 {
     border-top: 1px;
 }
 
-/* ページトップボタンの作成 */
-.page_top {
-    text-align: center;
-    margin-top: 100px;
-    margin-bottom: 10px;
-}
-
-.page_top a {
-    padding-top: 4px;
-    border-top: 4px solid #0c7309;
-}
-
-.page_top a:before {
-    content: "↑";
-}
-
-.page_top a:link,
-.page_top a:visited {
-    color: #0c7309;
-}
-
-.page_top a:hover {
-    border-color: #de90f6;
-    color: #de90f6;
-}
-
-
-/* 各ページ設定 */
-/* indexページ */
-
-/* aboutページ */
-
-/* newsページ */
-
-/* tirasiページ */
-
-/* buy_infoページ */
-
-/* accessページ */
-/* accessページ段組み */
 .access_box {
     width: 450px;
     margin-right: 20px;
@@ -91,5 +87,3 @@ main h3 {
 .access_box:last-child {
     margin-right: 0;
 }
-
-/* reservationページ */
