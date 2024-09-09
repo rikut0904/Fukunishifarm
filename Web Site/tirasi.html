@@ -20,6 +20,7 @@
 
         <!-- オリジナルCSS -->
         <link rel="stylesheet" href="css/header_footer_desktop.css" />
+        <link rel="stylesheet" href="css/header_footer_tablet.css" />
         <link rel="stylesheet" href="css/header_footer_phone.css" />
         <link rel="stylesheet" href="css/widget.css" />
         <link rel="stylesheet" href="css/style_desktop.css" />
@@ -33,25 +34,26 @@
                     <h1>
                         <a href="index.HTML">logo</a>
                     </h1>
+                    <!-- ハンバーガーメニュー -->
+                    <input type="checkbox" id="hamburger" />
+                    <label for="hamburger">
+                        <span class="burger">
+                            <span class="bar"></span>
+                        </span>
+                    </label>
+                    <label class="light-dark" for="hamburger"></label>
+                    <div id="menu" class="clearfix font-english main-nav">
+                        <a href="index.html">HOME</a>
+                        <a href="about.html">ABOUT</a>
+                        <a href="news.html">news</a>
+                        <a href="tirasi.html">ちらし</a>
+                        <a href="reservation.html">ご予約方法</a>
+                        <a href="access.html">アクセス</a>
+                    </div>
+                    <!-- ヘッダービジュアル -->
                     <div id="header_visual">
                         <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
                     </div>
-                </div>
-                <!-- ハンバーガーメニュー -->
-                <input type="checkbox" id="hamburger" />
-                <label for="hamburger">
-                    <span class="burger">
-                        <span class="bar"></span>
-                    </span>
-                </label>
-                <label class="light-dark" for="hamburger"></label>
-                <div id="menu" class="clearfix font-english">
-                    <a href="index.html">HOME</a>
-                    <a href="about.html">ABOUT</a>
-                    <a href="news.html">news</a>
-                    <a href="tirasi.html">ちらし</a>
-                    <a href="reservation.html">ご予約方法</a>
-                    <a href="access.html">アクセス</a>
                 </div>
             </div>
         </header>
@@ -64,10 +66,19 @@
             <div id="tirasi_content">
                 <h1>R6年度ちらし</h1>
                 <div class="text">
-                    <p>予約を希望されるお客様は夏季URLよりチラシを印刷し、FAXにてご予約ください。</p>
+                    <p>予約を希望されるお客様は下記URLよりちらしを印刷し、FAXにてご予約ください。</p>
                     <p>ご予約方法は<a href="reservation.html">こちら</a>からご覧ください</p>
                     <p>FAX：0748-82-1983</p>
-                    <p>ちらしURL：<a href="PDF/R6_Pamphlet.pdf" target="_blank">URL</a></p>
+                    <p>
+                        下記のちらしが見れない方は<a href="PDF/R6_Pamphlet.pdf" target="_blank">こちら</a
+                        >からご覧ください
+                    </p>
+                    <iframe
+                        src="PDF/R6_Pamphlet.pdf"
+                        width="600"
+                        height="900"
+                        style="border: 0"
+                        title="Pamphlet_PDF"></iframe>
                 </div>
             </div>
         </main>

@@ -1,6 +1,141 @@
 @charset "udf-8";
-@media (min-width: 800px) {
-    .column {
-        column-count: none;
-    }
+
+body {
+    font-family: "Yu Mincho", YuMincho, serif;
+}
+
+/*ヘッダーカバー*/
+.cover-home {
+    background-size: cover;
+    background-position: center bottom;
+    height: 800px;
+    background-image: url(../pic/header_footer.jpg);
+}
+
+.cover-sub {
+    background-size: cover;
+    background-position: center bottom;
+    height: 350px;
+    background-image: url(../pic/header_footer.jpg);
+}
+
+/* ヘッダーロゴの設定 */
+header h1 {
+    margin: 50px 0 20px 0;
+    text-align: left;
+    font-size: 4rem;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-content h1 {
+    margin: 0;
+}
+
+#header_visual img {
+    max-width: 208px;
+    margin-top: 1rem;
+    margin-right: 1rem;
+    height: auto;
+    box-shadow: 0 0 8px rgb(255, 148, 27);
+}
+
+/* メニュー */
+#hamburger {
+    opacity: 0;
+    position: fixed;
+}
+
+.main-nav {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    font-size: 2.5rem;
+    list-style: none;
+}
+
+.main-nav a {
+    color: #19911c;
+}
+
+.main-nav a:hover {
+    display: inline-block;
+    font-size: 3rem;
+    background-color: rgba(254, 137, 4, 0.57);
+    color: #c34fe7;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: 0.5s;
+}
+
+/* トピックパス設定*/
+#topic_path {
+    padding-left: 0;
+}
+
+#topic_path li {
+    list-style-type: none;
+    display: inline;
+    font-size: 80%;
+}
+
+#topic_path li:after {
+    padding: 0 10px;
+    content: "\003E";
+}
+
+#topic_path li:last-child:after {
+    content: none;
+}
+
+/* フッター */
+footer {
+    background-color: rgba(255, 148, 27, 0.62);
+    color: #000;
+    padding: 30px 0;
+    text-align: center;
+}
+
+/* 切替スイッチの設定 */
+footer ul {
+    padding: 0;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* 切替スイッチ内部設定 */
+footer ul li {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+footer ul li a {
+    color: #000;
+    font-size: 0.875;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+footer ul li a:link,
+footer ul li a:visited {
+    text-decoration: none;
+}
+
+/* 切替スイッチの識別 */
+footer ul li a:hover,
+footer ul li a:active {
+    text-decoration: underline;
+    color: #de90f6;
+}
+
+/* 設定のリセット */
+.clearfix:after {
+    content: "";
+    display: block;
+    clear: both;
 }

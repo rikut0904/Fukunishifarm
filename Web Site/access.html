@@ -20,6 +20,7 @@
 
         <!-- オリジナルCSS -->
         <link rel="stylesheet" href="css/header_footer_desktop.css" />
+        <link rel="stylesheet" href="css/header_footer_tablet.css" />
         <link rel="stylesheet" href="css/header_footer_phone.css" />
         <link rel="stylesheet" href="css/widget.css" />
         <link rel="stylesheet" href="css/style_desktop.css" />
@@ -33,25 +34,26 @@
                     <h1>
                         <a href="index.HTML">logo</a>
                     </h1>
+                    <!-- ハンバーガーメニュー -->
+                    <input type="checkbox" id="hamburger" />
+                    <label for="hamburger">
+                        <span class="burger">
+                            <span class="bar"></span>
+                        </span>
+                    </label>
+                    <label class="light-dark" for="hamburger"></label>
+                    <div id="menu" class="clearfix font-english main-nav">
+                        <a href="index.html">HOME</a>
+                        <a href="about.html">ABOUT</a>
+                        <a href="news.html">news</a>
+                        <a href="tirasi.html">ちらし</a>
+                        <a href="reservation.html">ご予約方法</a>
+                        <a href="access.html">アクセス</a>
+                    </div>
+                    <!-- ヘッダービジュアル -->
                     <div id="header_visual">
                         <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
                     </div>
-                </div>
-                <!-- ハンバーガーメニュー -->
-                <input type="checkbox" id="hamburger" />
-                <label for="hamburger">
-                    <span class="burger">
-                        <span class="bar"></span>
-                    </span>
-                </label>
-                <label class="light-dark" for="hamburger"></label>
-                <div id="menu" class="clearfix font-english">
-                    <a href="index.html">HOME</a>
-                    <a href="about.html">ABOUT</a>
-                    <a href="news.html">news</a>
-                    <a href="tirasi.html">ちらし</a>
-                    <a href="reservation.html">ご予約方法</a>
-                    <a href="access.html">アクセス</a>
                 </div>
             </div>
         </header>

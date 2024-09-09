@@ -20,6 +20,7 @@
 
         <!-- オリジナルCSS -->
         <link rel="stylesheet" href="css/header_footer_desktop.css" />
+        <link rel="stylesheet" href="css/header_footer_tablet.css" />
         <link rel="stylesheet" href="css/header_footer_phone.css" />
         <link rel="stylesheet" href="css/widget.css" />
         <link rel="stylesheet" href="css/style_desktop.css" />
@@ -33,25 +34,26 @@
                     <h1>
                         <a href="index.HTML">logo</a>
                     </h1>
+                    <!-- ハンバーガーメニュー -->
+                    <input type="checkbox" id="hamburger" />
+                    <label for="hamburger">
+                        <span class="burger">
+                            <span class="bar"></span>
+                        </span>
+                    </label>
+                    <label class="light-dark" for="hamburger"></label>
+                    <div id="menu" class="clearfix font-english main-nav">
+                        <a href="index.html">HOME</a>
+                        <a href="about.html">ABOUT</a>
+                        <a href="news.html">news</a>
+                        <a href="tirasi.html">ちらし</a>
+                        <a href="reservation.html">ご予約方法</a>
+                        <a href="access.html">アクセス</a>
+                    </div>
+                    <!-- ヘッダービジュアル -->
                     <div id="header_visual">
                         <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
                     </div>
-                </div>
-                <!-- ハンバーガーメニュー -->
-                <input type="checkbox" id="hamburger" />
-                <label for="hamburger">
-                    <span class="burger">
-                        <span class="bar"></span>
-                    </span>
-                </label>
-                <label class="light-dark" for="hamburger"></label>
-                <div id="menu" class="clearfix font-english">
-                    <a href="index.html">HOME</a>
-                    <a href="about.html">ABOUT</a>
-                    <a href="news.html">news</a>
-                    <a href="tirasi.html">ちらし</a>
-                    <a href="reservation.html">ご予約方法</a>
-                    <a href="access.html">アクセス</a>
                 </div>
             </div>
         </header>
@@ -64,42 +66,56 @@
             </div>
             <!-- /メインビジュアル -->
             <div id="main_content">
+                <h6>ふくにしファームぶどう狩り</h6>
+                <div class="center">
+                    <p>焼き物で有名な信楽町。自然に囲まれたのどかな高原。</p>
+                    <p>その最高峰の笹ヶ岳のふもとで太陽と水の恵みをいっぱい受け育った「紫香楽高原ぶどう」</p>
+                    <p>ぶどう狩りをお楽しみいただけます。</p>
+                    <p>入園無料ですので、ぜひご来園ください</p>
+                </div>
                 <h1>販売種</h1>
-                <h1>販売料金</h1>
-                <h2>お持ち帰り</h2>
-                <h3>竜宝・シナノスマイル<br />藤稔・ピオーネ</h3>
-                <table class="main-table">
-                    <tr>
-                        <th>1房</th>
-                        <td>1,000円</td>
-                    </tr>
-                    <tr>
-                        <th>2房</th>
-                        <td>1,800円</td>
-                    </tr>
-                    <tr>
-                        <th>1パック</th>
-                        <td>1,000円</td>
-                    </tr>
-                </table>
-                <h3>シャインマスカット</h3>
-                <p class="center">量り売りとなっております。</p>
-                <h2>発送・進物用</h2>
-                <h3>竜宝・シナノスマイル<br />藤稔・ピオーネ</h3>
-                <table class="main-table">
-                    <tr>
-                        <th>2房入り</th>
-                        <td>3,000円</td>
-                    </tr>
-                    <tr>
-                        <th>3房入り</th>
-                        <td>4,000円</td>
-                    </tr>
-                </table>
-                <p class="center">送料は別となっております。</p>
-                <p class="center">
-                    送料は<a href="PDF/shipping_fee_20240729.pdf" target="_blank">こちら</a>をご覧ください。
-                </p>
+                <h1>ぶどう狩り料金</h1>
+                <p>※直売も可能となっております。</p>
+                <div class="flag">
+                    <div class="harf_column1">
+                        <h2>お持ち帰り</h2>
+                        <h3>竜宝・シナノスマイル<br />藤稔・ピオーネ</h3>
+                        <table class="main-table">
+                            <tr>
+                                <th>1房</th>
+                                <td>1,000円</td>
+                            </tr>
+                            <tr>
+                                <th>2房</th>
+                                <td>1,800円</td>
+                            </tr>
+                            <tr>
+                                <th>1パック</th>
+                                <td>1,000円</td>
+                            </tr>
+                        </table>
+                        <h3>シャインマスカット</h3>
+                        <p class="center">量り売りとなっております。</p>
+                    </div>
+                    <div class="harf_column2">
+                        <h2>発送・進物用</h2>
+                        <h3>竜宝・シナノスマイル<br />藤稔・ピオーネ</h3>
+                        <table class="main-table">
+                            <tr>
+                                <th>2房入り</th>
+                                <td>3,000円</td>
+                            </tr>
+                            <tr>
+                                <th>3房入り</th>
+                                <td>4,000円</td>
+                            </tr>
+                        </table>
+                        <p class="center">送料は別となっております。</p>
+                        <p class="center">
+                            送料は<a href="PDF/shipping_fee_20240729.pdf" target="_blank">こちら</a>をご覧ください。
+                        </p>
+                    </div>
+                </div>
             </div>
         </main>
         <p class="page_top"><a href="#top">ページトップ</a></p>

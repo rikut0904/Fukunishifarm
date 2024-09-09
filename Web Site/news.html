@@ -20,6 +20,7 @@
 
         <!-- オリジナルCSS -->
         <link rel="stylesheet" href="css/header_footer_desktop.css" />
+        <link rel="stylesheet" href="css/header_footer_tablet.css" />
         <link rel="stylesheet" href="css/header_footer_phone.css" />
         <link rel="stylesheet" href="css/widget.css" />
         <link rel="stylesheet" href="css/style_desktop.css" />
@@ -33,36 +34,65 @@
                     <h1>
                         <a href="index.HTML">logo</a>
                     </h1>
+                    <!-- ハンバーガーメニュー -->
+                    <input type="checkbox" id="hamburger" />
+                    <label for="hamburger">
+                        <span class="burger">
+                            <span class="bar"></span>
+                        </span>
+                    </label>
+                    <label class="light-dark" for="hamburger"></label>
+                    <div id="menu" class="clearfix font-english main-nav">
+                        <a href="index.html">HOME</a>
+                        <a href="about.html">ABOUT</a>
+                        <a href="news.html">news</a>
+                        <a href="tirasi.html">ちらし</a>
+                        <a href="reservation.html">ご予約方法</a>
+                        <a href="access.html">アクセス</a>
+                    </div>
+                    <!-- ヘッダービジュアル -->
                     <div id="header_visual">
                         <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
                     </div>
                 </div>
-                <!-- ハンバーガーメニュー -->
-                <input type="checkbox" id="hamburger" />
-                <label for="hamburger">
-                    <span class="burger">
-                        <span class="bar"></span>
-                    </span>
-                </label>
-                <label class="light-dark" for="hamburger"></label>
-                <div id="menu" class="clearfix font-english">
-                    <a href="index.html">HOME</a>
-                    <a href="about.html">ABOUT</a>
-                    <a href="news.html">news</a>
-                    <a href="tirasi.html">ちらし</a>
-                    <a href="reservation.html">ご予約方法</a>
-                    <a href="access.html">アクセス</a>
-                </div>
             </div>
         </header>
         <!-- /ヘッダー -->
-        <main class="clearfix">
+        <main class="clearfix wide">
             <ol id="topic_path">
                 <li><a href="index.html">HOME</a></li>
                 <li>news</li>
             </ol>
-            <div id="news_content">
-                <!-- ここから -->
+            <div class="news_content">
+                <article class="post">
+                    <h1>販売状況</h1>
+                    
+                    <h1>お知らせ</h1>
+                </article>
+                <aside class="sidebar">
+                    <h3 class="heading font-english">Category</h3>
+                    <ul class="side-menu">
+                        <li><a href="#">お知らせ</a></li>
+                    </ul>
+                    <h3 class="heading font-english">Tag</h3>
+                    <ul class="side-menu colum">
+                        <li><a href="#">竜宝</a></li>
+                        <li><a href="#">シナノスマイル</a></li>
+                        <li><a href="#">ピオーネ</a></li>
+                        <li><a href="#">藤稔</a></li>
+                        <li><a href="#">シャインマスカット</a></li>
+                        <li><a href="#">ちらし</a></li>
+                        <li><a href="#">開園情報</a></li>
+                        <li><a href="#">休園情報</a></li>
+                    </ul>
+                    <h3 class="heading font-english">Archives</h3>
+                    <ul class="side-menu colum">
+                        <li><a href="#">2023年</a></li>
+                        <li><a href="#">2022年</a></li>
+                        <li><a href="#">2021年</a></li>
+                        <li><a href="#">2020年</a></li>
+                    </ul>
+                </aside>
             </div>
         </main>
         <p class="page_top"><a href="#top">ページトップ</a></p>
