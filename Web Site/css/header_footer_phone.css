@@ -187,20 +187,28 @@ footer {
     text-align: center;
 }
 
+.column {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 /* 切替スイッチの設定 */
 footer ul {
     padding: 0;
     margin-bottom: 30px;
+    text-align: center;
 }
 
 /* 切替スイッチ内部設定 */
 footer ul li {
-    display: inline;
+    display: inline-block;
     margin: 0 10px;
 }
 
 footer ul li a {
     color: #000;
+    font-size: 0.875;
 }
 
 footer ul li a:link,
