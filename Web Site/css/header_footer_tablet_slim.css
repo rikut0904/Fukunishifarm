@@ -1,10 +1,10 @@
 @charset "utf-8";
-@media (min-width:800px) and (max-width: 1096px) {
+@media (min-width:800px) and (max-width: 1000px) {
     /* ヘッダーロゴの設定 */
     header h1 {
         margin: 50px 0 20px 0;
         text-align: left;
-        font-size: 1.8rem;
+        font-size: 3rem;
     }
 
     .header-content h1 {
@@ -12,7 +12,7 @@
     }
 
     #header_visual img {
-        max-width: 150px;
+        max-width: 200px;
         margin-right: 3.5rem;
         height: auto;
         box-shadow: 0 0 8px rgb(255, 148, 27);
@@ -102,7 +102,7 @@
         right: 0;
         bottom: 0;
         z-index: -1;
-        width: 35rem;
+        width: 33rem;
         background-color: rgb(255, 148, 27);
         content: "";
         transform: skewX(-15deg) translateX(100%);
@@ -157,8 +157,6 @@
         top: 0;
         right: 0;
     }
-
-    /* サイドバー
     
     /* フッター */
     footer {
