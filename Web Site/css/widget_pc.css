@@ -27,7 +27,7 @@ table td {
 
 .info {
     width: 100%;
-    max-width: 544;
+    max-width: 544px;
     margin: auto;
     padding: 0 1.5rem;
     border-spacing: 0;
@@ -36,13 +36,28 @@ table td {
 /* 地図データ */
 #map {
     text-align: center;
+    width: 100%;
+    height: auto;
 }
 
-/* サイドバー */
-.side-menu {
-    list-style: none;
-    text-align: center;
-    margin-bottom: 4rem;
+/* パンフレットPDF */
+.pamphelet {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+
+.pamphelet iframe {
+    width: 100%;
+    height: 75rem;
+}
+
+/* お知らせリスト */
+.news-info ls {
+    list-style: circle;
 }
 
 /* フルページカルーセル */
@@ -61,6 +76,7 @@ table td {
 .slides {
     display: flex;
     overflow-x: auto;
+    margin-bottom: 10px;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -148,113 +164,6 @@ table td {
     background: #f1f1f1;
 }
 
-/* ニュースページカルーセル */
-.slider-min {
-    position: relative;
-    width: 101%;
-    height: auto;
-    text-align: center;
-    overflow: hidden;
-    display: flex;
-    align-items: left;
-    justify-content: left;
-    margin: auto;
-}
-
-.slides-min {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-.slide-min {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    scroll-snap-align: start;
-    flex-shrink: 0;
-    width: 650px;
-    height: auto;
-    margin-right: 20px;
-    border-radius: 10px;
-    background: #eee;
-    overflow: hidden;
-    padding: 0;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    transition: transform 0.5s ease-in-out;
-}
-
-.slide-content-min {
-    display: flex;
-    width: 100%;
-    padding: 0;
-}
-
-.slide-image-min {
-    flex: 1;
-    width: 15rem;
-    height: auto;
-    border-radius: 10px;
-    object-fit: cover;
-}
-
-.slide-text-min {
-    flex: 2;
-    padding: 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-}
-
-.slide-text-min h4 {
-    margin: 0 0 10px;
-    font-size: 3.6rem;
-}
-
-.slide-min p {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    font-size: 1.6rem;
-    margin: 0;
-}
-
-.slides > div {
-    scroll-snap-align: start;
-    flex-shrink: 0;
-    width: auto;
-    height: 500px;
-    border-radius: 10px;
-    background: #eee;
-    transform-origin: center center;
-    transform: scale(1);
-    transition: transform 0.5s;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 70px;
-}
-
-/* スクロールバーのスタイル */
-.slides-min::-webkit-scrollbar {
-    width: 10px;
-}
-
-.slides-min::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-.slides-min::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
 /* ページトップボタンの作成 */
 .page_top {
     text-align: center;
@@ -281,31 +190,16 @@ table td {
     color: #de90f6;
 }
 
+.pc_hid {
+    display: none;
+}
+
 .mobile_hid {
     display: block;
 }
 
 /* パソコン・タブレットの設定 */
 @media (min-width: 750px) {
-    /* ニュースサイドバー */
-    .news_content {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .post {
-        width: 70%;
-    }
-
-    .sidebar {
-        width: 22%;
-    }
-
-    .sidebar .heading {
-        line-height: 2;
-        margin-bottom: 1rem;
-    }
-
     /* トップページ二段カラム */
     .flag {
         display: flex;

@@ -6,22 +6,14 @@
         font-size: 15px;
     }
 
-    /* ニュースサイドバー */
-    .news_content {
-        display: block;
-    }
-
-    .post {
+    /* 地図データ */
+    #map iframe {
         width: 100%;
     }
 
-    .sidebar {
-        width: 100%;
-    }
-
-    .sidebar .heading {
-        line-height: 1.5;
-        margin-bottom: 0.5rem;
+    /* パンフレットPDF */
+    .pamphelet iframe {
+        height: 530px;
     }
 
     /* フルページカルーセル */
@@ -34,6 +26,7 @@
         justify-content: center;
         margin: auto;
         width: 100%;
+        height: auto;
     }
 
     .slides {
@@ -72,14 +65,16 @@
     }
 
     .slide-image {
-        width: 51%;
+        flex: 1;
+        width: 60%;
         height: auto;
         border-radius: 10px;
         object-fit: cover;
     }
 
     .slide-text {
-        padding: 10px;
+        flex: 2;
+        padding: 20px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -91,83 +86,47 @@
 
     .slide-text h4 {
         font-size: 1.5rem;
-        margin: 0; /* Remove default margin */
+        margin: 0;
     }
 
     .slide-text p {
         font-size: 1rem;
-        margin: 0; /* Remove default margin */
+        margin: 0;
     }
 
-    /* ニュースページカルーセル */
-    .slider-min {
-        position: relative;
-        text-align: center;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: auto;
-        width: 100%;
-    }
-
-    .slides-min {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-        flex-wrap: nowrap;
-    }
-
-    .slide-min {
+    .slides > div {
         scroll-snap-align: start;
         flex-shrink: 0;
         width: auto;
-        max-width: 100%;
-        margin-right: 0;
-        height: auto;
+        height: 500px;
         border-radius: 10px;
         background: #eee;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    .slide-content-min {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .slide-image-min {
-        width: 60%;
-        height: auto;
-        margin-bottom: 20px;
-        border-radius: 10px;
-        object-fit: cover;
-    }
-
-    .slide-text-min {
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
+        transform-origin: center center;
+        transform: scale(1);
+        transition: transform 0.5s;
         position: relative;
-        bottom: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 70px;
     }
 
-    .slide-text-min h4 {
-        font-size: 2.7rem;
+    /* スクロールバーのスタイル */
+    .slides::-webkit-scrollbar {
+        width: 10px;
     }
 
-    .slide-min p{
-        font-size: 21px;
+    .slides::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .slides::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .pc_hid {
+        display: block;
     }
 
     .mobile_hid {

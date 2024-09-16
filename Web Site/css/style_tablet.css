@@ -1,6 +1,6 @@
 @charset "utf-8";
 
-@media (max-width: 733px) {
+@media (min-width: 733px) and (max-width: 1380px) {
     html {
         font-size: 100%;
     }
@@ -55,20 +55,5 @@
     .text p {
         padding-top: 1px;
         border-top: 1px;
-    }
-
-    .access_box {
-        width: 100%;
-        margin-right: 0;
-        float: none;
-    }
-
-    .access_box:last-child {
-        margin-right: 0;
-    }
-    
-    .access_box p {
-        font-size: 15px;
-        text-align: center;
     }
 }

@@ -19,16 +19,17 @@
         <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet" />
 
         <!-- オリジナルCSS -->
-        <link rel="stylesheet" href="css/header_footer_desktop.css" />
-        <link rel="stylesheet" href="css/header_footer_laptop.css" />
-        <link rel="stylesheet" href="css/header_footer_tablet_wide.css" />
-        <link rel="stylesheet" href="css/header_footer_tablet_slim.css" />
-        <link rel="stylesheet" href="css/header_footer_phone.css" />
-        <link rel="stylesheet" href="css/style_desktop.css" />
-        <link rel="stylesheet" href="css/style_phone.css" />
-        <link rel="stylesheet" href="css/widget_pc.css" />
-        <link rel="stylesheet" href="css/widget_tablet.css" />
-        <link rel="stylesheet" href="css/widget_phone.css" />
+        <link rel="stylesheet" href="/css/header_footer_desktop.css" />
+        <link rel="stylesheet" href="/css/header_footer_laptop.css" />
+        <link rel="stylesheet" href="/css/header_footer_tablet_wide.css" />
+        <link rel="stylesheet" href="/css/header_footer_tablet_slim.css" />
+        <link rel="stylesheet" href="/css/header_footer_phone.css" />
+        <link rel="stylesheet" href="/css/style_desktop.css" />
+        <link rel="stylesheet" href="/css/style_tablet.css" />
+        <link rel="stylesheet" href="/css/style_phone.css" />
+        <link rel="stylesheet" href="/css/widget_pc.css" />
+        <link rel="stylesheet" href="/css/widget_tablet.css" />
+        <link rel="stylesheet" href="/css/widget_phone.css" />
     </head>
     <body>
         <!-- ヘッダー -->
@@ -36,7 +37,7 @@
             <div class="cover-sub">
                 <div class="header-content">
                     <h1>
-                        <a href="index.HTML">logo</a>
+                        <a href="/">logo</a>
                     </h1>
                     <!-- ハンバーガーメニュー -->
                     <input type="checkbox" id="hamburger" />
@@ -47,16 +48,16 @@
                     </label>
                     <label class="light-dark" for="hamburger"></label>
                     <div id="menu" class="clearfix font-english main-nav">
-                        <a href="index.html">HOME</a>
-                        <a href="about.html">ABOUT</a>
-                        <a href="news.html">news</a>
-                        <a href="tirasi.html">ちらし</a>
-                        <a href="reservation.html">ご予約方法</a>
-                        <a href="access.html">アクセス</a>
+                        <a href="/">HOME</a>
+                        <a href="/about.html">ABOUT</a>
+                        <a href="/news.html">news</a>
+                        <a href="/tirasi.html">ちらし</a>
+                        <a href="/reservation.html">ご予約方法</a>
+                        <a href="/access.html">アクセス</a>
                     </div>
                     <!-- ヘッダービジュアル -->
                     <div id="header_visual">
-                        <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
+                        <img src="/pic/farm_board.jpg" alt="ふくにしファーム看板" />
                     </div>
                 </div>
             </div>
@@ -64,117 +65,98 @@
         <!-- /ヘッダー -->
         <main class="clearfix wide">
             <ol id="topic_path">
-                <li><a href="index.html">HOME</a></li>
+                <li><a href="/">HOME</a></li>
                 <li>news</li>
             </ol>
             <div class="news_content">
-                <article class="post">
-                    <h1>販売状況</h1>
-                    <!-- スライドデータ -->
-                    <div class="slider-min">
-                        <div class="slides-min">
-                            <!-- 竜宝コメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <div class="slide-content-min">
-                                    <div class="slide-text-min">
-                                        <h4>竜宝</h4>
-                                    </div>
-                                    <img src="pic/ryuhou.jpeg" alt="竜宝" class="slide-image-min" />
+                <h1>販売状況</h1>
+                <!-- スライドデータ -->
+                <div class="slider">
+                    <div class="slides">
+                        <!-- 竜宝コメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-text">
+                                    <h4>竜宝</h4>
                                 </div>
-                            </div>
-
-                            <!-- シナノスマイルコメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <div class="slide-content-min">
-                                    <div class="slide-text-min">
-                                        <h4>シナノスマイル</h4>
-                                    </div>
-                                    <img src="pic/shinano.jpeg" alt="シナノスマイル" class="slide-image-min" />
-                                </div>
-                            </div>
-
-                            <!-- 藤稔コメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <div class="slide-content-min">
-                                    <div class="slide-text-min">
-                                        <h4>藤稔</h4>
-                                    </div>
-                                    <img src="pic/fujiminori.jpeg" alt="藤稔" class="slide-image-min" />
-                                </div>
-                            </div>
-
-                            <!-- ピオーネコメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <div class="slide-content-min">
-                                    <div class="slide-text-min">
-                                        <h4>ピオーネ</h4>
-                                    </div>
-                                    <img src="pic/pione.jpeg" alt="ピオーネ" class="slide-image-min" />
-                                </div>
-                            </div>
-
-                            <!-- シャインマスカットコメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <div class="slide-content-min">
-                                    <div class="slide-text-min">
-                                        <h4>シャイン<br class="mobile_hid" />マスカット</h4>
-                                    </div>
-                                    <img src="pic/syain.jpeg" alt="シャインマスカット" class="slide-image-min" />
-                                </div>
-                            </div>
-
-                            <!-- 販売開始前文章コメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <p>
-                                    本年度もぶどうの時期が始まります！！<br />
-                                    本年度もおいしいぶどうが実っていますので、<br class="mobile_hid" />
-                                    ぜひふくにしファームへご来園ください。
-                                </p>
-                            </div>
-
-                            <!-- 販売終了後文章コメントアウト箇所 -->
-
-                            <div class="slide-min">
-                                <p>
-                                    本年度のぶどうが終了いたしました。<br />
-                                    来年度もおいしいぶどうが実るよう育てていきますので、<br class="mobile_hid" />
-                                    ぜひ来年度ふくにしファームへご来園ください。
-                                </p>
+                                <img src="pic/ryuhou.jpeg" alt="竜宝" class="slide-image" />
                             </div>
                         </div>
+                        -->
+                        <!-- シナノスマイルコメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-text">
+                                    <h4>シナノスマイル</h4>
+                                </div>
+                                <img src="pic/shinano.jpeg" alt="シナノスマイル" class="slide-image" />
+                            </div>
+                        </div>
+                        -->
+                        <!-- 藤稔コメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-text">
+                                    <h4>藤稔</h4>
+                                </div>
+                                <img src="pic/fujiminori.jpeg" alt="藤稔" class="slide-image" />
+                            </div>
+                        </div>
+                        -->
+                        <!-- ピオーネコメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-textn">
+                                    <h4>ピオーネ</h4>
+                                </div>
+                                <img src="pic/pione.jpeg" alt="ピオーネ" class="slide-image" />
+                            </div>
+                        </div>
+                        -->
+                        <!-- シャインマスカットコメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <div class="slide-content">
+                                <div class="slide-text">
+                                    <h4>シャイン<br class="mobile_hid" />マスカット</h4>
+                                </div>
+                                <img src="pic/syain.jpeg" alt="シャインマスカット" class="slide-image" />
+                            </div>
+                        </div>
+                        -->
+                        <!-- 販売開始前文章コメントアウト箇所 -->
+                        <!--
+                        <div class="slide">
+                            <p style="font-size: 21px">
+                                本年度もぶどうの時期が始まります！！<br />
+                                本年度もおいしいぶどうが実っていますので、<br class="mobile_hid" />
+                                ぜひふくにしファームへご来園ください。
+                            </p>
+                        </div>
+-->
+                        <!-- 販売終了後文章コメントアウト箇所 -->
+                        
+                        <div class="slide">
+                            <p style="font-size: 21px">
+                                本年度のぶどうが終了いたしました。<br />
+                                来年度もおいしいぶどうが実るよう育てていきますので、<br class="mobile_hid" />
+                                ぜひ来年度ふくにしファームへご来園ください。
+                            </p>
+                        </div>
                     </div>
-                    <h1>お知らせ</h1>
-                </article>
-                <aside class="sidebar">
-                    <h3 class="heading font-english">Category</h3>
-                    <ul class="side-menu">
-                        <li><a href="#">お知らせ</a></li>
+                </div>
+                <h1>お知らせ</h1>
+                <div class="news-info">
+                    <ul>
+                        <li>ニュースページが正常に表示されません</li>
+                        <li>ホームページをリニューアルしました。</li>
+                        <li>本年度のぶどうは終了いたしました。</li>
                     </ul>
-                    <h3 class="heading font-english">Tag</h3>
-                    <ul class="side-menu colum">
-                        <li><a href="#">竜宝</a></li>
-                        <li><a href="#">シナノスマイル</a></li>
-                        <li><a href="#">ピオーネ</a></li>
-                        <li><a href="#">藤稔</a></li>
-                        <li><a href="#">シャインマスカット</a></li>
-                        <li><a href="#">ちらし</a></li>
-                        <li><a href="#">開園情報</a></li>
-                        <li><a href="#">休園情報</a></li>
-                    </ul>
-                    <h3 class="heading font-english">Archives</h3>
-                    <ul class="side-menu colum">
-                        <li><a href="#">2023年</a></li>
-                        <li><a href="#">2022年</a></li>
-                        <li><a href="#">2021年</a></li>
-                        <li><a href="#">2020年</a></li>
-                    </ul>
-                </aside>
+                </div>
             </div>
         </main>
         <p class="page_top"><a href="#top">ページトップ</a></p>
@@ -192,12 +174,12 @@
                 </tr>
             </table>
             <ul>
-                <li><a href="index.html">HOME</a></li>
-                <li><a href="about.html">ABOUT</a></li>
-                <li><a href="news.html">news</a></li>
-                <li><a href="tirasi.html">ちらし</a></li>
-                <li><a href="reservation.html">ご予約方法</a></li>
-                <li><a href="access.html">アクセス</a></li>
+                <li><a href="/">HOME</a></li>
+                <li><a href="/about.html">ABOUT</a></li>
+                <li><a href="/news.html">news</a></li>
+                <li><a href="/tirasi.html">ちらし</a></li>
+                <li><a href="/reservation.html">ご予約方法</a></li>
+                <li><a href="/access.html">アクセス</a></li>
             </ul>
             <small>Copyright &copy;2024 ふくにしファーム, All Righits Reserver.</small>
         </footer>
