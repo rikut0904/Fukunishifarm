@@ -8,6 +8,7 @@
     /* フルページカルーセル */
     .slider {
         position: relative;
+        z-index: 10;
         width: auto;
         height: auto;
         text-align: center;
@@ -22,6 +23,8 @@
         display: flex;
         overflow-x: auto;
         margin-bottom: 10px;
+        box-sizing: border-box;
+        padding-bottom: 20px;
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
@@ -40,6 +43,7 @@
         align-items: center;
         overflow: hidden;
         padding: 0;
+        box-sizing: border-box;
         margin-top: 10px;
         margin-bottom: 10px;
         transition: transform 0.5s ease-in-out;
