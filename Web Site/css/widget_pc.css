@@ -45,19 +45,22 @@ table td {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    width: 80%;
     height: auto;
-    position: relative;
+    position: static;
 }
 
 .pamphelet iframe {
-    width: 100%;
+    width: 80%;
     height: 75rem;
 }
 
 /* お知らせリスト */
 .news-info ls {
-    list-style: circle;
+    list-style-type: disc;
+    display: list-item;
+    padding-left: 20px;
+    margin-left: 20px;
 }
 
 /* フルページカルーセル */
