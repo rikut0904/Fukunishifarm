@@ -1,5 +1,10 @@
 @charset "utf-8";
 
+/* メイン写真 */
+main img {
+    border-radius: 20px;
+}
+
 /* テーブルデザイン */
 table th,
 table td {
