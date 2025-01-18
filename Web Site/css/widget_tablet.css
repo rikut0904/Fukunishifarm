@@ -1,8 +1,16 @@
 @charset "utf-8";
 @media (min-width: 750px) and (max-width: 1380px) {
+
     /* 地図データ */
     #map iframe {
         width: 100%;
+    }
+
+    /* パンフレット */
+    .pamphelet iframe {
+        width: 100%;
+        height: 90vh;
+        border: 0;
     }
 
     /* フルページカルーセル */
@@ -22,31 +30,30 @@
     .slides {
         display: flex;
         overflow-x: auto;
-        margin-bottom: 10px;
-        box-sizing: border-box;
-        padding-bottom: 20px;
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        padding-bottom: 20px;
     }
 
     .slide {
         scroll-snap-align: start;
-        flex-shrink: 0;
-        width: auto;
+        flex: 0 0 100%;
+        flex-basis: 100%;
+        width: 100%;
         min-width: 100%;
         height: auto;
-        margin-right: 20px;
         border-radius: 10px;
         background: #eee;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        overflow: hidden;
-        padding: 0;
+        justify-content: center;
         box-sizing: border-box;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        transition: transform 0.5s ease-in-out;
+        margin-right: 0;
+        overflow: hidden;
     }
 
     .slide-content {
@@ -82,7 +89,7 @@
         font-size: 30%;
     }
 
-    .slides > div {
+    .slides>div {
         scroll-snap-align: start;
         flex-shrink: 0;
         width: auto;
