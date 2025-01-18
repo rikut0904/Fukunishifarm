@@ -1,39 +1,26 @@
 @charset "udf-8";
 
-body {
-    font-family: "Yu Mincho", YuMincho, serif;
-}
-
 /*ヘッダーカバー*/
 .cover-home {
     background-size: cover;
     background-position: center bottom;
-    height: 800px;
-    background-image: url(../../pic/header_footer.jpg);
+    height: 550px;
+    background-image: url(../pic/header_footer.jpg);
 }
 
 .cover-sub {
     background-size: cover;
     background-position: center bottom;
     height: 350px;
-    background-image: url(../../pic/header_footer.jpg);
+    background-image: url(../pic/header_footer.jpg);
 }
 
 /* ヘッダーロゴの設定 */
-header h1 {
-    margin: 50px 0 20px 0;
-    text-align: left;
-    font-size: 4rem;
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.header-content h1 {
-    margin: 0;
+.logo {
+    width: 10%;
+    height: auto;
+    margin: 0 1% 0;
+    flex-grow: 1;
 }
 
 #header_visual img {
@@ -45,17 +32,42 @@ header h1 {
 }
 
 /* メニュー */
-#hamburger {
-    opacity: 0;
-    position: fixed;
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
+#hamburger {
+    display: none;
+}
+
+.bar {
+    display: none;
+}
+
+/* --- チェックボックスは非表示にする --- */
+input[type="checkbox"] {
+    display: none;
+}
+
+/* --- ナビゲーションメニュー --- */
 .main-nav {
     display: flex;
-    justify-content: center;
-    gap: 3rem;
-    font-size: 2.5rem;
-    list-style: none;
+    justify-content: flex-end;
+    margin-top: 20px;
+    margin-right: 10%;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style-type: none;
+    gap: 4%;
+    font-size: 200%;
+}
+
+.main-nav ul li {
+    white-space: nowrap;
 }
 
 .main-nav a {
@@ -64,11 +76,11 @@ header h1 {
 
 .main-nav a:hover {
     display: inline-block;
-    font-size: 3rem;
+    font-size: 110%;
     background-color: rgba(254, 137, 4, 0.57);
     color: #c34fe7;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
+    border-radius: 20rem;
+    padding: 0.5% 1%;
     transition: 0.5s;
 }
 
@@ -131,11 +143,4 @@ footer ul li a:hover,
 footer ul li a:active {
     text-decoration: underline;
     color: #de90f6;
-}
-
-/* 設定のリセット */
-.clearfix:after {
-    content: "";
-    display: block;
-    clear: both;
 }
