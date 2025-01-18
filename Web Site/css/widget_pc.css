@@ -1,10 +1,5 @@
 @charset "utf-8";
 
-/* メイン写真 */
-main img {
-    border-radius: 20px;
-}
-
 /* テーブルデザイン */
 table th,
 table td {
@@ -43,6 +38,14 @@ table td {
     margin: auto;
     padding: 0 1.5rem;
     border-spacing: 0;
+}
+
+/* メイン写真 */
+main img {
+    border-radius: 20px;
+    width: 50%;
+    display: block;
+    margin: 0 auto;
 }
 
 /* 地図データ */
@@ -231,14 +234,12 @@ table td {
         gap: 20px;
     }
 
-    .harf_column1,
-    .harf_column2 {
+    .harf_column1 {
         flex: 1;
         box-sizing: border-box;
     }
 
-    .harf_column1,
-    .harf_column2 {
+    .harf_column1 {
         max-width: 48%;
     }
 
@@ -262,28 +263,46 @@ table td {
         display: block;
     }
 
-    @media (min-width: 800px) {
-        .info-container {
-            display: flex;
-            gap: 20px;
-            /* 列間の間隔を設定 */
-        }
 
-        .main-table,
-        .table-section {
-            width: 50%;
-            /* 各列の幅を50%に設定 */
-        }
 
-        /* 必要に応じて、テーブルとテキストのスタイルを調整 */
-        .main-table {
-            margin: 0;
-            /* 余白の調整 */
-        }
+}
 
-        .table-section p {
-            margin-top: 0;
-        }
+@media (min-width: 800px) {
+    .info-container {
+        display: flex;
+        gap: 20px;
+        /* 列間の間隔を設定 */
     }
 
+    .harf_column2 {
+        flex: 1;
+        box-sizing: border-box;
+    }
+
+    .harf_column2 {
+        max-width: 48%;
+    }
+
+    .flag-tablet {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .main-table,
+    .table-section {
+        width: 50%;
+        /* 各列の幅を50%に設定 */
+    }
+
+    /* 必要に応じて、テーブルとテキストのスタイルを調整 */
+    .main-table {
+        margin: 0;
+        /* 余白の調整 */
+    }
+
+    .table-section p {
+        margin-top: 0;
+    }
 }

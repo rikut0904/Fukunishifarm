@@ -6,6 +6,14 @@
     table td {
         font-size: 15px;
     }
+    
+    /* メイン写真 */
+    main img {
+        border-radius: 20px;
+        width: 80%;
+        display: block;
+        margin: 0 auto;
+    }
 
     /* 地図データ */
     #map iframe {

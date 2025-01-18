@@ -13,6 +13,14 @@
         border: 0;
     }
 
+    /* メイン写真 */
+    main img {
+        border-radius: 20px;
+        width: 80%;
+        display: block;
+        margin: 0 auto;
+    }
+
     /* フルページカルーセル */
     .slider {
         position: relative;
