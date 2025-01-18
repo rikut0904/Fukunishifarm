@@ -1,5 +1,6 @@
 @charset "utf-8";
 @media (max-width: 750px) {
+
     /* ヘッダーロゴの設定 */
     header h1 {
         margin: 50px 0 20px 0;
@@ -123,36 +124,36 @@
         transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
     }
 
-    #hamburger:checked + label .burger::before,
-    #hamburger:checked + label .burger::after {
+    #hamburger:checked+label .burger::before,
+    #hamburger:checked+label .burger::after {
         width: 130%;
     }
 
-    #hamburger:checked + label .burger::before {
+    #hamburger:checked+label .burger::before {
         transform: rotate(-45deg);
     }
 
-    #hamburger:checked + label .burger::after {
+    #hamburger:checked+label .burger::after {
         transform: rotate(45deg);
     }
 
-    #hamburger:checked + label .burger .bar {
+    #hamburger:checked+label .burger .bar {
         transform: scale(0);
     }
 
-    #hamburger:checked ~ #menu::before {
+    #hamburger:checked~#menu::before {
         transform: skewX(-15deg) translateX(0);
     }
-    
-    #hamburger:checked ~ #menu {
+
+    #hamburger:checked~#menu {
         z-index: 999;
     }
 
-    #hamburger:checked ~ #menu a {
+    #hamburger:checked~#menu a {
         transform: translateX(0);
     }
 
-    #hamburger:checked ~ .light-dark {
+    #hamburger:checked~.light-dark {
         background: #000;
         opacity: 0.5;
         width: 100%;
@@ -161,7 +162,7 @@
         top: 0;
         right: 0;
     }
-    
+
     /* フッター */
     footer {
         background-color: rgba(255, 148, 27, 0.62);

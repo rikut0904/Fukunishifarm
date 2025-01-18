@@ -9,14 +9,14 @@ body {
     background-size: cover;
     background-position: center bottom;
     height: 800px;
-    background-image: url(../pic/header_footer.jpg);
+    background-image: url(../../pic/header_footer.jpg);
 }
 
 .cover-sub {
     background-size: cover;
     background-position: center bottom;
     height: 350px;
-    background-image: url(../pic/header_footer.jpg);
+    background-image: url(../../pic/header_footer.jpg);
 }
 
 /* ヘッダーロゴの設定 */
