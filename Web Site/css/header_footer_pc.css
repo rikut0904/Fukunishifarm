@@ -4,7 +4,7 @@
 .cover-home {
     background-size: cover;
     background-position: center bottom;
-    height: 550px;
+    height: 400px;
     background-image: url(../pic/header_footer.jpg);
 }
 

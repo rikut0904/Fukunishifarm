@@ -1,19 +1,24 @@
 @charset "udf-8";
 @media (max-width: 1380px) {
-
     /*ヘッダーカバー*/
-    .cover-home {
-        background-size: cover;
-        background-position: center bottom;
-        height: 550px;
-        background-image: url(../pic/header_footer.jpg);
+    @media (min-width:700px) {
+        .cover-home {
+            height: 350px;
+        }
+
+        .cover-sub {
+            height: 300px;
+        }
     }
 
-    .cover-sub {
-        background-size: cover;
-        background-position: center bottom;
-        height: 350px;
-        background-image: url(../pic/header_footer.jpg);
+    @media (max-width:699px) {
+        .cover-home {
+            height: 200px;
+        }
+
+        .cover-sub {
+            height: 200px;
+        }
     }
 
     /* ヘッダーロゴ */
@@ -65,6 +70,7 @@
         padding: 15px 20px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
+        z-index: 2;
     }
 
     #menu ul {

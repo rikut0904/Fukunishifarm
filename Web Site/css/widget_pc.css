@@ -40,6 +40,20 @@ table td {
     border-spacing: 0;
 }
 
+/* ヘッダーの臨時ニュース */
+.header_news {
+    position: absolute;
+    left: 50%;
+    top:15rem;
+    transform: translate(-50%, -50%); 
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    background-color: hsla(119, 89%, 63%, 0.59);
+    padding: 1.5%;
+    border-radius: 3rem;
+}
+
 /* メイン写真 */
 main img {
     border-radius: 20px;
