@@ -16,8 +16,10 @@
 }
 
 /* ヘッダーロゴの設定 */
-.logo {
-    width: 10%;
+.logo,
+.logo img {
+    width: 8%;
+    min-width: 50px;
     height: auto;
     margin: 0 1% 0;
     flex-grow: 1;
