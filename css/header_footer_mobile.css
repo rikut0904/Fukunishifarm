@@ -61,9 +61,9 @@
         display: none;
         flex-direction: column;
         position: absolute;
-        width: 30%;
+        width: 32%;
         top: 50px;
-        left: 69%;
+        left: 66%;
         background-color: #f4f4f4;
         color: #000;
         font-size: 85%;
@@ -79,7 +79,7 @@
     }
 
     #menu ul li {
-        margin-left: 20px;
+        margin-left: 10px;
     }
 
     #menu ul li a {
