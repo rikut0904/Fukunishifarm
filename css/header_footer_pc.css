@@ -18,11 +18,11 @@
 /* ヘッダーロゴの設定 */
 .logo,
 .logo img {
-    width: 8%;
-    min-width: 50px;
+    max-width: 208px;
+    width: 80%;
+    margin-top: 1%;
+    margin-left: 1%;
     height: auto;
-    margin: 0 1% 0;
-    flex-grow: 1;
 }
 
 #header_visual img {
