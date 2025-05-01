@@ -16,11 +16,14 @@
 }
 
 /* ヘッダーロゴの設定 */
-.logo img {
+#logo img {
     max-width: 208px;
+    min-width: 8%;
     margin-top: 1%;
     margin-left: 1%;
     height: auto;
+    max-height: 80%;
+    align-items: center;
 }
 
 #header_visual img {

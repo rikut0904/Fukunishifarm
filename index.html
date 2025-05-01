@@ -20,12 +20,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet" />
 
     <!-- オリジナルCSS -->
-    <link rel="stylesheet" href="css/header_footer_pc.css" />
-    <link rel="stylesheet" href="css/header_footer_mobile.css" />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/widget_pc.css" />
-    <link rel="stylesheet" href="css/widget_tablet.css" />
-    <link rel="stylesheet" href="css/widget_phone.css" />
+    <link rel="stylesheet" href="./css/header_footer_pc.css" />
+    <link rel="stylesheet" href="./css/header_footer_mobile.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/widget_pc.css" />
+    <link rel="stylesheet" href="./css/widget_tablet.css" />
+    <link rel="stylesheet" href="./css/widget_phone.css" />
 </head>
 
 <body>
@@ -33,8 +33,8 @@
     <header class="header">
         <div class="cover-home">
             <div class="header-content">
-                <div class="logo">
-                    <a href="/"><img src="pic/logo_budou.png" alt="logo" /></a>
+                <div id="logo">
+                    <a href="/"><img src="pic/logo_budou.png" alt="logo" width="20%" /></a>
                 </div>
                 <!-- ハンバーガーメニュー -->
                 <input type="checkbox" id="hamburger" />
@@ -47,7 +47,7 @@
                 </label>
                 <div id="menu" class="font-english main-nav">
                     <ul>
-                        <li><a href="index.html">Home</a></li>
+                        <li><a href="/">Home</a></li>
                         <li><a href="about.html">About</a></li>
                         <li><a href="news.html">News</a></li>
                         <li><a href="tirasi.html">ちらし</a></li>
@@ -62,7 +62,7 @@
                 </div> -->
             </div>
             <div>
-                <a href="price.html" class="header_news">料金変更のお知らせ</a>
+                <a href="price.html" id="header_news">料金変更のお知らせ</a>
             </div>
         </div>
     </header>
