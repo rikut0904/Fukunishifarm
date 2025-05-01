@@ -3,8 +3,8 @@
 /* テーブルデザイン */
 table th,
 table td {
-    padding: 10px 20px;
-    border-bottom: 1px solid #c9c2bc;
+    padding: 10px 25px;
+    border-bottom: 2px solid #c9c2bc;
 }
 
 table th {
@@ -38,6 +38,20 @@ table td {
     margin: auto;
     padding: 0 1.5rem;
     border-spacing: 0;
+}
+
+/* ヘッダーの臨時ニュース */
+#header_news {
+    position: absolute;
+    left: 50%;
+    top: 15rem;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    background-color: hsla(119, 89%, 63%, 0.59);
+    padding: 1.5%;
+    border-radius: 3rem;
 }
 
 /* メイン写真 */

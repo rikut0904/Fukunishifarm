@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- ファビコン -->
-    <link rel="icon" type="pic/png" href="pic/" />
+    <link rel="icon" type="pic/png" href="pic/icon_budou.png" />
 
     <!-- リセットcss -->
     <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css" />
@@ -20,12 +20,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Philosopher&display=swap" rel="stylesheet" />
 
     <!-- オリジナルCSS -->
-    <link rel="stylesheet" href="css/header_footer_pc.css" />
-    <link rel="stylesheet" href="css/header_footer_mobile.css" />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/widget_pc.css" />
-    <link rel="stylesheet" href="css/widget_tablet.css" />
-    <link rel="stylesheet" href="css/widget_phone.css" />
+    <link rel="stylesheet" href="./css/header_footer_pc.css" />
+    <link rel="stylesheet" href="./css/header_footer_mobile.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/widget_pc.css" />
+    <link rel="stylesheet" href="./css/widget_tablet.css" />
+    <link rel="stylesheet" href="./css/widget_phone.css" />
 </head>
 
 <body>
@@ -33,8 +33,8 @@
     <header>
         <div class="cover-sub">
             <div class="header-content">
-                <div class="logo">
-                    <img src="pic/" alt="logo" />
+                <div id="logo">
+                    <a href="/"><img src="pic/logo_budou.png" alt="logo" /></a>
                 </div>
                 <!-- ハンバーガーメニュー -->
                 <input type="checkbox" id="hamburger" />
@@ -47,18 +47,19 @@
                 </label>
                 <div id="menu" class="font-english main-nav">
                     <ul>
-                        <li><a href="index.html">Home</a></li>
+                        <li><a href="/">Home</a></li>
                         <li><a href="about.html">About</a></li>
                         <li><a href="news.html">News</a></li>
                         <li><a href="tirasi.html">ちらし</a></li>
                         <li><a href="reservation.html">ご予約方法</a></li>
                         <li><a href="access.html">アクセス</a></li>
+                        <li><a href="contact.html">お問い合わせ</a></li>
                     </ul>
                 </div>
                 <!-- ヘッダービジュアル -->
-                <div id="header_visual">
+                <!-- <div id="header_visual">
                     <img src="pic/farm_board.jpg" alt="ふくにしファーム看板" />
-                </div>
+                </div> -->
             </div>
         </div>
     </header>
@@ -129,30 +130,28 @@
                         </div>
 -->
                     <!-- 販売開始前文章コメントアウト箇所 -->
-                    <!--
-                        <div class="slide">
-                            <p style="font-size: 21px">
-                                本年度もぶどうの時期が始まります！！<br />
-                                本年度もおいしいぶどうが実っていますので、<br class="mobile_hid" />
-                                ぜひふくにしファームへご来園ください。
-                            </p>
-                        </div>
--->
+                    <div class="slide">
+                        <p style="font-size: 21px">
+                            本年度もぶどうの時期が始まります！！<br />
+                            本年度もおいしいぶどうが実っていますので、<br class="mobile_hid" />
+                            ぜひふくにしファームへご来園ください。
+                        </p>
+                    </div>
                     <!-- 販売終了後文章コメントアウト箇所 -->
 
-                    <div class="slide">
+                    <!-- <div class="slide">
                         <p style="font-size: 21px">
                             本年度のぶどうが終了いたしました。<br />
                             来年度もおいしいぶどうが実るよう育てていきますので、<br class="mobile_hid" />
                             ぜひ来年度ふくにしファームへご来園ください。
                         </p>
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <h1>お知らせ</h1>
             <ul class="news-info inside">
+                <li>料金を変更させていただきました。詳しくは<a href="price.html">こちら</a>をご覧ください。</li>
                 <li>ホームページをリニューアルしました。</li>
-                <li>本年度のぶどうは終了いたしました。</li>
             </ul>
         </div>
     </main>
@@ -177,8 +176,9 @@
             <li><a href="tirasi.html">ちらし</a></li>
             <li><a href="reservation.html">ご予約方法</a></li>
             <li><a href="access.html">アクセス</a></li>
+            <li><a href="contact.html">お問い合わせ</a></li>
         </ul>
-        <small>Copyright &copy;2024 ふくにしファーム, All Righits Reserver.</small>
+        <small>Copyright &copy; 2024 - 2025 ふくにしファーム, All Righits Reserver.</small>
     </footer>
     <!-- フッター -->
 </body>

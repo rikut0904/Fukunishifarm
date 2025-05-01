@@ -4,7 +4,7 @@
 .cover-home {
     background-size: cover;
     background-position: center bottom;
-    height: 550px;
+    height: 400px;
     background-image: url(../pic/header_footer.jpg);
 }
 
@@ -16,11 +16,14 @@
 }
 
 /* ヘッダーロゴの設定 */
-.logo {
-    width: 10%;
+#logo img {
+    max-width: 208px;
+    min-width: 8%;
+    margin-top: 1%;
+    margin-left: 1%;
     height: auto;
-    margin: 0 1% 0;
-    flex-grow: 1;
+    max-height: 80%;
+    align-items: center;
 }
 
 #header_visual img {
@@ -56,7 +59,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
-    margin-right: 10%;
+    margin-right: 15%;
 }
 
 .main-nav ul {

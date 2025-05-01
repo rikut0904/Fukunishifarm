@@ -7,6 +7,11 @@
         font-size: 15px;
     }
 
+    /* ヘッダーの臨時ニュース */
+    .header_news {
+        top: 10rem;
+    }
+
     /* メイン写真 */
     main img {
         border-radius: 20px;
