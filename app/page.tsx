@@ -1,5 +1,6 @@
 import AppHeader from "../components/AppHeader";
 import SiteFooter from "../components/SiteFooter";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -35,11 +36,11 @@ export default function Home() {
           </div>
 
           <h1>販売種</h1>
-          <div className="slider">
-            <div className="slides">
-              <div className="slide">
-                <div className="slide-content">
-                  <img src="/img/ryuhou.jpeg" alt="竜宝" className="slide-image" />
+          <div className="slider relative z-10 w-[95%] md:w-[85%] lg:w-[60%] text-center overflow-hidden flex items-center justify-center mx-auto">
+            <div className="slides flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-5">
+              <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                  <Image src="/img/ryuhou.jpeg" alt="竜宝" width={800} height={600} className="slide-image" />
                   <div className="slide-text">
                     <h4>竜宝</h4>
                     <p>
@@ -49,13 +50,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="slide">
-                <div className="slide-content">
-                  <img
-                    src="/img/shinano.jpeg"
-                    alt="シナノスマイル"
-                    className="slide-image"
-                  />
+              <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                  <Image src="/img/shinano.jpeg" alt="シナノスマイル" width={800} height={600} className="slide-image" />
                   <div className="slide-text">
                     <h4>シナノスマイル</h4>
                     <p>
@@ -64,13 +61,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="slide">
-                <div className="slide-content">
-                  <img
-                    src="/img/fujiminori.jpeg"
-                    alt="藤稔"
-                    className="slide-image"
-                  />
+              <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                  <Image src="/img/fujiminori.jpeg" alt="藤稔" width={800} height={600} className="slide-image" />
                   <div className="slide-text">
                     <h4>藤稔</h4>
                     <p>
@@ -80,9 +73,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="slide">
-                <div className="slide-content">
-                  <img src="/img/pione.jpeg" alt="ピオーネ" className="slide-image" />
+              <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                  <Image src="/img/pione.jpeg" alt="ピオーネ" width={800} height={600} className="slide-image" />
                   <div className="slide-text">
                     <h4>ピオーネ</h4>
                     <p>
@@ -91,13 +84,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="slide">
-                <div className="slide-content">
-                  <img
-                    src="/img/syain.jpeg"
-                    alt="シャインマスカット"
-                    className="slide-image"
-                  />
+              <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                  <Image src="/img/syain.jpeg" alt="シャインマスカット" width={800} height={600} className="slide-image" />
                   <div className="slide-text">
                     <h4>シャインマスカット</h4>
                     <p>

@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import SiteFooter from "@/components/SiteFooter";
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -22,7 +23,7 @@ export default function AboutPage() {
             <h1>ふくにしファームについて</h1>
             <div className="flag-tablet">
               <div className="harf_column2">
-                <img src="/img/producer.jpg" alt="生産者" />
+                    <Image src="/img/producer.jpg" alt="生産者" width={800} height={600} />
               </div>
               <div className="harf_column2">
                 <p>
@@ -39,20 +40,20 @@ export default function AboutPage() {
           </section>
           <section id="topic_about">
             <h2>特徴</h2>
-            <div className="slider">
-              <div className="slides">
-                <div className="slide">
-                  <div className="slide-content">
-                    <img src="/img/farm_inside.jpeg" alt="入場無料" className="slide-image" />
+            <div className="slider relative z-10 w-[95%] md:w-[85%] lg:w-[60%] text-center overflow-hidden flex items-center justify-center mx-auto">
+              <div className="slides flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-5">
+                <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                    <Image src="/img/farm_inside.jpeg" alt="入場無料" width={800} height={600} className="slide-image" />
                     <div className="slide-text">
                       <h4>入場無料</h4>
                       <p>園内に入場される際に入場料をいただきません。</p>
                     </div>
                   </div>
                 </div>
-                <div className="slide">
-                  <div className="slide-content">
-                    <img src="/img/barrier_free.jpg" alt="バリアフリー" className="slide-image" />
+                <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                    <Image src="/img/barrier_free.jpg" alt="バリアフリー" width={800} height={600} className="slide-image" />
                     <div className="slide-text">
                       <h4>バリアフリー</h4>
                       <p>
@@ -61,9 +62,9 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </div>
-                <div className="slide">
-                  <div className="slide-content">
-                    <img src="/img/low_wood.jpeg" alt="低位置に房がある" className="slide-image" />
+                <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
+                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
+                    <Image src="/img/low_wood.jpeg" alt="低位置に房がある" width={800} height={600} className="slide-image" />
                     <div className="slide-text">
                       <h4>低位置に房がある</h4>
                       <p>どのような方でも自分の手でぶどう狩りを楽しんでいただけます。</p>

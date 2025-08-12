@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X } from "lucide-react"
 import { Button } from "./ui/button"
 import { useState } from "react"
@@ -8,23 +9,37 @@ import { NAV_ITEMS } from "./navItems"
 
 export default function AppHeader({ variant = "home" }: { variant?: "home" | "sub" }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const coverClass = variant === "sub" ? "cover-sub" : "cover-home"
+  const isSub = variant === "sub"
 
   return (
     <header className="header">
-      <div className={coverClass}>
-        <div className="header-content">
+      <div
+        className={
+          // 背景画像は旧CSSの代替（Tailwindでサイズと配置を指定）
+          `${isSub ? "h-[300px] md:h-[350px]" : "h-[200px] md:h-[350px] lg:h-[400px]"} bg-[url('/img/header_footer.jpg')] bg-cover bg-center`
+        }
+      >
+        <div className="header-content flex items-center justify-between">
           <div id="logo">
             <Link href="/">
-              <img src="/img/logo_budou.png" alt="logo" />
+              <Image
+                src="/img/logo_budou.png"
+                alt="logo"
+                width={200}
+                height={200}
+                priority
+                style={{ height: "auto", width: "auto", maxWidth: "208px" }}
+              />
             </Link>
           </div>
-          {/* Desktop Navigation (lg+) - legacy styles via .main-nav */}
-          <nav className="hidden lg:block font-english main-nav" aria-label="メインメニュー">
-            <ul>
+          {/* Desktop Navigation (lg+) */}
+          <nav className="hidden lg:block font-english" aria-label="メインメニュー">
+            <ul className="flex list-none gap-6 text-2xl mr-16">
               {NAV_ITEMS.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href}>{item.label}</Link>
+                <li key={item.href} className="whitespace-nowrap">
+                  <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-3 py-1 transition">
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
