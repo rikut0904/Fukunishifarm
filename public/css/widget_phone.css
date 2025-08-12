@@ -1,0 +1,150 @@
+@charset "utf-8";
+@media (max-width: 750px) {
+
+    /* テーブルデザイン */
+    table th,
+    table td {
+        font-size: 15px;
+    }
+
+    /* ヘッダーの臨時ニュース */
+    .header_news {
+        top: 10rem;
+    }
+
+    /* メイン写真 */
+    main img {
+        border-radius: 20px;
+        width: 80%;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* 地図データ */
+    #map iframe {
+        width: 100%;
+    }
+
+    /* パンフレット */
+    .pamphelet iframe {
+        width: 100%;
+        height: 45vh;
+        border: 0;
+    }
+
+    /* フルページカルーセル */
+    .slider {
+        position: relative;
+        z-index: 10;
+        width: auto;
+        height: auto;
+        text-align: center;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+    }
+
+    .slides {
+        display: flex;
+        overflow-x: auto;
+        margin-bottom: 10px;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .slide {
+        scroll-snap-align: start;
+        flex: 0 0 100%;
+        flex-basis: 100%;
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        background: #eee;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        margin-right: 0;
+        overflow: hidden;
+    }
+
+    .slide-content {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .slide-image {
+        width: 60%;
+        height: auto;
+        border-radius: 10px;
+        margin-top: 10px;
+        object-fit: cover;
+    }
+
+    .slide-text {
+        flex: 2;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        border-radius: 10px;
+        margin-top: -5px;
+        position: relative;
+    }
+
+    .slide-text h4 {
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    .slide-text p {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .slides>div {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+        width: auto;
+        height: auto;
+        min-height: 280px;
+        border-radius: 10px;
+        background: #eee;
+        transform-origin: center center;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* スクロールバーのスタイル */
+    .slides::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .slides::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .slides::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .pc_hid {
+        display: block;
+    }
+
+    .mobile_hid {
+        display: none;
+    }
+}
