@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "./ui/button"
 import { useState } from "react"
 import { NAV_ITEMS } from "./navItems"
@@ -11,15 +11,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const isSub = variant === "sub"
 
-  function HamburgerIcon() {
-    return (
-      <span aria-hidden className="relative block text-current w-12 h-9 sm:w-14 sm:h-10 md:w-16 md:h-12">
-        <span className="absolute inset-x-0 top-0 h-1.5 sm:h-1.5 md:h-2 bg-current rounded"></span>
-        <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 sm:h-1.5 md:h-2 bg-current rounded"></span>
-        <span className="absolute inset-x-0 bottom-0 h-1.5 sm:h-1.5 md:h-2 bg-current rounded"></span>
-      </span>
-    )
-  }
+  
 
   return (
     <header className="header">
@@ -55,16 +47,10 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
             </ul>
           </nav>
 
-          {/* Mobile/Tablet Hamburger Icon (shown below lg) */}
-          <div className="lg:hidden flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="メニューを開く"
-            >
-              <HamburgerIcon />
+          {/* Mobile Hamburger Icon */}
+          <div className="md:hidden flex items-center">
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu className="h-6 w-6" />
             </Button>
           </div>
         </div>
