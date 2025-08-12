@@ -54,7 +54,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="メニューを開く"
             >
-              <Menu className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10" strokeWidth={3} />
+              <Menu className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20" strokeWidth={3} />
             </Button>
           </div>
         </div>
