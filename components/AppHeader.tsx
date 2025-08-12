@@ -34,7 +34,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           </div>
           {/* Desktop Navigation (lg+) */}
           <nav className="hidden lg:block font-english" aria-label="メインメニュー">
-            <ul className="flex list-none gap-5 text-base lg:text-lg mr-8 lg:mr-16">
+            <ul className="flex list-none gap-6 lg:gap-7 text-lg lg:text-xl xl:text-2xl mr-8 lg:mr-16">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href} className="whitespace-nowrap">
                   <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-3 py-1 transition">
@@ -47,8 +47,14 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
 
           {/* Mobile/Tablet Hamburger Icon (shown below lg) */}
           <div className="lg:hidden flex items-center">
-            <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10" onClick={() => setIsMobileMenuOpen(true)} aria-label="メニューを開く">
-              <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="メニューを開く"
+            >
+              <Menu className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" />
             </Button>
           </div>
         </div>
