@@ -19,7 +19,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           `${isSub ? "h-[200px] md:h-[300px] lg:h-[340px]" : "h-[160px] md:h-[300px] lg:h-[360px]"} bg-[url('/img/header_footer.jpg')] bg-cover bg-center`
         }
       >
-        <div className="header-content mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="header-content mx-auto max-w-screen-xl px-2 sm:px-4 lg:px-6 flex items-center justify-between">
           <div id="logo">
             <Link href="/">
               <Image
