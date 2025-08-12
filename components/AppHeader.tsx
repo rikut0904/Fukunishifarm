@@ -49,8 +49,14 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
 
           {/* Mobile Hamburger Icon */}
           <div className="md:hidden flex items-center">
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu className="h-8 w-8" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 sm:h-14 sm:w-14"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="メニューを開く"
+            >
+              <Menu className="h-10 w-10 sm:h-12 sm:w-12" />
             </Button>
           </div>
         </div>
