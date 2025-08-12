@@ -19,7 +19,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           `${isSub ? "h-[200px] md:h-[300px] lg:h-[340px]" : "h-[160px] md:h-[300px] lg:h-[360px]"} bg-[url('/img/header_footer.jpg')] bg-cover bg-center`
         }
       >
-        <div className="header-content flex items-center justify-between">
+        <div className="header-content mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div id="logo">
             <Link href="/">
               <Image
@@ -34,7 +34,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           </div>
           {/* Desktop Navigation (lg+) */}
           <nav className="hidden lg:block font-english" aria-label="メインメニュー">
-            <ul className="flex list-none gap-3 lg:gap-4 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl mr-8 lg:mr-16">
+            <ul className="flex list-none gap-3 lg:gap-4 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href} className="whitespace-nowrap">
                   <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-1 py-1 transition">
