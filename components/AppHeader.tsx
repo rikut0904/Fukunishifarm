@@ -37,7 +37,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
             <ul className="flex list-none gap-3 lg:gap-4 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl mr-8 lg:mr-16">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href} className="whitespace-nowrap">
-                  <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-3 py-1 transition">
+                  <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-1 py-1 transition">
                     {item.label}
                   </Link>
                 </li>
