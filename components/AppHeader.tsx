@@ -34,7 +34,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           </div>
           {/* Desktop Navigation (lg+) */}
           <nav className="hidden lg:block font-english" aria-label="メインメニュー">
-            <ul className="flex list-none gap-7 lg:gap-8 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl mr-8 lg:mr-16">
+            <ul className="flex list-none gap-5 lg:gap-6 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl mr-8 lg:mr-16">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href} className="whitespace-nowrap">
                   <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-4 py-1 transition">
@@ -50,11 +50,11 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12"
+              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="メニューを開く"
             >
-              <Menu className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" />
+              <Menu className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9" strokeWidth={2.5} />
             </Button>
           </div>
         </div>
