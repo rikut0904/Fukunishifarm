@@ -40,8 +40,8 @@ export default function Home() {
             <div className="slides flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-5">
               <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
                 <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                  <Image src="/img/ryuhou.jpeg" alt="竜宝" width={800} height={600} className="slide-image" />
-                  <div className="slide-text">
+                  <Image src="/img/ryuhou.jpeg" alt="竜宝" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                     <h4>竜宝</h4>
                     <p>
                       大粒で薄赤紫色。とろけるような甘さが特徴であり、ジューシーで触感の良い品種です。
@@ -52,8 +52,8 @@ export default function Home() {
               </div>
               <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
                 <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                  <Image src="/img/shinano.jpeg" alt="シナノスマイル" width={800} height={600} className="slide-image" />
-                  <div className="slide-text">
+                  <Image src="/img/shinano.jpeg" alt="シナノスマイル" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                     <h4>シナノスマイル</h4>
                     <p>
                       酸味と甘未のバランスがちょうどよく、すっきりとした味わいが人気の品種です。
@@ -63,8 +63,8 @@ export default function Home() {
               </div>
               <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
                 <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                  <Image src="/img/fujiminori.jpeg" alt="藤稔" width={800} height={600} className="slide-image" />
-                  <div className="slide-text">
+                  <Image src="/img/fujiminori.jpeg" alt="藤稔" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                     <h4>藤稔</h4>
                     <p>
                       糖度が高く酸味、渋みが少ないのが特徴の品種です。
@@ -75,8 +75,8 @@ export default function Home() {
               </div>
               <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
                 <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                  <Image src="/img/pione.jpeg" alt="ピオーネ" width={800} height={600} className="slide-image" />
-                  <div className="slide-text">
+                  <Image src="/img/pione.jpeg" alt="ピオーネ" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                     <h4>ピオーネ</h4>
                     <p>
                       糖度が高くて香りもよく、適度な酸味で濃厚な味わいが人気の品種です。
@@ -86,8 +86,8 @@ export default function Home() {
               </div>
               <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
                 <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                  <Image src="/img/syain.jpeg" alt="シャインマスカット" width={800} height={600} className="slide-image" />
-                  <div className="slide-text">
+                  <Image src="/img/syain.jpeg" alt="シャインマスカット" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                     <h4>シャインマスカット</h4>
                     <p>
                       種なしで皮ごと食べられ、さわやかでジューシー、酸味も低く贅沢な甘さが大人気！

@@ -25,4 +25,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
 }
+
+/* Headings scale for better balance */
+h1 { font-size: clamp(1.25rem, 1.1rem + 1vw, 1.6rem); }
+h2 { font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.35rem); }
+h3 { font-size: clamp(1rem, 0.9rem + 0.6vw, 1.15rem); }
+h4 { font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.05rem); }
+
+/* Legacy class bridges to tame sizes quickly */
+.main-table th, .main-table td { padding: 0.5rem 1rem; }
+.news-info li { margin-left: 1rem; padding-left: 0.5rem; }
+.page_top { margin-top: 3rem; }
