@@ -50,7 +50,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           {/* Mobile Hamburger Icon */}
           <div className="md:hidden flex items-center">
             <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu className="h-6 w-6" />
+              <Menu className="h-8 w-8" />
             </Button>
           </div>
         </div>
