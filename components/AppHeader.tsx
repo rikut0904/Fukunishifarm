@@ -28,7 +28,7 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
                 width={400}
                 height={120}
                 priority
-                className="h-auto w-28 sm:w-36 md:w-44 lg:w-52"
+                className="h-auto w-24 sm:w-32 md:w-40 lg:w-48"
               />
             </Link>
           </div>
