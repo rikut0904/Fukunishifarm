@@ -34,10 +34,10 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
           </div>
           {/* Desktop Navigation (lg+) */}
           <nav className="hidden lg:block font-english" aria-label="メインメニュー">
-            <ul className="flex list-none gap-6 lg:gap-7 text-lg lg:text-xl xl:text-2xl mr-8 lg:mr-16">
+            <ul className="flex list-none gap-7 lg:gap-8 text-lg lg:text-2xl xl:text-[28px] 2xl:text-3xl mr-8 lg:mr-16">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href} className="whitespace-nowrap">
-                  <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-3 py-1 transition">
+                  <Link href={item.href} className="text-green-700 hover:bg-orange-300/60 hover:text-purple-500 rounded-full px-4 py-1 transition">
                     {item.label}
                   </Link>
                 </li>
