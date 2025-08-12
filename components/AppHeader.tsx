@@ -50,11 +50,11 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
             <Button
               variant="ghost"
               size="icon"
-              className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16"
+              className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="メニューを開く"
             >
-              <Menu className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9" strokeWidth={2.5} />
+              <Menu className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10" strokeWidth={3} />
             </Button>
           </div>
         </div>
