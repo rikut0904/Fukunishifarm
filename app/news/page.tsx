@@ -164,6 +164,9 @@ export default function NewsPage() {
           <h1>お知らせ</h1>
           <ul className="news-info inside">
             <li>
+              2025年8月24日より開園となります。ぜひぜひお越しください
+            </li>
+            <li>
               料金を変更させていただきました。詳しくは
               <a href="/price">こちら</a>をご覧ください。
             </li>
