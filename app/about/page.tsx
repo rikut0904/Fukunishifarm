@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "ふくにしファーム-ABOUT",
+  title: "ふくにしファーム-about",
   description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
 };
 
@@ -16,14 +16,21 @@ export default function AboutPage() {
       <main>
         <ol id="topic_path">
           <li><Link href="/">HOME</Link></li>
-          <li>ABOUT</li>
+          <li>about</li>
         </ol>
         <div id="about_content">
           <section id="intoro">
             <h1>ふくにしファームについて</h1>
             <div className="flag-tablet">
-              <div className="harf_column2">
-                    <Image src="/img/producer.jpg" alt="生産者" width={800} height={600} />
+              <div className="harf_column2 flex justify-center items-start">
+                    <Image
+                      src="/img/producer.jpg"
+                      alt="生産者"
+                      width={800}
+                      height={600}
+                      sizes="(max-width: 768px) 90vw, 420px"
+                      className="w-[min(90vw,420px)] h-auto rounded-lg object-cover"
+                    />
               </div>
               <div className="harf_column2">
                 <p>
@@ -40,11 +47,18 @@ export default function AboutPage() {
           </section>
           <section id="topic_about">
             <h2>特徴</h2>
-            <div className="slider relative z-10 w-[95%] md:w-[85%] lg:w-[60%] text-center overflow-hidden flex items-center justify-center mx-auto">
+            <div className="slider relative z-10 w-[95%] md:w-[100%] lg:w-[90%] text-center overflow-hidden flex items-center justify-center mx-auto">
               <div className="slides flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-5">
                 <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
-                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                    <Image src="/img/farm_inside.jpeg" alt="入場無料" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-content flex flex-col lg:flex-row w-full p-0">
+                    <Image
+                      src="/img/farm_inside.jpeg"
+                      alt="入場無料"
+                      width={1600}
+                      height={1200}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 90vw"
+                      className="slide-image w-full sm:w-full md:w-full lg:w-11/12 h-auto max-h-56 sm:max-h-72 md:max-h-[24rem] lg:max-h-[40rem] object-cover rounded-lg"
+                    />
                     <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                       <h4>入場無料</h4>
                       <p>園内に入場される際に入場料をいただきません。</p>
@@ -52,8 +66,15 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
-                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                    <Image src="/img/barrier_free.jpg" alt="バリアフリー" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-content flex flex-col lg:flex-row w-full p-0">
+                    <Image
+                      src="/img/barrier_free.jpg"
+                      alt="バリアフリー"
+                      width={1600}
+                      height={1200}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 90vw"
+                      className="slide-image w-full sm:w-full md:w-full lg:w-11/12 h-auto max-h-56 sm:max-h-72 md:max-h-[24rem] lg:max-h-[40rem] object-cover rounded-lg"
+                    />
                     <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                       <h4>バリアフリー</h4>
                       <p>
@@ -63,8 +84,15 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="slide snap-start flex-shrink-0 w-full rounded-lg bg-gray-100 flex flex-col items-center justify-center box-border mr-0 overflow-hidden">
-                  <div className="slide-content flex flex-col md:flex-row w-full p-0">
-                    <Image src="/img/low_wood.jpeg" alt="低位置に房がある" width={640} height={480} className="slide-image w-full md:w-2/5 h-auto object-cover rounded-lg" />
+                  <div className="slide-content flex flex-col lg:flex-row w-full p-0">
+                    <Image
+                      src="/img/low_wood.jpeg"
+                      alt="低位置に房がある"
+                      width={1600}
+                      height={1200}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 90vw"
+                      className="slide-image w-full sm:w-full md:w-full lg:w-11/12 h-auto max-h-56 sm:max-h-72 md:max-h-[24rem] lg:max-h-[40rem] object-cover rounded-lg"
+                    />
                     <div className="slide-text flex-1 p-5 flex flex-col justify-center">
                       <h4>低位置に房がある</h4>
                       <p>どのような方でも自分の手でぶどう狩りを楽しんでいただけます。</p>

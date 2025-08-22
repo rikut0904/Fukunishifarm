@@ -21,10 +21,11 @@
         }
     }
 
-    /* ヘッダーロゴ */
+    /* ヘッダーロゴ（余白を抑制） */
     #header_visual img {
         width: 60%;
-        margin-top: 1%;
+        margin: 0;  /* いったん余白リセット */
+        padding: 5px; /* 10px → 5px */
         box-shadow: 0 0 8px rgb(255, 148, 27);
     }
 
@@ -37,8 +38,8 @@
         height: 24px;
         cursor: pointer;
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 10px;  /* 上の空白を減らす */
+        right: 10px; /* 右の空白を減らす */
         z-index: 3;
     }
 
@@ -79,7 +80,7 @@
     #menu ul {
         list-style: none;
         margin: 0;
-        padding: 16px 20px;
+        padding: 12px 12px; /* 右・上の余白を圧縮 */
         position: absolute;
         top: 0;
         right: 0;
@@ -107,8 +108,8 @@
     /* 閉じるボタン */
     .menu-close-mobile {
         position: absolute;
-        top: 10px;
-        right: 10px; /* デフォルトはオーバーレイ右端 */
+        top: 6px;
+        right: 6px; /* オーバーレイ右端の余白を圧縮 */
         font-size: 28px;
         color: #fff;
         cursor: pointer;

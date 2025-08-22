@@ -15,11 +15,13 @@
     background-image: url(../img/header_footer.jpg);
 }
 
-/* ヘッダーロゴの設定 */
+/* ヘッダーロゴの設定（余白を抑制） */
 #logo img {
-    min-width: 18%;
-    margin-top: 1%;
-    margin-left: 1%;
+    min-width: auto;
+    margin: 0;
+    /* いったん余白リセット */
+    padding: 5px;
+    /* 10px → 5px */
     height: auto;
     max-height: 80%;
     align-items: center;
@@ -27,8 +29,10 @@
 
 #header_visual img {
     max-width: 208px;
-    margin-top: 1rem;
-    margin-right: 1rem;
+    margin: 0;
+    /* いったん余白リセット */
+    padding: 5px;
+    /* 10px → 5px */
     height: auto;
     box-shadow: 0 0 8px rgb(255, 148, 27);
 }
@@ -75,14 +79,17 @@
 .main-nav {
     display: flex;
     justify-content: flex-end;
-    margin-top: 20px;
-    margin-right: 15%;
+    margin: 0;
+    /* いったん余白リセット */
+    padding: 5px;
+    /* 10px → 5px */
 }
 
 .main-nav ul {
     display: flex;
     list-style-type: none;
-    gap: 4%;
+    gap: 12px;
+    /* %ではなくpxに */
     font-size: 200%;
 }
 

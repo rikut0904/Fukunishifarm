@@ -18,10 +18,10 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
       <div
         className={
           // 背景画像は旧CSSの代替（Tailwindでサイズと配置を指定）
-          `${isSub ? "h-[200px] md:h-[300px] lg:h-[340px]" : "h-[160px] md:h-[300px] lg:h-[360px]"} bg-[url('/img/header_footer.jpg')] bg-cover bg-center`
+          `${isSub ? "h-[180px] md:h-[280px] lg:h-[320px]" : "h-[140px] md:h-[280px] lg:h-[320px]"} bg-[url('/img/header_footer.jpg')] bg-cover bg-center`
         }
       >
-        <div className="header-content mx-auto max-w-screen-xl px-2 sm:px-4 lg:px-6 flex items-center justify-between">
+        <div className="header-content mx-auto max-w-screen-xl p-[5px] flex items-center justify-between">
           <div id="logo">
             <Link href="/">
               <Image
@@ -52,11 +52,11 @@ export default function AppHeader({ variant = "home" }: { variant?: "home" | "su
             <Button
               variant="ghost"
               size="icon"
-              className="h-12 w-12 sm:h-14 sm:w-14"
+              className="!size-[44px] sm:!size-[50px] p-0"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="メニューを開く"
             >
-              <Menu className="h-10 w-10 sm:h-12 sm:w-12" />
+              <Menu className="!size-[44px] sm:!size-[50px]" strokeWidth={2} />
             </Button>
           </div>
         </div>
