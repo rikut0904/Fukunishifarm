@@ -20,21 +20,20 @@ export default function NewsPage() {
         <div className="news_content">
           <h1>販売状況</h1>
           <p>ふくにしファームが販売しているぶどうの状況をお知らせします。</p>
-          <p>※2025年8月24日より販売開始となります。ぜひぜひお越しください</p>
+          {/* <p>※2025年8月24日より販売開始となります。ぜひぜひお越しください</p> */}
           {/* スライドデータ */}
           <div className="slider">
             <div className="slides">
               {/* 竜宝コメントアウト箇所 */}
-              <div className="slide">
+              {/* <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>竜宝</h4>
                   </div>
                   <img src="img/ryuhou.jpeg" alt="竜宝" className="slide-image" />
                 </div>
-              </div>
+              </div> */}
               {/* シナノスマイルコメントアウト箇所 */}
-              {/*
               <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
@@ -43,20 +42,16 @@ export default function NewsPage() {
                   <img src="img/shinano.jpeg" alt="シナノスマイル" className="slide-image" />
                 </div>
               </div>
-              */}
               {/* 藤稔コメントアウト箇所 */}
-              {/*
               <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>藤稔</h4>
                   </div>
-                  <img src="img/fujiminori.jpeg" alt="藤稔" className="slide-image" />
+                  <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
                 </div>
               </div>
-              */}
               {/* ピオーネコメントアウト箇所 */}
-              {/*
               <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
@@ -65,7 +60,6 @@ export default function NewsPage() {
                   <img src="img/pione.jpeg" alt="ピオーネ" className="slide-image" />
                 </div>
               </div>
-              */}
               {/* シャインマスカットコメントアウト箇所 */}
               <div className="slide">
                 <div className="slide-content">
@@ -105,7 +99,8 @@ export default function NewsPage() {
                   <div className="slide-text">
                     <h4>竜宝</h4>
                     <p>
-                      現在食べごろです！！
+                      {/* 現在食べごろです！！ */}
+                      本年度販売終了いたしました。
                     </p>
                   </div>
                   <img src="img/ryuhou.jpeg" alt="竜宝" className="slide-image" />
@@ -117,7 +112,8 @@ export default function NewsPage() {
                   <div className="slide-text">
                     <h4>シナノスマイル</h4>
                     <p>
-                      しばらくお待ちください
+                      {/* しばらくお待ちください */}
+                      現在食べごろです！！
                     </p>
                   </div>
                   <img src="img/shinano.jpeg" alt="シナノスマイル" className="slide-image" />
@@ -129,10 +125,11 @@ export default function NewsPage() {
                   <div className="slide-text">
                     <h4>藤稔</h4>
                     <p>
-                      しばらくお待ちください
+                      {/* しばらくお待ちください */}
+                      現在食べごろです！！
                     </p>
                   </div>
-                  <img src="img/fujiminori.jpeg" alt="藤稔" className="slide-image" />
+                  <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
                 </div>
               </div>
               {/* ピオーネ */}
@@ -141,7 +138,8 @@ export default function NewsPage() {
                   <div className="slide-text">
                     <h4>ピオーネ</h4>
                     <p>
-                      しばらくお待ちください
+                      {/* しばらくお待ちください */}
+                      現在食べごろです！！
                     </p>
                   </div>
                   <img src="img/pione.jpeg" alt="ピオーネ" className="slide-image" />
