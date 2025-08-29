@@ -38,7 +38,7 @@ jobs:
 
       - name: Rsync to Lolipop
         run: |
-          rsync -avz --delete --delay-updates \ 
+          rsync -avz --delete --delay-updates \
           -e "ssh -p ${{ secrets.LOLIPOP_PORT }}" \
           out/ \
           ${{ secrets.LOLIPOP_USER }}@${{ secrets.LOLIPOP_HOST }}:${{ secrets.LOLIPOP_TARGET_DIR }}
