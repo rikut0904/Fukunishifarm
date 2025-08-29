@@ -162,11 +162,14 @@ export default function NewsPage() {
           <h1>お知らせ</h1>
           <ul className="news-info inside">
             <li>
+              竜宝が終了いたしました。楽しみにしていただいた方には申し訳ありません。
+            </li>
+            <li>
               2025年8月24日より開園となります。ぜひぜひお越しください
             </li>
             <li>
               料金を変更させていただきました。詳しくは
-              <a href="/price">こちら</a>をご覧ください。
+              <Link href="/price">こちら</Link>をご覧ください。
             </li>
             <li>ホームページをリニューアルしました。</li>
           </ul>
