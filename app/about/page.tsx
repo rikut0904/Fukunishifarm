@@ -136,12 +136,12 @@ export default function AboutPage() {
                   <tr>
                     <th>SNS</th>
                     <td>
-                      <a
+                      <Link
                         href="https://www.instagram.com/fukunishi_farm/?igshid=MmIzYWVlNDQ5Yg%3D%3D"
                         target="_blank"
                       >
                         インスタグラム
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 </tbody>

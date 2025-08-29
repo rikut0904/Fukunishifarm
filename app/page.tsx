@@ -2,6 +2,7 @@ import AppHeader from "../components/AppHeader";
 import SiteFooter from "../components/SiteFooter";
 import Image from "next/image";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title:
@@ -30,7 +31,7 @@ export default function Home() {
             <ul>
               <li>
                 料金を変更させていただきました。詳しくは
-                <a href="/price">こちら</a>をご覧ください。
+                <Link href="/price">こちら</Link>をご覧ください。
               </li>
             </ul>
           </div>
@@ -152,7 +153,7 @@ export default function Home() {
               <p className="under"></p>
               <p className="center">送料は別となっております。</p>
               <p className="center">
-                送料は<a href="/PDF/shipping_fee.pdf" target="_blank">こちら</a>をご覧ください。
+                送料は<Link href="/PDF/shipping_fee.pdf" target="_blank">こちら</Link>をご覧ください。
               </p>
               <p className="center">※竜宝の発送は承っておりません。</p>
             </div>
@@ -162,24 +163,14 @@ export default function Home() {
             <h2 className="font-english">Instagram</h2>
             <p className="center">
               Instagramのアカウントは
-              <a
+              <Link
                 href="https://www.instagram.com/fukunishi_farm/?igshid=MmIzYWVlNDQ5Yg%3D%3D"
                 target="_blank"
               >
                 こちら
-              </a>
+              </Link>
               をクリック。
             </p>
-            <h3>最新投稿</h3>
-            <div className="center">
-              <p>現在準備中です</p>
-              <a
-                href="https://www.instagram.com/fukunishi_farm/?igshid=MmIzYWVlNDQ5Yg%3D%3D"
-                target="_blank"
-              >
-                アカウントをご覧ください
-              </a>
-            </div>
           </div>
         </div>
       </main>
