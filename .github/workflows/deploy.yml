@@ -3,10 +3,12 @@ name: Deploy to Lolipop on main
 on: 
   push: 
     branches: [ "main" ]
+  workflow_dispatch: {}
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment: LOLIPOP
 
     steps:
       - name: Checkout code
@@ -27,17 +29,17 @@ jobs:
       - name: Start ssh-agent and add key
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.LOLIPOP_SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.LOLIPOP_SSH_KEY }}
 
       - name: Add known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.LOLIPOP_SSH_PORT }} ${{ secrets.LOLIPOP_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.LOLIPOP_PORT }} ${{ secrets.LOLIPOP_HOST }} >> ~/.ssh/known_hosts
 
       - name: Rsync to Lolipop
         run: |
           rsync -avz --delete --delay-updates \ 
-          -e "ssh -p ${{ secrets.LOLIPOP_SSH_PORT }}" \
+          -e "ssh -p ${{ secrets.LOLIPOP_PORT }}" \
           out/ \
           ${{ secrets.LOLIPOP_USER }}@${{ secrets.LOLIPOP_HOST }}:${{ secrets.LOLIPOP_TARGET_DIR }}
           
