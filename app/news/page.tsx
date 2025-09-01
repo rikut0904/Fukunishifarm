@@ -47,6 +47,7 @@ export default function NewsPage() {
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>藤稔</h4>
+                    <a>残りわずかです。</a>
                   </div>
                   <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
                 </div>
