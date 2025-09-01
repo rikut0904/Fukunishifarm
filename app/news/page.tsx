@@ -127,6 +127,7 @@ export default function NewsPage() {
                     <p>
                       {/* しばらくお待ちください */}
                       現在食べごろです！！
+                      残りわずかです。
                     </p>
                   </div>
                   <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
@@ -162,6 +163,9 @@ export default function NewsPage() {
           <h1>お知らせ</h1>
           <ul className="news-info inside">
             <li>
+              藤稔が残りわずかとなりました。
+            </li>
+            <li>
               竜宝が終了いたしました。楽しみにしていただいた方には申し訳ありません。
             </li>
             <li>
@@ -171,7 +175,6 @@ export default function NewsPage() {
               料金を変更させていただきました。詳しくは
               <Link href="/price">こちら</Link>をご覧ください。
             </li>
-            <li>ホームページをリニューアルしました。</li>
           </ul>
         </div>
       </main>
