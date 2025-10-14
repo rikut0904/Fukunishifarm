@@ -1,0 +1,46 @@
+# Next.js 静的エクスポート用の .htaccess 設定
+
+# デフォルトの文字エンコーディング
+AddDefaultCharset UTF-8
+
+# HTMLファイルへのリダイレクト
+# 拡張子なしのURLを .html にリダイレクト
+RewriteEngine On
+
+# ファイルやディレクトリが存在しない場合
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# .html拡張子を追加して試す
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# トップページ
+DirectoryIndex index.html
+
+# MIMEタイプの設定（念のため）
+<IfModule mod_mime.c>
+  AddType text/html .html
+  AddType text/css .css
+  AddType application/javascript .js
+  AddType image/jpeg .jpg .jpeg
+  AddType image/png .png
+  AddType image/gif .gif
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType image/x-icon .ico
+</IfModule>
+
+# キャッシュ設定
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
