@@ -34,16 +34,16 @@ export default function NewsPage() {
                 </div>
               </div> */}
               {/* シナノスマイルコメントアウト箇所 */}
-              <div className="slide">
+              {/* <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>シナノスマイル</h4>
                   </div>
                   <img src="img/shinano.jpeg" alt="シナノスマイル" className="slide-image" />
                 </div>
-              </div>
+              </div> */}
               {/* 藤稔コメントアウト箇所 */}
-              <div className="slide">
+              {/* <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>藤稔</h4>
@@ -51,25 +51,25 @@ export default function NewsPage() {
                   </div>
                   <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
                 </div>
-              </div>
+              </div> */}
               {/* ピオーネコメントアウト箇所 */}
-              <div className="slide">
+              {/* <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>ピオーネ</h4>
                   </div>
                   <img src="img/pione.jpeg" alt="ピオーネ" className="slide-image" />
                 </div>
-              </div>
+              </div> */}
               {/* シャインマスカットコメントアウト箇所 */}
-              <div className="slide">
+              {/* <div className="slide">
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>シャインマスカット</h4>
                   </div>
                   <img src="img/syain.jpeg" alt="シャインマスカット" className="slide-image" />
                 </div>
-              </div>
+              </div> */}
               {/* 販売開始前文章コメントアウト箇所 */}
               {/* <div className="slide">
                 <p style={{ fontSize: "21px" }}>
@@ -80,13 +80,13 @@ export default function NewsPage() {
               </div> */}
               {/* 販売終了後文章コメントアウト箇所 */}
 
-              {/* <div className="slide">
+              <div className="slide">
                 <p style={{ fontSize: "21px" }}>
                   本年度のぶどうが終了いたしました。<br />
-                  来年度もおいしいぶどうが実るよう育てていきますので、<br class="mobile_hid" />
+                  来年度もおいしいぶどうが実るよう育てていきますので、<br className="mobile_hid" />
                   ぜひ来年度ふくにしファームへご来園ください。
                 </p>
-              </div> */}
+              </div>
             </div>
           </div>
           <br />
@@ -114,7 +114,8 @@ export default function NewsPage() {
                     <h4>シナノスマイル</h4>
                     <p>
                       {/* しばらくお待ちください */}
-                      現在食べごろです！！
+                      {/* 現在食べごろです！！ */}
+                      本年度販売終了いたしました。
                     </p>
                   </div>
                   <img src="img/shinano.jpeg" alt="シナノスマイル" className="slide-image" />
@@ -127,8 +128,8 @@ export default function NewsPage() {
                     <h4>藤稔</h4>
                     <p>
                       {/* しばらくお待ちください */}
-                      現在食べごろです！！
-                      残りわずかです。
+                      {/* 現在食べごろです！！ */}
+                      本年度販売終了いたしました。
                     </p>
                   </div>
                   <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
@@ -141,7 +142,8 @@ export default function NewsPage() {
                     <h4>ピオーネ</h4>
                     <p>
                       {/* しばらくお待ちください */}
-                      現在食べごろです！！
+                      {/* 現在食べごろです！！ */}
+                      本年度販売終了いたしました。
                     </p>
                   </div>
                   <img src="img/pione.jpeg" alt="ピオーネ" className="slide-image" />
@@ -153,7 +155,8 @@ export default function NewsPage() {
                   <div className="slide-text">
                     <h4>シャインマスカット</h4>
                     <p>
-                      現在食べごろです！！
+                      {/* 現在食べごろです！！ */}
+                      本年度販売終了いたしました。
                     </p>
                   </div>
                   <img src="img/syain.jpeg" alt="シャインマスカット" className="slide-image" />
@@ -164,20 +167,7 @@ export default function NewsPage() {
           <h1>お知らせ</h1>
           <ul className="news-info inside">
             <li>
-              2025/09/01 : ご好評につきシャインマスカットのお値打ちセット販売を開始いたします。詳しくは<Link href="https://www.instagram.com/p/DOAKa5KgV1m/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==">こちら</Link>からご確認ください。
-            </li>
-            <li>
-              2025/09/01 : 藤稔が残りわずかとなりました。
-            </li>
-            <li>
-              2025/08/28 : 竜宝が終了いたしました。楽しみにしていただいた方には申し訳ありません。
-            </li>
-            <li>
-              2025/08/01 : 2025年8月24日より開園となります。ぜひぜひお越しください
-            </li>
-            <li>
-              2025/04/01 : 料金を変更させていただきました。詳しくは
-              <Link href="/price">こちら</Link>をご覧ください。
+              2025/09/15 : 本年度終了いたしました。
             </li>
           </ul>
         </div>
