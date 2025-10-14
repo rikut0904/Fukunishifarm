@@ -47,7 +47,6 @@ export default function NewsPage() {
                 <div className="slide-content">
                   <div className="slide-text">
                     <h4>藤稔</h4>
-                    <a>残りわずかです。</a>
                   </div>
                   <img src="img/fujiminori_2025.jpeg" alt="藤稔" className="slide-image" />
                 </div>
@@ -167,7 +166,24 @@ export default function NewsPage() {
           <h1>お知らせ</h1>
           <ul className="news-info inside">
             <li>
+<<<<<<< HEAD
               2025/09/15 : 本年度終了いたしました。
+=======
+              2025/09/08 : 藤稔が終了いたしました。楽しみにしていただいた方には申し訳ありません。
+            </li>
+            <li>
+              2025/09/01 : ご好評につきシャインマスカットのお値打ちセット販売を開始いたします。詳しくは<Link href="https://www.instagram.com/p/DOAKa5KgV1m/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==">こちら</Link>からご確認ください。
+            </li>
+            <li>
+              2025/08/28 : 竜宝が終了いたしました。楽しみにしていただいた方には申し訳ありません。
+            </li>
+            <li>
+              2025/08/01 : 2025年8月24日より開園となります。ぜひぜひお越しください
+            </li>
+            <li>
+              2025/04/01 : 料金を変更させていただきました。詳しくは
+              <Link href="/price">こちら</Link>をご覧ください。
+>>>>>>> a72d036efb9ce65594559cf3f7e0ee29c80b6f94
             </li>
           </ul>
         </div>
