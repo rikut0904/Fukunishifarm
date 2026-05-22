@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import ResponsiveCarousel from "@/components/ResponsiveCarousel";
 import SiteFooter from "@/components/SiteFooter";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +39,28 @@ const grapeVarieties = [
       "種なしで皮ごと食べられ、さわやかでジューシー、酸味も低く贅沢な甘さが大人気！肉質は少し片目で、プリプリとした触感が楽しめます。",
   },
 ];
+
+const varietySlides = grapeVarieties.map((grape) => ({
+  id: grape.name,
+  content: (
+    <article className="card">
+      <div className="card__media card__media--portrait">
+        <Image
+          src={grape.image}
+          alt={grape.name}
+          width={900}
+          height={675}
+          className="h-full w-full object-cover"
+          style={{ objectPosition: grape.focus }}
+        />
+      </div>
+      <div className="card__body">
+        <h3 className="card__title">{grape.name}</h3>
+        <p className="card__text">{grape.description}</p>
+      </div>
+    </article>
+  ),
+}));
 
 export const metadata: Metadata = {
   title: "ふくにしファーム",
@@ -101,26 +124,7 @@ export default function Home() {
             <h2 className="section__title">販売種</h2>
             <p className="section__lead">現地で楽しめる主な品種を、味わいの特徴とあわせてご紹介します。</p>
           </div>
-          <div className="grid grid--2">
-            {grapeVarieties.map((grape) => (
-              <article className="card" key={grape.name}>
-                <div className="card__media card__media--portrait">
-                  <Image
-                    src={grape.image}
-                    alt={grape.name}
-                    width={900}
-                    height={675}
-                    className="h-full w-full object-cover"
-                    style={{ objectPosition: grape.focus }}
-                  />
-                </div>
-                <div className="card__body">
-                  <h3 className="card__title">{grape.name}</h3>
-                  <p className="card__text">{grape.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ResponsiveCarousel ariaLabel="販売種のカルーセル" items={varietySlides} desktopColumns={2} />
         </section>
 
         <section className="section">

@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import ResponsiveCarousel from "@/components/ResponsiveCarousel";
 import SiteFooter from "@/components/SiteFooter";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +12,28 @@ const grapeStatuses = [
   { name: "ピオーネ", image: "/img/pione.jpeg", focus: "center 44%", text: "本年度販売終了いたしました。" },
   { name: "シャインマスカット", image: "/img/syain.jpeg", focus: "center 35%", text: "本年度販売終了いたしました。" },
 ];
+
+const statusSlides = grapeStatuses.map((grape) => ({
+  id: grape.name,
+  content: (
+    <article className="card">
+      <div className="card__media card__media--portrait">
+        <Image
+          src={grape.image}
+          alt={grape.name}
+          width={900}
+          height={675}
+          className="h-full w-full object-cover"
+          style={{ objectPosition: grape.focus }}
+        />
+      </div>
+      <div className="card__body">
+        <h3 className="card__title">{grape.name}</h3>
+        <span className="status">{grape.text}</span>
+      </div>
+    </article>
+  ),
+}));
 
 export const metadata: Metadata = {
   title: "News",
@@ -51,26 +74,7 @@ export default function NewsPage() {
             <p className="eyebrow">Ripeness</p>
             <h2 className="section__title">食べごろ</h2>
           </div>
-          <div className="grid grid--2">
-            {grapeStatuses.map((grape) => (
-              <article className="card" key={grape.name}>
-                <div className="card__media card__media--portrait">
-                  <Image
-                    src={grape.image}
-                    alt={grape.name}
-                    width={900}
-                    height={675}
-                    className="h-full w-full object-cover"
-                    style={{ objectPosition: grape.focus }}
-                  />
-                </div>
-                <div className="card__body">
-                  <h3 className="card__title">{grape.name}</h3>
-                  <span className="status">{grape.text}</span>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ResponsiveCarousel ariaLabel="食べごろのカルーセル" items={statusSlides} desktopColumns={2} />
         </section>
       </main>
       <SiteFooter />

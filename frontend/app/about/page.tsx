@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import ResponsiveCarousel from "@/components/ResponsiveCarousel";
 import SiteFooter from "@/components/SiteFooter";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +11,51 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const featureSlides = [
+    {
+      id: "free-entry",
+      content: (
+        <article className="card">
+          <div className="card__media">
+            <Image src="/img/farm_inside.jpeg" alt="入場無料" width={1600} height={1200} className="h-full w-full object-cover" />
+          </div>
+          <div className="card__body">
+            <h3 className="card__title">入場無料</h3>
+            <p className="card__text">園内に入場される際に入場料をいただきません。</p>
+          </div>
+        </article>
+      ),
+    },
+    {
+      id: "barrier-free",
+      content: (
+        <article className="card">
+          <div className="card__media">
+            <Image src="/img/barrier_free.jpg" alt="バリアフリー" width={1600} height={1200} className="h-full w-full object-cover" />
+          </div>
+          <div className="card__body">
+            <h3 className="card__title">バリアフリー</h3>
+            <p className="card__text">園内はバリアフリーに対応しており、車いすの方でもぶどう狩りを楽しんでいただけます。</p>
+          </div>
+        </article>
+      ),
+    },
+    {
+      id: "low-wood",
+      content: (
+        <article className="card">
+          <div className="card__media">
+            <Image src="/img/low_wood.jpeg" alt="低位置に房がある" width={1600} height={1200} className="h-full w-full object-cover" />
+          </div>
+          <div className="card__body">
+            <h3 className="card__title">低位置に房がある</h3>
+            <p className="card__text">どのような方でも自分の手でぶどう狩りを楽しんでいただけます。</p>
+          </div>
+        </article>
+      ),
+    },
+  ];
+
   return (
     <div className="site-shell">
       <AppHeader variant="sub" />
@@ -61,35 +107,7 @@ export default function AboutPage() {
             <h2 className="section__title">特徴</h2>
             <p className="section__lead">園内の特長を、写真と一緒に確認できます。</p>
           </div>
-          <div className="grid grid--3">
-            <article className="card">
-              <div className="card__media">
-                <Image src="/img/farm_inside.jpeg" alt="入場無料" width={1600} height={1200} className="h-full w-full object-cover" />
-              </div>
-              <div className="card__body">
-                <h3 className="card__title">入場無料</h3>
-                <p className="card__text">園内に入場される際に入場料をいただきません。</p>
-              </div>
-            </article>
-            <article className="card">
-              <div className="card__media">
-                <Image src="/img/barrier_free.jpg" alt="バリアフリー" width={1600} height={1200} className="h-full w-full object-cover" />
-              </div>
-              <div className="card__body">
-                <h3 className="card__title">バリアフリー</h3>
-                <p className="card__text">園内はバリアフリーに対応しており、車いすの方でもぶどう狩りを楽しんでいただけます。</p>
-              </div>
-            </article>
-            <article className="card">
-              <div className="card__media">
-                <Image src="/img/low_wood.jpeg" alt="低位置に房がある" width={1600} height={1200} className="h-full w-full object-cover" />
-              </div>
-              <div className="card__body">
-                <h3 className="card__title">低位置に房がある</h3>
-                <p className="card__text">どのような方でも自分の手でぶどう狩りを楽しんでいただけます。</p>
-              </div>
-            </article>
-          </div>
+          <ResponsiveCarousel ariaLabel="特徴のカルーセル" items={featureSlides} desktopColumns={3} />
         </section>
 
         <section className="section">
