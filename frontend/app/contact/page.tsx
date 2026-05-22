@@ -51,13 +51,12 @@ export default function ContactPage() {
           <div className="media-frame">
             <iframe
               src="https://docs.google.com/forms/d/e/1FAIpQLSf7wwAVAy-yqNc7G1bvPQ0-4nn5H8BXe25Y4cY5aGMpzNR4bg/viewform?embedded=true"
-              width="90%"
+              width="100%"
               height={600}
               frameBorder={0}
               marginHeight={0}
               marginWidth={0}
-              className="center"
-              style={{ margin: "0% 5%" }}
+              style={{ margin: 0 }}
             >
               読み込んでいます…
             </iframe>

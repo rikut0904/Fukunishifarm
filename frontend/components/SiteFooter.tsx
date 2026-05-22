@@ -8,7 +8,7 @@ export default function SiteFooter() {
         <div className="footer__grid">
           <section>
             <h3 className="footer__title">ふくにしファーム</h3>
-            <p className="m-0 max-w-md text-sm leading-7 text-white/78">
+            <p className="m-0 max-w-md text-sm leading-7 text-[var(--muted)]">
               滋賀県甲賀市信楽町で、自然に囲まれたぶどう狩りをお楽しみいただけます。
               入園無料、バリアフリー対応で、どなたでも訪れやすい観光農園を目指しています。
             </p>

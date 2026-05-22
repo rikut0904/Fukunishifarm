@@ -132,7 +132,14 @@ export default function Home() {
             <article className="card table-card">
               <div className="card__body">
                 <h3 className="card__title">お持ち帰り</h3>
-                <h4 className="card__subtitle">竜宝・シナノスマイル / 藤稔・ピオーネ</h4>
+                <h4 className="card__subtitle">
+                  <span className="subtitle-inline">竜宝・シナノスマイル・藤稔・ピオーネ</span>
+                  <span className="subtitle-tablet">
+                    竜宝・シナノスマイル
+                    <br />
+                    藤稔・ピオーネ
+                  </span>
+                </h4>
               </div>
               <table className="info-table">
                 <tbody>
@@ -154,7 +161,14 @@ export default function Home() {
             <article className="card table-card">
               <div className="card__body">
                 <h3 className="card__title">発送・進物用</h3>
-                <h4 className="card__subtitle">竜宝・シナノスマイル / 藤稔・ピオーネ</h4>
+                <h4 className="card__subtitle">
+                  <span className="subtitle-inline">竜宝・シナノスマイル・藤稔・ピオーネ</span>
+                  <span className="subtitle-tablet">
+                    竜宝・シナノスマイル
+                    <br />
+                    藤稔・ピオーネ
+                  </span>
+                </h4>
               </div>
               <table className="info-table">
                 <tbody>
