@@ -1,0 +1,9 @@
+.git
+.next
+node_modules
+backend/.gocache
+backend/.gomodcache
+backend/bin
+backend/tmp
+coverage
+*.log

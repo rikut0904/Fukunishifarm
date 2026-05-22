@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8080
+      CORS_ALLOW_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: 3000
+      API_BASE_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
