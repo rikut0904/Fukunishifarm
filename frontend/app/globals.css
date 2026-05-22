@@ -714,15 +714,27 @@ h4 {
     display: block;
   }
 
+  .price-table {
+    display: table;
+  }
+
   .info-table thead,
   .download-table thead {
     display: none;
+  }
+
+  .price-table thead {
+    display: table-header-group;
   }
 
   .info-table tbody,
   .download-table tbody {
     display: grid;
     gap: 0.75rem;
+  }
+
+  .price-table tbody {
+    display: table-row-group;
   }
 
   .info-table tr,
@@ -732,10 +744,20 @@ h4 {
     border-bottom: 1px solid var(--border);
   }
 
+  .price-table tr {
+    display: table-row;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
   .info-table tr:last-child,
   .download-table tr:last-child {
     border-bottom: 0;
     padding-bottom: 0;
+  }
+
+  .price-table tr:last-child {
+    border-bottom: 0;
   }
 
   .info-table th,
@@ -750,13 +772,34 @@ h4 {
     background: transparent;
   }
 
+  .price-table th,
+  .price-table td {
+    display: table-cell;
+    padding: 0.8rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+  }
+
+  .price-table th {
+    width: 42%;
+  }
+
   .info-table td,
   .download-table td {
     margin-top: 0.35rem;
   }
 
+  .price-table td {
+    margin-top: 0;
+  }
+
   .download-table td:last-child,
   .download-table th:last-child {
+    text-align: left;
+  }
+
+  .price-table td:last-child,
+  .price-table th:last-child {
     text-align: left;
   }
 

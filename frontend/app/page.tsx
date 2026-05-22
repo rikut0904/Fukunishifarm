@@ -145,7 +145,7 @@ export default function Home() {
                   </span>
                 </h4>
               </div>
-              <table className="info-table">
+              <table className="info-table price-table">
                 <tbody>
                   <tr>
                     <th>1房</th>
@@ -174,7 +174,7 @@ export default function Home() {
                   </span>
                 </h4>
               </div>
-              <table className="info-table">
+              <table className="info-table price-table">
                 <tbody>
                   <tr>
                     <th>2房入り</th>
