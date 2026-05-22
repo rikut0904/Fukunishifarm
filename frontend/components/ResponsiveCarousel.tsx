@@ -27,6 +27,7 @@ export default function ResponsiveCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   const lastInteractionRef = useRef(0);
+  const hoverRef = useRef(false);
 
   useEffect(() => {
     activeIndexRef.current = activeIndex;
@@ -75,13 +76,13 @@ export default function ResponsiveCarousel({
 
     const interval = window.setInterval(() => {
       const now = Date.now();
-      if (now - lastInteractionRef.current < 4000) {
+      if (hoverRef.current || now - lastInteractionRef.current < 2500) {
         return;
       }
 
       const nextIndex = (activeIndexRef.current + 1) % items.length;
       scrollToIndex(nextIndex);
-    }, 5000);
+    }, 4000);
 
     return () => window.clearInterval(interval);
   }, [items.length]);
@@ -100,7 +101,7 @@ export default function ResponsiveCarousel({
   };
 
   const step = (direction: -1 | 1) => {
-    const nextIndex = Math.max(0, Math.min(items.length - 1, activeIndex + direction));
+    const nextIndex = (activeIndex + direction + items.length) % items.length;
     lastInteractionRef.current = Date.now();
     scrollToIndex(nextIndex);
   };
@@ -137,6 +138,12 @@ export default function ResponsiveCarousel({
         }}
         onTouchStart={() => {
           lastInteractionRef.current = Date.now();
+        }}
+        onMouseEnter={() => {
+          hoverRef.current = true;
+        }}
+        onMouseLeave={() => {
+          hoverRef.current = false;
         }}
       >
         {items.map((item, index) => (
