@@ -83,6 +83,9 @@ func (a *Authenticator) AuthenticateWithPassword(ctx context.Context, email, pas
 		if decoded.Error != nil && decoded.Error.Message != "" {
 			message = decoded.Error.Message
 		}
+		if isInvalidCredentialsError(message) {
+			return domainauth.LoginResult{}, domainauth.ErrInvalidCredentials
+		}
 		return domainauth.LoginResult{}, fmt.Errorf("%s", message)
 	}
 
@@ -99,4 +102,19 @@ func (a *Authenticator) AuthenticateWithPassword(ctx context.Context, email, pas
 		},
 		IDToken: decoded.IDToken,
 	}, nil
+}
+
+func isInvalidCredentialsError(message string) bool {
+	upper := strings.ToUpper(strings.TrimSpace(message))
+	switch upper {
+	case "INVALID_LOGIN_CREDENTIALS",
+		"INVALID_PASSWORD",
+		"EMAIL_NOT_FOUND",
+		"USER_DISABLED",
+		"MISSING_PASSWORD",
+		"INVALID_EMAIL":
+		return true
+	default:
+		return false
+	}
 }

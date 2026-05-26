@@ -44,6 +44,9 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 
 	loginResult, err := s.authenticator.AuthenticateWithPassword(ctx, email, password)
 	if err != nil {
+		if errors.Is(err, domainauth.ErrInvalidCredentials) {
+			return nil, ErrUnauthorized
+		}
 		return nil, fmt.Errorf("authenticate with firebase: %w", err)
 	}
 
