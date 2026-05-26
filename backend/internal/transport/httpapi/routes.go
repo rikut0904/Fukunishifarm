@@ -145,12 +145,16 @@ func bearerToken(header string) string {
 		return ""
 	}
 
-	const prefix = "Bearer "
-	if !strings.HasPrefix(value, prefix) {
+	parts := strings.Fields(value)
+	if len(parts) != 2 {
 		return ""
 	}
 
-	return strings.TrimSpace(strings.TrimPrefix(value, prefix))
+	if !strings.EqualFold(parts[0], "bearer") {
+		return ""
+	}
+
+	return strings.TrimSpace(parts[1])
 }
 
 func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
