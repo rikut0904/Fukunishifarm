@@ -1,19 +1,19 @@
 import AppHeader from "@/components/AppHeader";
-import AdminConsole from "@/components/AdminConsole";
+import LoginConsole from "@/components/LoginConsole";
 import SiteFooter from "@/components/SiteFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "admin",
-  description: "管理画面です。",
+  title: "ログイン",
+  description: "管理画面へのログインページです。",
 };
 
-export default function AdminPage() {
+export default function LoginPage() {
   return (
     <div className="site-shell">
       <AppHeader variant="sub" />
       <main>
-        <AdminConsole />
+        <LoginConsole />
       </main>
       <SiteFooter />
     </div>
