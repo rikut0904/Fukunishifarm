@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,13 +13,14 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
-	"fukunishifarm/backend/internal/domain/auth"
 	firebaseauth "fukunishifarm/backend/internal/infra/firebase"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
 	sessionjwt "fukunishifarm/backend/internal/infra/session"
 	"fukunishifarm/backend/internal/transport/httpapi"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 
 	backenddb "fukunishifarm/backend/internal/db"
 )
@@ -33,9 +35,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := database.AutoMigrate(&auth.AdminUser{}); err != nil {
-		slog.Error("auto migrate", "error", err)
-		os.Exit(1)
+	migrated := true
+	if err := bootstrap.RequireMigrated(ctx, database); err != nil {
+		if errors.Is(err, bootstrap.ErrDatabaseNotMigrated) {
+			migrated = false
+			slog.Warn("database not migrated", "hint", "run `make migrate`")
+		} else {
+			slog.Error("check database migration", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	authenticator, err := firebaseauth.NewAuthenticator(cfg.FirebaseWebAPIKey)
@@ -57,7 +65,9 @@ func main() {
 	}
 
 	adminRepository := gormrepo.NewAdminUserRepository(database)
+	grapeRepository := gormrepo.NewGrapeRepository(database)
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
+	grapeService := usecasegrape.NewService(grapeRepository)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -69,9 +79,25 @@ func main() {
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: false,
 	}))
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if migrated {
+				return next(c)
+			}
+
+			if c.Request().Method == http.MethodOptions || c.Request().URL.Path == "/healthz" {
+				return next(c)
+			}
+
+			return c.JSON(http.StatusServiceUnavailable, map[string]string{
+				"code":    "database_not_migrated",
+				"message": "database migration has not been completed. Run `make migrate`.",
+			})
+		}
+	})
 
 	api := humaecho.New(e, huma.DefaultConfig("Fukunishi Farm API", "1.0.0"))
-	httpapi.Register(api, authService)
+	httpapi.Register(api, authService, grapeService, migrated)
 
 	slog.Info("starting api server", "port", cfg.Port)
 	if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {
