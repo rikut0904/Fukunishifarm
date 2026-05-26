@@ -2,7 +2,7 @@ package httpapi
 
 import (
 	"context"
-	"net/http"
+	"errors"
 	"strings"
 	"time"
 
@@ -85,14 +85,7 @@ func Register(api huma.API, service *usecaseauth.Service) {
 
 		user, err := service.CreateUser(ctx, token, input.Body.Email, input.Body.Password, input.Body.DisplayName)
 		if err != nil {
-			switch {
-			case err == usecaseauth.ErrUnauthorized:
-				return nil, huma.Error401Unauthorized("unauthorized")
-			case err == usecaseauth.ErrForbidden:
-				return nil, huma.Error403Forbidden("forbidden")
-			default:
-				return nil, huma.NewError(http.StatusInternalServerError, "failed to create firebase user", err)
-			}
+			return nil, mapAuthError("failed to create firebase user", err)
 		}
 
 		output := &createUserOutput{}
@@ -103,14 +96,7 @@ func Register(api huma.API, service *usecaseauth.Service) {
 	huma.Post(api, "/v1/auth/login", func(ctx context.Context, input *loginInput) (*loginOutput, error) {
 		session, err := service.LoginAdmin(ctx, input.Body.Email, input.Body.Password)
 		if err != nil {
-			switch {
-			case err == usecaseauth.ErrUnauthorized:
-				return nil, huma.Error401Unauthorized("unauthorized")
-			case err == usecaseauth.ErrForbidden:
-				return nil, huma.Error403Forbidden("forbidden")
-			default:
-				return nil, huma.NewError(http.StatusInternalServerError, "failed to login", err)
-			}
+			return nil, mapAuthError("failed to login", err)
 		}
 
 		output := &loginOutput{}
@@ -127,20 +113,26 @@ func Register(api huma.API, service *usecaseauth.Service) {
 
 		user, err := service.GetSession(ctx, token)
 		if err != nil {
-			switch {
-			case err == usecaseauth.ErrUnauthorized:
-				return nil, huma.Error401Unauthorized("unauthorized")
-			case err == usecaseauth.ErrForbidden:
-				return nil, huma.Error403Forbidden("forbidden")
-			default:
-				return nil, huma.NewError(http.StatusInternalServerError, "failed to load admin session", err)
-			}
+			return nil, mapAuthError("failed to load admin session", err)
 		}
 
 		output := &sessionOutput{}
 		output.Body.User = toAdminUserResponse(user)
 		return output, nil
 	})
+}
+
+func mapAuthError(message string, err error) error {
+	switch {
+	case errors.Is(err, usecaseauth.ErrUnauthorized):
+		return huma.Error401Unauthorized("unauthorized")
+	case errors.Is(err, usecaseauth.ErrForbidden):
+		return huma.Error403Forbidden("forbidden")
+	case errors.Is(err, domainauth.ErrUserNotFound):
+		return huma.Error401Unauthorized("unauthorized")
+	default:
+		return huma.Error500InternalServerError(message, err)
+	}
 }
 
 func bearerToken(header string) string {

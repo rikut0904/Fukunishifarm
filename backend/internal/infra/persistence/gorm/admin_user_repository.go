@@ -2,6 +2,7 @@ package gormrepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
@@ -50,6 +51,9 @@ func (r *AdminUserRepository) FindAdminUserByFirebaseUID(ctx context.Context, fi
 
 	tx := r.db.WithContext(ctx).Where("firebase_uid = ?", firebaseUID).First(&user)
 	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			return nil, domainauth.ErrUserNotFound
+		}
 		return nil, tx.Error
 	}
 
