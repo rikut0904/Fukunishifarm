@@ -77,7 +77,7 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 
 func (s *Service) CreateUser(ctx context.Context, sessionToken, email, password, displayName string) (*domainauth.AdminUser, error) {
 	if strings.TrimSpace(sessionToken) == "" {
-		return nil, domainauth.ErrInvalidInput
+		return nil, ErrUnauthorized
 	}
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
 		return nil, domainauth.ErrInvalidInput
