@@ -613,6 +613,21 @@ h4 {
   font-size: 0.95rem;
 }
 
+.admin-input {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.admin-input:focus {
+  outline: 2px solid rgba(200, 107, 43, 0.22);
+  outline-offset: 2px;
+}
+
 .media-frame {
   overflow: hidden;
   border-radius: 1.25rem;
@@ -844,6 +859,56 @@ h4 {
 
 .section + .section {
   margin-top: 1.25rem;
+}
+
+.admin-page {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 36%),
+    linear-gradient(135deg, rgba(255, 248, 241, 0.96), rgba(251, 235, 220, 0.96));
+}
+
+.admin-login-shell {
+  width: min(100%, 34rem);
+  min-height: calc(100svh - 10rem);
+  display: grid;
+  gap: 1rem;
+  align-content: center;
+  margin-inline: auto;
+}
+
+.admin-login-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-login-form,
+.admin-login-state {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-field > span {
+  color: var(--brand-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.admin-error {
+  margin: 0;
+  color: #a53f1c;
+  font-size: 0.95rem;
+}
+
+.admin-feedback {
+  margin: 0;
+  color: var(--brand-strong);
 }
 
 .list {

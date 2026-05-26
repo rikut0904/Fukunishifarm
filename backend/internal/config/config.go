@@ -6,14 +6,24 @@ import (
 )
 
 type Config struct {
-	DatabaseURL      string
-	CORSAllowOrigins []string
+	Port                   string
+	DatabaseURL            string
+	CORSAllowOrigins       []string
+	FirebaseProjectID      string
+	FirebaseServiceAccount string
+	FirebaseWebAPIKey      string
+	SessionJWTSecret       string
 }
 
 func Load() Config {
 	return Config{
-		DatabaseURL:      os.Getenv("DATABASE_URL"),
-		CORSAllowOrigins: parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+		Port:                   getenv("PORT", "8080"),
+		DatabaseURL:            os.Getenv("DATABASE_URL"),
+		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+		FirebaseProjectID:      os.Getenv("FIREBASE_PROJECT_ID"),
+		FirebaseServiceAccount: os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON"),
+		FirebaseWebAPIKey:      os.Getenv("FIREBASE_API_KEY"),
+		SessionJWTSecret:       os.Getenv("SESSION_JWT_SECRET"),
 	}
 }
 
