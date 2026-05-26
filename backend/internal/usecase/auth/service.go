@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	ErrInvalidInput = errors.New("invalid input")
 	ErrUnauthorized = errors.New("unauthorized")
 	ErrForbidden    = errors.New("forbidden")
 )
@@ -39,7 +40,7 @@ func NewService(authenticator domainauth.PasswordAuthenticator, verifier domaina
 
 func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*LoginSession, error) {
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
-		return nil, domainauth.ErrInvalidInput
+		return nil, ErrInvalidInput
 	}
 
 	loginResult, err := s.authenticator.AuthenticateWithPassword(ctx, email, password)
@@ -80,7 +81,7 @@ func (s *Service) CreateUser(ctx context.Context, sessionToken, email, password,
 		return nil, ErrUnauthorized
 	}
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
-		return nil, domainauth.ErrInvalidInput
+		return nil, ErrInvalidInput
 	}
 
 	if _, err := s.GetSession(ctx, sessionToken); err != nil {
@@ -102,7 +103,7 @@ func (s *Service) CreateUser(ctx context.Context, sessionToken, email, password,
 
 func (s *Service) GetSession(ctx context.Context, token string) (*domainauth.AdminUser, error) {
 	if strings.TrimSpace(token) == "" {
-		return nil, domainauth.ErrInvalidInput
+		return nil, ErrInvalidInput
 	}
 
 	claims, err := s.session.Verify(ctx, token)

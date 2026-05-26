@@ -124,6 +124,8 @@ func Register(api huma.API, service *usecaseauth.Service) {
 
 func mapAuthError(message string, err error) error {
 	switch {
+	case errors.Is(err, usecaseauth.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domainauth.ErrInvalidInput):
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, usecaseauth.ErrUnauthorized):

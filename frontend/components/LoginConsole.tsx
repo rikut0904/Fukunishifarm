@@ -37,26 +37,73 @@ async function fetchSession(token: string) {
   });
 }
 
+function isAuthExpired(error: unknown) {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
 export default function LoginConsole() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: "signed-out" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
+  const handleRetrySession = async () => {
     const token = window.localStorage.getItem(SESSION_STORAGE_KEY);
     if (!token) {
+      setStatus({ kind: "signed-out" });
       return;
     }
 
+    try {
+      await fetchSession(token);
+      router.replace("/admin");
+    } catch (error) {
+      if (isAuthExpired(error)) {
+        window.localStorage.removeItem(SESSION_STORAGE_KEY);
+        setStatus({ kind: "signed-out" });
+        return;
+      }
+
+      setStatus({
+        kind: "error",
+        message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+      });
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
     void (async () => {
+      const token = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (!token) {
+        return;
+      }
+
       try {
         await fetchSession(token);
         router.replace("/admin");
-      } catch {
-        window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch (error) {
+        if (isAuthExpired(error)) {
+          window.localStorage.removeItem(SESSION_STORAGE_KEY);
+          if (!cancelled) {
+            setStatus({ kind: "signed-out" });
+          }
+          return;
+        }
+
+        if (!cancelled) {
+          setStatus({
+            kind: "error",
+            message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+          });
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
@@ -126,6 +173,16 @@ export default function LoginConsole() {
           </button>
 
           {status.kind === "error" ? <p className="admin-error">{status.message}</p> : null}
+
+          {status.kind === "error" ? (
+            <button
+              type="button"
+              className="button-link button-link--secondary"
+              onClick={() => void handleRetrySession()}
+            >
+              再試行
+            </button>
+          ) : null}
         </form>
       </div>
     </section>
