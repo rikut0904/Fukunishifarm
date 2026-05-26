@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -73,20 +74,25 @@ func (a *Authenticator) AuthenticateWithPassword(ctx context.Context, email, pas
 	}
 	defer response.Body.Close()
 
-	var decoded firebasePasswordResponse
-	if err := json.NewDecoder(response.Body).Decode(&decoded); err != nil {
-		return domainauth.LoginResult{}, fmt.Errorf("decode firebase auth response: %w", err)
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return domainauth.LoginResult{}, fmt.Errorf("read firebase auth response: %w", err)
 	}
 
 	if response.StatusCode >= http.StatusBadRequest {
-		message := "firebase authentication failed"
-		if decoded.Error != nil && decoded.Error.Message != "" {
-			message = decoded.Error.Message
-		}
+		message := firebaseAuthErrorMessage(responseBody)
 		if isInvalidCredentialsError(message) {
 			return domainauth.LoginResult{}, domainauth.ErrInvalidCredentials
 		}
-		return domainauth.LoginResult{}, fmt.Errorf("%s", message)
+		if message == "" {
+			message = "firebase authentication failed"
+		}
+		return domainauth.LoginResult{}, fmt.Errorf("firebase auth failed: status %d: %s", response.StatusCode, message)
+	}
+
+	var decoded firebasePasswordResponse
+	if err := json.Unmarshal(responseBody, &decoded); err != nil {
+		return domainauth.LoginResult{}, fmt.Errorf("decode firebase auth response: %w", err)
 	}
 
 	if decoded.IDToken == "" || decoded.LocalID == "" || decoded.Email == "" {
@@ -102,6 +108,20 @@ func (a *Authenticator) AuthenticateWithPassword(ctx context.Context, email, pas
 		},
 		IDToken: decoded.IDToken,
 	}, nil
+}
+
+func firebaseAuthErrorMessage(body []byte) string {
+	var decoded firebasePasswordResponse
+	if err := json.Unmarshal(body, &decoded); err == nil && decoded.Error != nil && decoded.Error.Message != "" {
+		return decoded.Error.Message
+	}
+
+	trimmed := strings.TrimSpace(string(body))
+	if trimmed != "" {
+		return trimmed
+	}
+
+	return ""
 }
 
 func isInvalidCredentialsError(message string) bool {
