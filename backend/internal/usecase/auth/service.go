@@ -113,7 +113,7 @@ func (s *Service) GetSession(ctx context.Context, token string) (*domainauth.Adm
 	user, err := s.repository.FindAdminUserByFirebaseUID(ctx, claims.FirebaseUID)
 	if err != nil {
 		if errors.Is(err, domainauth.ErrUserNotFound) {
-			return nil, domainauth.ErrUserNotFound
+			return nil, ErrUnauthorized
 		}
 		return nil, fmt.Errorf("find admin user: %w", err)
 	}
