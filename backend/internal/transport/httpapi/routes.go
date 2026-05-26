@@ -80,7 +80,7 @@ func Register(api huma.API, service *usecaseauth.Service) {
 	huma.Post(api, "/v1/admin/users", func(ctx context.Context, input *createUserInput) (*createUserOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error401Unauthorized("missing bearer token")
+			return nil, huma.Error400BadRequest("missing bearer token")
 		}
 
 		user, err := service.CreateUser(ctx, token, input.Body.Email, input.Body.Password, input.Body.DisplayName)
@@ -108,7 +108,7 @@ func Register(api huma.API, service *usecaseauth.Service) {
 	huma.Get(api, "/v1/auth/session", func(ctx context.Context, input *sessionInput) (*sessionOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error401Unauthorized("missing bearer token")
+			return nil, huma.Error400BadRequest("missing bearer token")
 		}
 
 		user, err := service.GetSession(ctx, token)
@@ -124,6 +124,8 @@ func Register(api huma.API, service *usecaseauth.Service) {
 
 func mapAuthError(message string, err error) error {
 	switch {
+	case errors.Is(err, domainauth.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, usecaseauth.ErrUnauthorized):
 		return huma.Error401Unauthorized("unauthorized")
 	case errors.Is(err, usecaseauth.ErrForbidden):

@@ -39,7 +39,7 @@ func NewService(authenticator domainauth.PasswordAuthenticator, verifier domaina
 
 func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*LoginSession, error) {
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
-		return nil, ErrUnauthorized
+		return nil, domainauth.ErrInvalidInput
 	}
 
 	loginResult, err := s.authenticator.AuthenticateWithPassword(ctx, email, password)
@@ -77,10 +77,10 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 
 func (s *Service) CreateUser(ctx context.Context, sessionToken, email, password, displayName string) (*domainauth.AdminUser, error) {
 	if strings.TrimSpace(sessionToken) == "" {
-		return nil, ErrUnauthorized
+		return nil, domainauth.ErrInvalidInput
 	}
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
-		return nil, ErrUnauthorized
+		return nil, domainauth.ErrInvalidInput
 	}
 
 	if _, err := s.GetSession(ctx, sessionToken); err != nil {
@@ -102,7 +102,7 @@ func (s *Service) CreateUser(ctx context.Context, sessionToken, email, password,
 
 func (s *Service) GetSession(ctx context.Context, token string) (*domainauth.AdminUser, error) {
 	if strings.TrimSpace(token) == "" {
-		return nil, ErrUnauthorized
+		return nil, domainauth.ErrInvalidInput
 	}
 
 	claims, err := s.session.Verify(ctx, token)
