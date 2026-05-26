@@ -16,10 +16,8 @@ type SessionResponse = {
 };
 
 type Status =
-  | { kind: "loading" }
   | { kind: "signed-out" }
   | { kind: "signing-in" }
-  | { kind: "verifying" }
   | { kind: "error"; message: string };
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
@@ -41,38 +39,24 @@ async function fetchSession(token: string) {
 
 export default function LoginConsole() {
   const router = useRouter();
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
+  const [status, setStatus] = useState<Status>({ kind: "signed-out" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   useEffect(() => {
     const token = window.localStorage.getItem(SESSION_STORAGE_KEY);
     if (!token) {
-      setStatus({ kind: "signed-out" });
       return;
     }
 
-    let cancelled = false;
-    setStatus({ kind: "verifying" });
-
-    fetchSession(token)
-      .then(() => {
-        if (!cancelled) {
-          router.replace("/admin");
-        }
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-
+    void (async () => {
+      try {
+        await fetchSession(token);
+        router.replace("/admin");
+      } catch {
         window.localStorage.removeItem(SESSION_STORAGE_KEY);
-        setStatus({ kind: "signed-out" });
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      }
+    })();
   }, [router]);
 
   const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
@@ -135,7 +119,7 @@ export default function LoginConsole() {
           <button
             type="submit"
             className="button-link button-link--primary"
-            disabled={status.kind === "signing-in" || status.kind === "verifying"}
+            disabled={status.kind === "signing-in"}
           >
             {status.kind === "signing-in" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             ログイン

@@ -13,7 +13,6 @@ type SessionResponse = {
 
 type Status =
   | { kind: "loading" }
-  | { kind: "verifying" }
   | { kind: "authenticated" }
   | { kind: "redirecting" };
 
@@ -38,20 +37,11 @@ export default function AdminConsole() {
       return;
     }
 
-    let cancelled = false;
-    setStatus({ kind: "verifying" });
-
-    fetchSession(token)
-      .then(() => {
-        if (!cancelled) {
-          setStatus({ kind: "authenticated" });
-        }
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-
+    void (async () => {
+      try {
+        await fetchSession(token);
+        setStatus({ kind: "authenticated" });
+      } catch (error) {
         window.localStorage.removeItem(SESSION_STORAGE_KEY);
         setStatus({ kind: "redirecting" });
 
@@ -61,11 +51,8 @@ export default function AdminConsole() {
         }
 
         router.replace("/login");
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      }
+    })();
   }, [router]);
 
   const handleSignOut = () => {
@@ -74,7 +61,7 @@ export default function AdminConsole() {
     router.replace("/login");
   };
 
-  if (status.kind === "loading" || status.kind === "verifying" || status.kind === "redirecting") {
+  if (status.kind === "loading" || status.kind === "redirecting") {
     return (
       <section className="section admin-page">
         <div className="admin-login-shell">

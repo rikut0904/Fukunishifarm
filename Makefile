@@ -33,7 +33,7 @@ test-backend:
 	cd $(BACKEND_DIR) && go test ./...
 
 fmt:
-	gofmt -w $(BACKEND_DIR)
+	gofmt -w $$(find $(BACKEND_DIR)/cmd $(BACKEND_DIR)/internal -name '*.go' -type f | sort)
 
 lint: lint-frontend lint-backend
 

@@ -69,6 +69,19 @@ export default function ResponsiveCarousel({
     return () => observer.disconnect();
   }, [items.length]);
 
+  const scrollToIndex = (index: number) => {
+    const slide = slideRefs.current[index];
+    if (!slide) {
+      return;
+    }
+
+    slide.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  };
+
   useEffect(() => {
     if (items.length <= 1) {
       return;
@@ -86,19 +99,6 @@ export default function ResponsiveCarousel({
 
     return () => window.clearInterval(interval);
   }, [items.length]);
-
-  const scrollToIndex = (index: number) => {
-    const slide = slideRefs.current[index];
-    if (!slide) {
-      return;
-    }
-
-    slide.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "start",
-    });
-  };
 
   const step = (direction: -1 | 1) => {
     const nextIndex = (activeIndex + direction + items.length) % items.length;
