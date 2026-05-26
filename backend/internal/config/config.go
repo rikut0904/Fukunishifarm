@@ -1,20 +1,127 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 )
 
 type Config struct {
-	DatabaseURL      string
-	CORSAllowOrigins []string
+	Port                   string
+	DatabaseURL            string
+	CORSAllowOrigins       []string
+	FirebaseProjectID      string
+	FirebaseServiceAccount string
+	FirebaseWebAPIKey      string
+	SessionJWTSecret       string
 }
 
 func Load() Config {
-	return Config{
-		DatabaseURL:      os.Getenv("DATABASE_URL"),
-		CORSAllowOrigins: parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+	loadDotEnvFiles(".env", "backend/.env")
+
+	serviceAccountJSON := os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+	firebaseProjectID := strings.TrimSpace(os.Getenv("FIREBASE_PROJECT_ID"))
+	if resolved := resolveFirebaseProjectID(firebaseProjectID, serviceAccountJSON); resolved != "" {
+		firebaseProjectID = resolved
 	}
+
+	return Config{
+		Port:                   getenv("PORT", "8080"),
+		DatabaseURL:            os.Getenv("DATABASE_URL"),
+		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+		FirebaseProjectID:      firebaseProjectID,
+		FirebaseServiceAccount: serviceAccountJSON,
+		FirebaseWebAPIKey:      getenvAny("FIREBASE_WEB_API_KEY", "FIREBASE_API_KEY"),
+		SessionJWTSecret:       os.Getenv("SESSION_JWT_SECRET"),
+	}
+}
+
+func resolveFirebaseProjectID(envProjectID, serviceAccountJSON string) string {
+	if envProjectID != "" && !isNumeric(envProjectID) {
+		return envProjectID
+	}
+	if serviceAccountJSON == "" {
+		return envProjectID
+	}
+
+	var decoded struct {
+		ProjectID string `json:"project_id"`
+	}
+	if err := json.Unmarshal([]byte(serviceAccountJSON), &decoded); err != nil {
+		return envProjectID
+	}
+	if decoded.ProjectID != "" {
+		return decoded.ProjectID
+	}
+	return envProjectID
+}
+
+func isNumeric(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, r := range value {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func loadDotEnvFiles(paths ...string) {
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+
+		for _, line := range strings.Split(string(data), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			if strings.HasPrefix(line, "export ") {
+				line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
+			}
+
+			key, value, ok := strings.Cut(line, "=")
+			if !ok {
+				continue
+			}
+
+			key = strings.TrimSpace(key)
+			value = strings.TrimSpace(value)
+			value = trimMatchingQuotes(value)
+			if key == "" {
+				continue
+			}
+
+			if _, exists := os.LookupEnv(key); !exists {
+				_ = os.Setenv(key, value)
+			}
+		}
+	}
+}
+
+func getenvAny(keys ...string) string {
+	for _, key := range keys {
+		if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func trimMatchingQuotes(value string) string {
+	if len(value) < 2 {
+		return value
+	}
+
+	if (value[0] == '"' && value[len(value)-1] == '"') || (value[0] == '\'' && value[len(value)-1] == '\'') {
+		return value[1 : len(value)-1]
+	}
+
+	return value
 }
 
 func getenv(key, fallback string) string {
