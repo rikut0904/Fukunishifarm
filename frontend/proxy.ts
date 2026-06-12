@@ -1,14 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const DEFAULT_API_BASE_URL = "http://localhost:8080";
-
 function getApiBaseUrl() {
-  return (
+  const apiBaseUrl =
     process.env.API_INTERNAL_BASE_URL ??
-    process.env.API_BASE_URL ??
     process.env.NEXT_PUBLIC_API_BASE_URL ??
-    DEFAULT_API_BASE_URL
-  ).replace(/\/$/, "");
+    "";
+
+  return apiBaseUrl.replace(/\/$/, "");
 }
 
 function isBypassedPath(pathname: string) {
@@ -27,8 +25,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) {
+    return NextResponse.next();
+  }
+
   try {
-    const response = await fetch(`${getApiBaseUrl()}/healthz`, { cache: "no-store" });
+    const response = await fetch(`${apiBaseUrl}/healthz`, { cache: "no-store" });
     if (response.ok) {
       const payload = (await response.json()) as { migrated?: boolean };
       if (payload.migrated === false) {

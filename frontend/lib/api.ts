@@ -1,5 +1,3 @@
-const DEFAULT_API_BASE_URL = "http://localhost:8080";
-
 export class ApiError extends Error {
   status: number;
   code?: string;
@@ -13,7 +11,12 @@ export class ApiError extends Error {
 }
 
 export function getApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? DEFAULT_API_BASE_URL;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!apiBaseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is required");
+  }
+
+  return apiBaseUrl.replace(/\/$/, "");
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -45,6 +48,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     }
 
     throw new ApiError(response.status, text || `API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return (await response.json()) as T;

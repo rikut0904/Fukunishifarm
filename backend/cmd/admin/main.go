@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log/slog"
 	"os"
 	"strings"
 
+	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
 	backenddb "fukunishifarm/backend/internal/db"
-	"fukunishifarm/backend/internal/domain/auth"
 	firebaseauth "fukunishifarm/backend/internal/infra/firebase"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
 )
@@ -46,8 +47,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := database.AutoMigrate(&auth.AdminUser{}); err != nil {
-		slog.Error("auto migrate", "error", err)
+	if err := bootstrap.RequireMigrated(ctx, database); err != nil {
+		if errors.Is(err, bootstrap.ErrDatabaseNotMigrated) {
+			slog.Error("database not migrated", "hint", "run `make migrate`")
+		} else {
+			slog.Error("check database migration", "error", err)
+		}
 		os.Exit(1)
 	}
 
