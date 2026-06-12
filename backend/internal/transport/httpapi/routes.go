@@ -79,6 +79,7 @@ type grapeItemResponse struct {
 	IsOnSale    bool      `json:"isOnSale"`
 	ImagePath   string    `json:"imagePath"`
 	ImageFocus  string    `json:"imageFocus"`
+	ImageScale  int       `json:"imageScale"`
 	SortOrder   int       `json:"sortOrder"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -96,11 +97,23 @@ type grapeItemInput struct {
 	IsOnSale    bool   `json:"isOnSale"`
 	ImagePath   string `json:"imagePath" required:"true"`
 	ImageFocus  string `json:"imageFocus" required:"true"`
+	ImageScale  int    `json:"imageScale"`
+	SortOrder   int    `json:"sortOrder"`
 }
 
 type grapeCatalogInput struct {
 	Body struct {
 		Items []grapeItemInput `json:"items"`
+	}
+}
+
+type grapeItemPath struct {
+	ID uint `path:"id"`
+}
+
+type grapeItemOutput struct {
+	Body struct {
+		Item grapeItemResponse `json:"item"`
 	}
 }
 
@@ -184,6 +197,73 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toGrapeCatalogResponse(catalog), nil
 	})
 
+	huma.Post(api, "/v1/admin/grapes", func(ctx context.Context, input *struct {
+		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+		Body          grapeItemInput
+	}) (*grapeItemOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		saved, err := grapeService.SaveItem(ctx, toGrapeItem(input.Body))
+		if err != nil {
+			return nil, mapGrapeError("failed to create grape item", err)
+		}
+
+		output := &grapeItemOutput{}
+		output.Body.Item = toGrapeItemResponse(saved)
+		return output, nil
+	})
+
+	huma.Put(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *struct {
+		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+		ID            uint   `path:"id"`
+		Body          grapeItemInput
+	}) (*grapeItemOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		saved, err := grapeService.SaveItem(ctx, toGrapeItemWithID(input.ID, input.Body))
+		if err != nil {
+			return nil, mapGrapeError("failed to update grape item", err)
+		}
+
+		output := &grapeItemOutput{}
+		output.Body.Item = toGrapeItemResponse(saved)
+		return output, nil
+	})
+
+	huma.Delete(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *struct {
+		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+		ID            uint   `path:"id"`
+	}) (*struct{}, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		if err := grapeService.DeleteItem(ctx, input.ID); err != nil {
+			return nil, mapGrapeError("failed to delete grape item", err)
+		}
+
+		return &struct{}{}, nil
+	})
+
 	huma.Put(api, "/v1/admin/grapes", func(ctx context.Context, input *struct {
 		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 		Body          grapeCatalogInput
@@ -227,6 +307,8 @@ func mapGrapeError(message string, err error) error {
 	switch {
 	case errors.Is(err, domaingrape.ErrInvalidInput):
 		return huma.Error400BadRequest("invalid input", err)
+	case errors.Is(err, domaingrape.ErrItemNotFound):
+		return huma.Error404NotFound("not found", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}
@@ -273,10 +355,30 @@ func toGrapeCatalog(input grapeCatalogInput) domaingrape.Catalog {
 			IsOnSale:    item.IsOnSale,
 			ImagePath:   item.ImagePath,
 			ImageFocus:  item.ImageFocus,
+			ImageScale:  item.ImageScale,
+			SortOrder:   item.SortOrder,
 		})
 	}
 
 	return domaingrape.Catalog{Items: items}
+}
+
+func toGrapeItem(input grapeItemInput) domaingrape.Item {
+	return domaingrape.Item{
+		Name:        input.Name,
+		Description: input.Description,
+		IsOnSale:    input.IsOnSale,
+		ImagePath:   input.ImagePath,
+		ImageFocus:  input.ImageFocus,
+		ImageScale:  input.ImageScale,
+		SortOrder:   input.SortOrder,
+	}
+}
+
+func toGrapeItemWithID(id uint, input grapeItemInput) domaingrape.Item {
+	item := toGrapeItem(input)
+	item.ID = id
+	return item
 }
 
 func toGrapeCatalogResponse(catalog domaingrape.Catalog) *grapeCatalogResponse {
@@ -297,6 +399,7 @@ func toGrapeItemResponse(item domaingrape.Item) grapeItemResponse {
 		IsOnSale:    item.IsOnSale,
 		ImagePath:   item.ImagePath,
 		ImageFocus:  item.ImageFocus,
+		ImageScale:  item.ImageScale,
 		SortOrder:   item.SortOrder,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,

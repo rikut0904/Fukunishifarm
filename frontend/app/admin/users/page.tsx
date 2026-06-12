@@ -4,16 +4,16 @@ import SiteFooter from "@/components/SiteFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "admin",
-  description: "管理画面です。",
+  title: "admin / users",
+  description: "ユーザー管理の準備画面です。",
 };
 
-export default function AdminPage() {
+export default function AdminUsersPage() {
   return (
     <div className="site-shell">
       <AdminHeader />
       <main>
-        <AdminConsole />
+        <AdminConsole mode="users" />
       </main>
       <SiteFooter />
     </div>

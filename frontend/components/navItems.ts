@@ -8,5 +8,4 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "ご予約", href: "/reservation" },
   { label: "アクセス", href: "/access" },
   { label: "お問い合わせ", href: "/contact" },
-  { label: "admin", href: "/admin" },
 ];
