@@ -73,6 +73,20 @@ func (s *Service) DeleteItem(ctx context.Context, id uint) error {
 	return nil
 }
 
+func (s *Service) ReorderCatalog(ctx context.Context, catalog domainnews.Catalog) (domainnews.Catalog, error) {
+	items := make([]domainnews.Item, 0, len(catalog.Items))
+	for index, item := range catalog.Items {
+		item.SortOrder = index
+		items = append(items, item)
+	}
+
+	if err := s.repository.ReorderItems(ctx, items); err != nil {
+		return domainnews.Catalog{}, fmt.Errorf("reorder news items: %w", err)
+	}
+
+	return s.getCatalog(ctx)
+}
+
 func (s *Service) getCatalog(ctx context.Context) (domainnews.Catalog, error) {
 	items, err := s.repository.ListItems(ctx)
 	if err != nil {

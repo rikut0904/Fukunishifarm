@@ -142,6 +142,17 @@ type newsCatalogInput struct {
 	}
 }
 
+type newsItemOrderInput struct {
+	ID        uint `json:"id" required:"true"`
+	SortOrder int  `json:"sortOrder"`
+}
+
+type newsOrderInput struct {
+	Body struct {
+		Items []newsItemOrderInput `json:"items"`
+	}
+}
+
 type grapeItemPath struct {
 	ID uint `path:"id"`
 }
@@ -394,6 +405,15 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
+	huma.Put(api, "/v1/admin/news/reorder", func(ctx context.Context, input *newsOrderInput) (*newsCatalogResponse, error) {
+		catalog, err := newsService.ReorderCatalog(ctx, toNewsOrderCatalog(input.Body))
+		if err != nil {
+			return nil, mapNewsError("failed to reorder news items", err)
+		}
+
+		return toNewsCatalogResponse(catalog), nil
+	})
+
 	huma.Delete(api, "/v1/admin/news/{id}", func(ctx context.Context, input *struct {
 		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 		ID            uint   `path:"id"`
@@ -592,6 +612,20 @@ func toNewsItemWithID(id uint, input newsItemInput) domainnews.Item {
 	item := toNewsItem(input)
 	item.ID = id
 	return item
+}
+
+func toNewsOrderCatalog(input struct {
+	Items []newsItemOrderInput `json:"items"`
+}) domainnews.Catalog {
+	items := make([]domainnews.Item, 0, len(input.Items))
+	for _, item := range input.Items {
+		items = append(items, domainnews.Item{
+			ID:        item.ID,
+			SortOrder: item.SortOrder,
+		})
+	}
+
+	return domainnews.Catalog{Items: items}
 }
 
 func toNewsItemResponse(item domainnews.Item) newsItemResponse {

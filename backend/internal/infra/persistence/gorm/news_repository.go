@@ -97,3 +97,26 @@ func (r *NewsRepository) DeleteItem(ctx context.Context, id uint) error {
 
 	return nil
 }
+
+func (r *NewsRepository) ReorderItems(ctx context.Context, items []domainnews.Item) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, item := range items {
+			if item.ID == 0 {
+				continue
+			}
+
+			result := tx.Model(&domainnews.Item{}).
+				Where("id = ?", item.ID).
+				Update("sort_order", item.SortOrder)
+			if result.Error != nil {
+				return result.Error
+			}
+
+			if result.RowsAffected == 0 {
+				return domainnews.ErrItemNotFound
+			}
+		}
+
+		return nil
+	})
+}

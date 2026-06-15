@@ -6,6 +6,7 @@ import {
   deleteAdminNewsItem,
   fetchAdminNewsCatalog,
   type NewsCatalog,
+  reorderAdminNewsCatalog,
   type NewsItem,
   type NewsItemInput,
   updateAdminNewsItem,
@@ -485,32 +486,27 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
     setOrderingClientKey(sourceItem.clientKey);
 
     try {
-      const changedItems = [normalized[index], normalized[targetIndex]].filter(
-        (item): item is EditableNewsItem => Boolean(item && item.id !== 0),
-      );
+      const saved = await reorderAdminNewsCatalog(token, {
+        items: normalized
+          .filter((item) => item.id !== 0)
+          .map((item) => ({
+            id: item.id,
+            sortOrder: item.sortOrder,
+          })),
+      });
 
-      const savedItems = await Promise.all(
-        changedItems.map(async (item) => {
-          const response = await updateAdminNewsItem(token, item.id, toItemInput(item));
-          return {
-            ...response.item,
-            clientKey: item.clientKey,
-          };
-        }),
+      setCatalog((currentCatalog) =>
+        currentCatalog
+          ? {
+              items: normalizeCatalogItems(
+                currentCatalog.items.map((item) => {
+                  const savedItem = saved.items.find((entry) => entry.id === item.id);
+                  return savedItem ? { ...savedItem, clientKey: item.clientKey } : item;
+                }),
+              ),
+            }
+          : currentCatalog,
       );
-
-      if (savedItems.length > 0) {
-        const savedByClientKey = new Map(savedItems.map((item) => [item.clientKey, item] as const));
-        setCatalog((currentCatalog) =>
-          currentCatalog
-            ? {
-                items: normalizeCatalogItems(
-                  currentCatalog.items.map((item) => savedByClientKey.get(item.clientKey) ?? item),
-                ),
-              }
-            : currentCatalog,
-        );
-      }
       setStatus({ kind: "ready" });
       pushToast("success", "表示順を保存しました。");
     } catch (error) {

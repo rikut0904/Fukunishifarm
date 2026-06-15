@@ -23,6 +23,15 @@ export type NewsCatalogInput = {
   items: NewsItemInput[];
 };
 
+export type NewsItemOrderInput = {
+  id: number;
+  sortOrder: number;
+};
+
+export type NewsOrderInput = {
+  items: NewsItemOrderInput[];
+};
+
 export type NewsItemResponse = {
   item: NewsItem;
 };
@@ -147,5 +156,15 @@ export async function deleteAdminNewsItem(token: string, id: number) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  });
+}
+
+export async function reorderAdminNewsCatalog(token: string, catalog: NewsOrderInput) {
+  return apiFetch<NewsCatalog>("/v1/admin/news/reorder", {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(catalog),
   });
 }
