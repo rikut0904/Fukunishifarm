@@ -485,12 +485,12 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
     setOrderingClientKey(sourceItem.clientKey);
 
     try {
-      const savedItems = await Promise.all(
-        normalized.map(async (item) => {
-          if (item.id === 0) {
-            return item;
-          }
+      const changedItems = [normalized[index], normalized[targetIndex]].filter(
+        (item): item is EditableNewsItem => Boolean(item && item.id !== 0),
+      );
 
+      const savedItems = await Promise.all(
+        changedItems.map(async (item) => {
           const response = await updateAdminNewsItem(token, item.id, toItemInput(item));
           return {
             ...response.item,
@@ -498,7 +498,19 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
           };
         }),
       );
-      setCatalog({ items: normalizeCatalogItems(savedItems) });
+
+      if (savedItems.length > 0) {
+        const savedByClientKey = new Map(savedItems.map((item) => [item.clientKey, item] as const));
+        setCatalog((currentCatalog) =>
+          currentCatalog
+            ? {
+                items: normalizeCatalogItems(
+                  currentCatalog.items.map((item) => savedByClientKey.get(item.clientKey) ?? item),
+                ),
+              }
+            : currentCatalog,
+        );
+      }
       setStatus({ kind: "ready" });
       pushToast("success", "表示順を保存しました。");
     } catch (error) {
