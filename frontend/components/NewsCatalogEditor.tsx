@@ -487,12 +487,10 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
 
     try {
       const saved = await reorderAdminNewsCatalog(token, {
-        items: normalized
-          .filter((item) => item.id !== 0)
-          .map((item) => ({
-            id: item.id,
-            sortOrder: item.sortOrder,
-          })),
+        items: normalized.map((item) => ({
+          id: item.id,
+          sortOrder: item.sortOrder,
+        })),
       });
 
       setCatalog((currentCatalog) =>
