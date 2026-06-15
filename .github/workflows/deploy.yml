@@ -1,8 +1,6 @@
 name: Deploy to Lolipop on main
 
 on: 
-  push: 
-    branches: [ "main" ]
   workflow_dispatch: {}
 
 jobs:
@@ -19,11 +17,14 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
       
       - name: Install dependencies
+        working-directory: frontend
         run: npm ci
 
       - name: Build
+        working-directory: frontend
         run: npm run build
 
       - name: Start ssh-agent and add key
@@ -40,6 +41,6 @@ jobs:
         run: |
           rsync -avz --delete --delay-updates \
           -e "ssh -p ${{ secrets.LOLIPOP_PORT }}" \
-          out/ \
+          frontend/out/ \
           ${{ secrets.LOLIPOP_USER }}@${{ secrets.LOLIPOP_HOST }}:${{ secrets.LOLIPOP_TARGET_DIR }}
           
