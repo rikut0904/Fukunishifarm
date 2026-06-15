@@ -2,6 +2,7 @@ package gormrepo
 
 import (
 	"context"
+	"errors"
 
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	"gorm.io/gorm"
@@ -54,26 +55,26 @@ func (r *GrapeRepository) CreateItem(ctx context.Context, item domaingrape.Item)
 }
 
 func (r *GrapeRepository) UpdateItem(ctx context.Context, item domaingrape.Item) (domaingrape.Item, error) {
-	updates := map[string]any{
-		"name":         item.Name,
-		"description":  item.Description,
-		"is_on_sale":   item.IsOnSale,
-		"image_path":   item.ImagePath,
-		"image_focus":  item.ImageFocus,
-		"image_scale":  item.ImageScale,
-		"sort_order":   item.SortOrder,
-	}
-
-	tx := r.db.WithContext(ctx).Model(&domaingrape.Item{}).Where("id = ?", item.ID).Updates(updates)
-	if tx.Error != nil {
-		return domaingrape.Item{}, tx.Error
-	}
-	if tx.RowsAffected == 0 {
-		return domaingrape.Item{}, domaingrape.ErrItemNotFound
-	}
-
 	var saved domaingrape.Item
-	if err := r.db.WithContext(ctx).First(&saved, item.ID).Error; err != nil {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.First(&saved, item.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domaingrape.ErrItemNotFound
+			}
+			return err
+		}
+
+		saved.Name = item.Name
+		saved.Description = item.Description
+		saved.IsOnSale = item.IsOnSale
+		saved.ImagePath = item.ImagePath
+		saved.ImageFocus = item.ImageFocus
+		saved.ImageScale = item.ImageScale
+		saved.SortOrder = item.SortOrder
+
+		return tx.Save(&saved).Error
+	})
+	if err != nil {
 		return domaingrape.Item{}, err
 	}
 

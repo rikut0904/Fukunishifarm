@@ -105,15 +105,18 @@ func (r *NewsRepository) ReorderItems(ctx context.Context, items []domainnews.It
 				continue
 			}
 
-			result := tx.Model(&domainnews.Item{}).
-				Where("id = ?", item.ID).
-				Update("sort_order", item.SortOrder)
-			if result.Error != nil {
-				return result.Error
+			var existing domainnews.Item
+			if err := tx.First(&existing, item.ID).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return domainnews.ErrItemNotFound
+				}
+				return err
 			}
 
-			if result.RowsAffected == 0 {
-				return domainnews.ErrItemNotFound
+			existing.SortOrder = item.SortOrder
+
+			if err := tx.Save(&existing).Error; err != nil {
+				return err
 			}
 		}
 
