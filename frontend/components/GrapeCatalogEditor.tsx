@@ -517,23 +517,10 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
           return current;
         }
 
-        const nextItems = normalizeCatalogItems(
-          current.items.filter((entry) => entry.clientKey !== currentItem.clientKey),
-        );
-
         return {
-          items: nextItems,
+          items: current.items.filter((entry) => entry.clientKey !== currentItem.clientKey),
         };
       });
-
-      const nextItems = normalizeCatalogItems(
-        (catalog?.items ?? []).filter((entry) => entry.clientKey !== currentItem.clientKey),
-      );
-      await Promise.all(
-        nextItems
-          .filter((item) => item.id !== 0)
-          .map((item) => updateAdminGrapeItem(token, item.id, toItemInput(item))),
-      );
       setStatus({ kind: "ready" });
       setFeedback(`${currentItem.name || "品種"}を削除しました。`);
       pushToast("success", `${currentItem.name || "品種"}を削除しました。`);
