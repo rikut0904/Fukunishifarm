@@ -12,6 +12,11 @@ export const adminMenuItems: AdminMenuItem[] = [
     href: "/admin/grape",
   },
   {
+    title: "お知らせの編集",
+    description: "お知らせの一覧を作成・並び替え・編集します。",
+    href: "/admin/news",
+  },
+  {
     title: "ユーザー管理",
     description: "管理者ユーザーの追加、編集、権限管理を行います。",
     href: "/admin/users",

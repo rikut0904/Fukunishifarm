@@ -3,6 +3,7 @@
 import { ApiError, apiFetch } from "@/lib/api";
 import { adminMenuItems } from "@/lib/adminMenu";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
+import NewsCatalogEditor from "@/components/NewsCatalogEditor";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,7 +22,7 @@ type Status =
   | { kind: "redirecting" };
 
 type AdminConsoleProps = {
-  mode?: "home" | "grape" | "users";
+  mode?: "home" | "grape" | "news" | "users";
 };
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
@@ -194,6 +195,10 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
         </div>
       </section>
     );
+  }
+
+  if (mode === "news") {
+    return <NewsCatalogEditor token={status.token} onSignOut={handleSignOut} />;
   }
 
   return <GrapeCatalogEditor token={status.token} onSignOut={handleSignOut} />;

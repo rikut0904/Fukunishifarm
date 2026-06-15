@@ -21,6 +21,7 @@ import (
 	"fukunishifarm/backend/internal/transport/httpapi"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
+	usecasenews "fukunishifarm/backend/internal/usecase/news"
 
 	backenddb "fukunishifarm/backend/internal/db"
 )
@@ -66,8 +67,10 @@ func main() {
 
 	adminRepository := gormrepo.NewAdminUserRepository(database)
 	grapeRepository := gormrepo.NewGrapeRepository(database)
+	newsRepository := gormrepo.NewNewsRepository(database)
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
 	grapeService := usecasegrape.NewService(grapeRepository)
+	newsService := usecasenews.NewService(newsRepository)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -97,7 +100,7 @@ func main() {
 	})
 
 	api := humaecho.New(e, huma.DefaultConfig("Fukunishi Farm API", "1.0.0"))
-	httpapi.Register(api, authService, grapeService, migrated)
+	httpapi.Register(api, authService, grapeService, newsService, migrated)
 
 	slog.Info("starting api server", "port", cfg.Port)
 	if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {

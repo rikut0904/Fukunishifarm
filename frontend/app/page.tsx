@@ -58,7 +58,7 @@ export default async function Home() {
                 <span className="tag tag--accent">直売</span>
               </div>
               <p className="eyebrow mt-5">Fukunishi Farm</p>
-              <h1 className="hero__headline">ふくにしファームぶどう狩り</h1>
+              <h1 className="hero__headline">ふくにしファーム<br />ぶどう狩り</h1>
               <p className="hero__text">
                 焼き物で有名な信楽町。自然に囲まれたのどかな高原。その最高峰の笹ヶ岳のふもとで太陽と水の恵みをいっぱい受け育った「紫香楽高原ぶどう」ぶどう狩りをお楽しみいただけます。入園無料ですので、ぜひご来園ください。
               </p>
