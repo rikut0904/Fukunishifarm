@@ -100,7 +100,6 @@ func normalizeItems(items []domainnews.Item) ([]domainnews.Item, error) {
 func normalizeItem(item domainnews.Item) (domainnews.Item, error) {
 	item.Date = strings.TrimSpace(item.Date)
 	item.Title = strings.TrimSpace(item.Title)
-	item.Body = ""
 
 	if item.Date == "" || item.Title == "" {
 		return domainnews.Item{}, domainnews.ErrInvalidInput

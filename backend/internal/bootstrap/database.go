@@ -20,6 +20,12 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
+	if db.Migrator().HasColumn(&domainnews.Item{}, "Body") {
+		if err := db.Migrator().DropColumn(&domainnews.Item{}, "Body"); err != nil {
+			return fmt.Errorf("drop news body column: %w", err)
+		}
+	}
+
 	grapeService := usecasegrape.NewService(gormrepo.NewGrapeRepository(db))
 	if err := grapeService.SeedDefaults(ctx, domaingrape.DefaultCatalog()); err != nil {
 		return fmt.Errorf("seed grape catalog: %w", err)

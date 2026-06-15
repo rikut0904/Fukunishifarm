@@ -69,7 +69,6 @@ func (r *NewsRepository) UpdateItem(ctx context.Context, item domainnews.Item) (
 
 		existing.Date = item.Date
 		existing.Title = item.Title
-		existing.Body = item.Body
 		existing.SortOrder = item.SortOrder
 
 		if err := tx.Save(&existing).Error; err != nil {

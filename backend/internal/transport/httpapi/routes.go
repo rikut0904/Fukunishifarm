@@ -573,7 +573,6 @@ func toNewsCatalog(input newsCatalogInput) domainnews.Catalog {
 		items = append(items, domainnews.Item{
 			Date:      item.Date,
 			Title:     item.Title,
-			Body:      "",
 			SortOrder: item.SortOrder,
 		})
 	}
@@ -585,7 +584,6 @@ func toNewsItem(input newsItemInput) domainnews.Item {
 	return domainnews.Item{
 		Date:      input.Date,
 		Title:     input.Title,
-		Body:      "",
 		SortOrder: input.SortOrder,
 	}
 }
