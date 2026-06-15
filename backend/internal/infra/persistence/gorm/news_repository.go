@@ -100,22 +100,36 @@ func (r *NewsRepository) DeleteItem(ctx context.Context, id uint) error {
 
 func (r *NewsRepository) ReorderItems(ctx context.Context, items []domainnews.Item) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		ids := make([]uint, 0, len(items))
 		for _, item := range items {
 			if item.ID == 0 {
 				continue
 			}
 
-			var existing domainnews.Item
-			if err := tx.First(&existing, item.ID).Error; err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return domainnews.ErrItemNotFound
-				}
-				return err
+			ids = append(ids, item.ID)
+		}
+
+		if len(ids) == 0 {
+			return nil
+		}
+
+		var existingIDs []uint
+		if err := tx.Model(&domainnews.Item{}).Where("id IN ?", ids).Pluck("id", &existingIDs).Error; err != nil {
+			return err
+		}
+
+		if len(existingIDs) != len(ids) {
+			return domainnews.ErrItemNotFound
+		}
+
+		for _, item := range items {
+			if item.ID == 0 {
+				continue
 			}
 
-			existing.SortOrder = item.SortOrder
-
-			if err := tx.Save(&existing).Error; err != nil {
+			if err := tx.Model(&domainnews.Item{}).
+				Where("id = ?", item.ID).
+				Update("sort_order", item.SortOrder).Error; err != nil {
 				return err
 			}
 		}
