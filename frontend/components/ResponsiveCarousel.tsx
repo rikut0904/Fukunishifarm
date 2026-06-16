@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CarouselItem = {
   id: string;
@@ -93,7 +93,7 @@ export default function ResponsiveCarousel({
     return () => observer.disconnect();
   }, [items.length]);
 
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = useCallback((index: number) => {
     const track = trackRef.current;
     const slide = slideRefs.current[index];
     if (!track || !slide) {
@@ -108,7 +108,7 @@ export default function ResponsiveCarousel({
       left,
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
-  };
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     if (items.length <= 1) {
@@ -126,7 +126,7 @@ export default function ResponsiveCarousel({
     }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [items.length, prefersReducedMotion]);
+  }, [items.length, scrollToIndex]);
 
   const step = (direction: -1 | 1) => {
     if (items.length === 0) {
