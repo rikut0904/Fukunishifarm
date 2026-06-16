@@ -534,6 +534,12 @@ h4 {
   box-shadow: 0 10px 24px rgba(94, 55, 25, 0.08);
 }
 
+.carousel__button:focus-visible,
+.carousel__dot:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
 .carousel__button:disabled {
   opacity: 0.45;
   box-shadow: none;
