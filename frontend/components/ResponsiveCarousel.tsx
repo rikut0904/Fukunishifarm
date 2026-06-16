@@ -25,6 +25,7 @@ export default function ResponsiveCarousel({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const activeIndexRef = useRef(0);
   const lastInteractionRef = useRef(0);
   const hoverRef = useRef(false);
@@ -32,6 +33,19 @@ export default function ResponsiveCarousel({
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const updateMotionPreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updateMotionPreference();
+    mediaQuery.addEventListener("change", updateMotionPreference);
+
+    return () => mediaQuery.removeEventListener("change", updateMotionPreference);
+  }, []);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -82,7 +96,7 @@ export default function ResponsiveCarousel({
 
     track.scrollTo({
       left,
-      behavior: "smooth",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
   };
 
@@ -102,7 +116,7 @@ export default function ResponsiveCarousel({
     }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [items.length]);
+  }, [items.length, prefersReducedMotion]);
 
   const step = (direction: -1 | 1) => {
     const nextIndex = (activeIndex + direction + items.length) % items.length;
