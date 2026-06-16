@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 export type CarouselItem = {
@@ -110,19 +110,14 @@ export default function ResponsiveCarousel({
     scrollToIndex(nextIndex);
   };
 
-  const blurCurrentTarget = (event: MouseEvent<HTMLButtonElement>) => {
-    event.currentTarget.blur();
-  };
-
   return (
     <div className={`carousel ${className}`.trim()} role="region" aria-label={ariaLabel}>
       <div className="carousel__controls">
         <button
           type="button"
           className="carousel__button"
-          onClick={(event) => {
+          onClick={() => {
             step(-1);
-            blurCurrentTarget(event);
           }}
           disabled={activeIndex === 0}
           aria-label="前の項目へ"
@@ -132,9 +127,8 @@ export default function ResponsiveCarousel({
         <button
           type="button"
           className="carousel__button"
-          onClick={(event) => {
+          onClick={() => {
             step(1);
-            blurCurrentTarget(event);
           }}
           disabled={activeIndex === items.length - 1}
           aria-label="次の項目へ"
@@ -179,10 +173,9 @@ export default function ResponsiveCarousel({
             key={item.id}
             type="button"
             className={`carousel__dot ${index === activeIndex ? "carousel__dot--active" : ""}`}
-            onClick={(event) => {
+            onClick={() => {
               lastInteractionRef.current = Date.now();
               scrollToIndex(index);
-              blurCurrentTarget(event);
             }}
             aria-label={`${index + 1}枚目へ`}
             aria-current={index === activeIndex ? "true" : undefined}
