@@ -104,9 +104,14 @@ export default function ResponsiveCarousel({
     const slideRect = slide.getBoundingClientRect();
     const left = slideRect.left - trackRect.left + track.scrollLeft;
 
+    if (prefersReducedMotion) {
+      track.scrollLeft = left;
+      return;
+    }
+
     track.scrollTo({
       left,
-      behavior: prefersReducedMotion ? "auto" : "smooth",
+      behavior: "smooth",
     });
   }, [prefersReducedMotion]);
 
