@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CarouselItem = {
   id: string;
@@ -25,6 +25,7 @@ export default function ResponsiveCarousel({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const activeIndexRef = useRef(0);
   const lastInteractionRef = useRef(0);
   const hoverRef = useRef(false);
@@ -32,6 +33,29 @@ export default function ResponsiveCarousel({
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const updateMotionPreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updateMotionPreference();
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateMotionPreference);
+    } else {
+      mediaQuery.addListener(updateMotionPreference);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", updateMotionPreference);
+      } else {
+        mediaQuery.removeListener(updateMotionPreference);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -69,18 +93,27 @@ export default function ResponsiveCarousel({
     return () => observer.disconnect();
   }, [items.length]);
 
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = useCallback((index: number) => {
+    const track = trackRef.current;
     const slide = slideRefs.current[index];
-    if (!slide) {
+    if (!track || !slide) {
       return;
     }
 
-    slide.scrollIntoView({
+    const trackRect = track.getBoundingClientRect();
+    const slideRect = slide.getBoundingClientRect();
+    const left = slideRect.left - trackRect.left + track.scrollLeft;
+
+    if (prefersReducedMotion) {
+      track.scrollLeft = left;
+      return;
+    }
+
+    track.scrollTo({
+      left,
       behavior: "smooth",
-      block: "nearest",
-      inline: "start",
     });
-  };
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     if (items.length <= 1) {
@@ -98,9 +131,13 @@ export default function ResponsiveCarousel({
     }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [items.length]);
+  }, [items.length, scrollToIndex]);
 
   const step = (direction: -1 | 1) => {
+    if (items.length === 0) {
+      return;
+    }
+
     const nextIndex = (activeIndex + direction + items.length) % items.length;
     lastInteractionRef.current = Date.now();
     scrollToIndex(nextIndex);
@@ -112,8 +149,10 @@ export default function ResponsiveCarousel({
         <button
           type="button"
           className="carousel__button"
-          onClick={() => step(-1)}
-          disabled={activeIndex === 0}
+          onClick={() => {
+            step(-1);
+          }}
+          disabled={items.length === 0 || activeIndex === 0}
           aria-label="前の項目へ"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -121,8 +160,10 @@ export default function ResponsiveCarousel({
         <button
           type="button"
           className="carousel__button"
-          onClick={() => step(1)}
-          disabled={activeIndex === items.length - 1}
+          onClick={() => {
+            step(1);
+          }}
+          disabled={items.length === 0 || activeIndex === items.length - 1}
           aria-label="次の項目へ"
         >
           <ChevronRight className="h-5 w-5" />
