@@ -119,6 +119,10 @@ export default function ResponsiveCarousel({
   }, [items.length, prefersReducedMotion]);
 
   const step = (direction: -1 | 1) => {
+    if (items.length === 0) {
+      return;
+    }
+
     const nextIndex = (activeIndex + direction + items.length) % items.length;
     lastInteractionRef.current = Date.now();
     scrollToIndex(nextIndex);
@@ -133,7 +137,7 @@ export default function ResponsiveCarousel({
           onClick={() => {
             step(-1);
           }}
-          disabled={activeIndex === 0}
+          disabled={items.length === 0 || activeIndex === 0}
           aria-label="前の項目へ"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -144,7 +148,7 @@ export default function ResponsiveCarousel({
           onClick={() => {
             step(1);
           }}
-          disabled={activeIndex === items.length - 1}
+          disabled={items.length === 0 || activeIndex === items.length - 1}
           aria-label="次の項目へ"
         >
           <ChevronRight className="h-5 w-5" />
