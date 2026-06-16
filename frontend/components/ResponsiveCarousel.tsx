@@ -42,9 +42,19 @@ export default function ResponsiveCarousel({
     };
 
     updateMotionPreference();
-    mediaQuery.addEventListener("change", updateMotionPreference);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateMotionPreference);
+    } else {
+      mediaQuery.addListener(updateMotionPreference);
+    }
 
-    return () => mediaQuery.removeEventListener("change", updateMotionPreference);
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", updateMotionPreference);
+      } else {
+        mediaQuery.removeListener(updateMotionPreference);
+      }
+    };
   }, []);
 
   useEffect(() => {
