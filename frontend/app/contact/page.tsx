@@ -5,8 +5,15 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "お問い合わせ",
-  description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
+  description: "ふくにしファームへのお問い合わせはこちらからどうぞ。",
 };
+
+const inquiryTypes = [
+  "ぶどう狩りについて",
+  "料金について",
+  "アクセスについて",
+  "その他",
+];
 
 export default function ContactPage() {
   return (
@@ -22,44 +29,55 @@ export default function ContactPage() {
 
         <section className="section">
           <div className="section__head">
-            <p className="eyebrow">Documents</p>
-            <h1 className="section__title">各種書類</h1>
-          </div>
-          <p>
-            欲しい資料がございましたら<Link href="/download">こちら</Link>からダウンロードできます。
-          </p>
-        </section>
-
-        <section className="section section--soft">
-          <div className="section__head">
             <p className="eyebrow">Contact</p>
-            <h2 className="section__title">お問い合わせ</h2>
-          </div>
-          <p>
-            ご不明点やサービスの改善案がございましたらこちらのアンケートフォームからお問い合わせください。
-            <br />
-            もし下記アンケートが閲覧されない等ございましたら
-            <a
-              target="_blank"
-              href="https://docs.google.com/forms/d/e/1FAIpQLSf7wwAVAy-yqNc7G1bvPQ0-4nn5H8BXe25Y4cY5aGMpzNR4bg/viewform?embedded=true"
-              rel="noreferrer"
-            >
-              こちら
-            </a>
-            からご連絡いただけますと幸いです。
-          </p>
-          <div className="media-frame">
-            <iframe
-              src="https://docs.google.com/forms/d/e/1FAIpQLSf7wwAVAy-yqNc7G1bvPQ0-4nn5H8BXe25Y4cY5aGMpzNR4bg/viewform?embedded=true"
-              width="100%"
-              height={600}
-              frameBorder={0}
-              marginHeight={0}
-              marginWidth={0}
-              style={{ margin: 0 }}
-            >
-              読み込んでいます…
-            </iframe>
+            <h1 className="section__title">お問い合わせ</h1>
+
+            <form className="contact-form">
+              <div className="grid grid--2">
+                <label className="contact-field">
+                  <span>お名前</span>
+                  <input className="admin-input" type="text" placeholder="例: 福西 太郎" />
+                </label>
+
+                <label className="contact-field">
+                  <span>メールアドレス</span>
+                  <input className="admin-input" type="email" placeholder="example@email.com" />
+                </label>
+              </div>
+
+              <div className="grid grid--2">
+                <label className="contact-field">
+                  <span>お問い合わせ種別</span>
+                  <select className="admin-input" defaultValue={inquiryTypes[0]}>
+                    {inquiryTypes.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="contact-field">
+                  <span>件名</span>
+                  <input className="admin-input" type="text" placeholder="例: アクセス方法について" />
+                </label>
+              </div>
+
+              <label className="contact-field">
+                <span>お問い合わせ内容</span>
+                <textarea
+                  className="admin-textarea"
+                  rows={8}
+                  placeholder="できるだけ具体的にご記載ください"
+                />
+              </label>
+
+              <div className="contact-form__footer">
+                <button type="button" className="button-link button-link--primary" disabled>
+                  送信する
+                </button>
+              </div>
+            </form>
           </div>
         </section>
       </main>
