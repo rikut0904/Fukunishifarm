@@ -2,6 +2,7 @@
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { adminMenuItems } from "@/lib/adminMenu";
+import AdminPageShell from "@/components/AdminPageShell";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
 import NewsCatalogEditor from "@/components/NewsCatalogEditor";
 import { Loader2 } from "lucide-react";
@@ -22,7 +23,7 @@ type Status =
   | { kind: "redirecting" };
 
 type AdminConsoleProps = {
-  mode?: "home" | "grape" | "news" | "users";
+  mode?: "home" | "grape" | "news" | "users" | "contact";
 };
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
@@ -110,54 +111,35 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
 
   if (status.kind === "loading" || status.kind === "redirecting") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-state">
-            <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
-            <p className="m-0">読み込み中...</p>
-          </div>
+      <AdminPageShell title="管理画面" lead="読み込み中..." variant="narrow">
+        <div className="admin-login-state">
+          <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
+          <p className="m-0">読み込み中...</p>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (status.kind === "error") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">管理画面</h1>
-            </div>
-          </div>
-
-          <div className="admin-login-state">
-            <p className="admin-error">{status.message}</p>
-            <button type="button" className="button-link button-link--primary" onClick={() => void handleRetry()}>
-              再試行
-            </button>
-            <button type="button" className="button-link button-link--secondary" onClick={handleSignOut}>
-              ログアウト
-            </button>
-          </div>
+      <AdminPageShell title="管理画面" lead="セッションの確認に失敗しました。" variant="narrow">
+        <div className="admin-login-state">
+          <p className="admin-error">{status.message}</p>
+          <button type="button" className="button-link button-link--primary" onClick={() => void handleRetry()}>
+            再試行
+          </button>
+          <button type="button" className="button-link button-link--secondary" onClick={handleSignOut}>
+            ログアウト
+          </button>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (mode === "home") {
     return (
-      <section className="section admin-page">
-        <div className="admin-dashboard">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">管理ページ</h1>
-              <p className="section__lead">編集したい項目を選んでください。</p>
-            </div>
-          </div>
-
+      <AdminPageShell title="管理ページ" lead="編集したい項目を選んでください。">
+        <div className="admin-home-panel">
           <div className="admin-menu">
             {adminMenuItems.map((item) => (
               <Link key={item.href} href={item.href} className="admin-menu-card">
@@ -171,29 +153,92 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
             ))}
           </div>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (mode === "users") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">ユーザー管理</h1>
-              <p className="section__lead">準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。</p>
-            </div>
+      <AdminPageShell title="ユーザー管理" lead="準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。">
+        <div className="admin-login-state">
+          <p className="m-0">現在は閲覧用のプレースホルダです。操作メニューは上部ヘッダーから移動できます。</p>
+        </div>
+      </AdminPageShell>
+    );
+  }
+
+  if (mode === "contact") {
+    const sampleContacts = [
+      {
+        id: "1",
+        name: "山田 太郎",
+        email: "taro@example.com",
+        category: "予約について",
+        subject: "家族5人での予約について",
+        status: "対応前",
+        date: "2026-06-19",
+      },
+      {
+        id: "2",
+        name: "鈴木 花子",
+        email: "hanako@example.com",
+        category: "料金について",
+        subject: "シャインマスカットの料金を知りたい",
+        status: "対応中",
+        date: "2026-06-18",
+      },
+      {
+        id: "3",
+        name: "田中 一郎",
+        email: "ichiro@example.com",
+        category: "アクセスについて",
+        subject: "車でのアクセス方法",
+        status: "対応済み",
+        date: "2026-06-17",
+      },
+    ];
+
+    return (
+      <AdminPageShell
+        title="お問い合わせ管理"
+        lead="送信されたお問い合わせを一覧で確認できる画面のたたき台です。"
+      >
+        <div className="admin-shell__summary">
+            <span>受付前 1件</span>
+            <span>対応中 1件</span>
+            <span>対応済み 1件</span>
           </div>
 
-          <div className="admin-login-state">
-            <Link href="/admin" className="button-link button-link--primary">
-              管理ページへ戻る
-            </Link>
+          <div className="card table-card">
+            <table className="info-table admin-contact-table">
+              <thead>
+                <tr>
+                  <th>日付</th>
+                  <th>名前</th>
+                  <th>種別</th>
+                  <th>件名</th>
+                  <th>状態</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sampleContacts.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.date}</td>
+                    <td>
+                      <div className="grid gap-1">
+                        <span>{item.name}</span>
+                        <span className="note m-0">{item.email}</span>
+                      </div>
+                    </td>
+                    <td>{item.category}</td>
+                    <td>{item.subject}</td>
+                    <td>{item.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </section>
+      </AdminPageShell>
     );
   }
 

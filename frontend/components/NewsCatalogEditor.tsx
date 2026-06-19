@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiError } from "@/lib/api";
+import AdminPageShell from "@/components/AdminPageShell";
 import {
   createAdminNewsItem,
   deleteAdminNewsItem,
@@ -553,26 +554,16 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
     editingClientKey && catalog ? catalog.items.find((item) => item.clientKey === editingClientKey) ?? null : null;
 
   return (
-    <section className="section admin-page">
-      <div className="admin-dashboard">
-        <div className="admin-dashboard__head">
-          <div className="grid gap-1">
-            <p className="eyebrow">Admin</p>
-            <h1 className="section__title">お知らせの編集</h1>
-            {catalog ? (
-              <p className="section__lead admin-dashboard__summary">
-                <span>{catalog.items.length}件</span>
-              </p>
-            ) : null}
-          </div>
-          <div className="admin-editor-actions">
-            <button type="button" className="button-link button-link--primary" onClick={addItem} disabled={!catalog}>
-              <Plus className="h-4 w-4" />
-              お知らせを追加
-            </button>
-          </div>
-        </div>
-
+    <AdminPageShell
+      title="お知らせの編集"
+      lead={catalog ? <span className="admin-shell__summary"><span>{catalog.items.length}件</span></span> : "お知らせの一覧を作成・並び替え・編集します。"}
+      actions={
+        <button type="button" className="button-link button-link--primary" onClick={addItem} disabled={!catalog}>
+          <Plus className="h-4 w-4" />
+          お知らせを追加
+        </button>
+      }
+    >
         {status.kind === "loading" ? (
           <div className="admin-login-state">
             <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
@@ -653,7 +644,6 @@ export default function NewsCatalogEditor({ token, onSignOut }: NewsCatalogEdito
         ) : null}
 
         {toast ? <div className={`admin-toast admin-toast--${toast.kind}`}>{toast.message}</div> : null}
-      </div>
-    </section>
+    </AdminPageShell>
   );
 }
