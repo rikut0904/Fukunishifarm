@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"fukunishifarm/backend/internal/domain/auth"
+	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
@@ -16,7 +17,7 @@ import (
 var ErrDatabaseNotMigrated = errors.New("database not migrated")
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
@@ -35,7 +36,7 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 }
 
 func RequireMigrated(ctx context.Context, db *gorm.DB) error {
-	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domainnews.Item{}) {
+	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domainnews.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) {
 		return ErrDatabaseNotMigrated
 	}
 

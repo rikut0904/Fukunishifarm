@@ -7,8 +7,10 @@ import (
 	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
+	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
+	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
@@ -71,6 +73,29 @@ type loginOutput struct {
 type createUserOutput struct {
 	Body struct {
 		User adminUserResponse `json:"user"`
+	}
+}
+
+type contactMessagePayload struct {
+	Name     string `json:"name" required:"true"`
+	Email    string `json:"email" required:"true"`
+	Category string `json:"category" required:"true"`
+	Subject  string `json:"subject" required:"true"`
+	Message  string `json:"message" required:"true"`
+}
+
+type contactMessageInput struct {
+	Body contactMessagePayload
+}
+
+type contactMessageResponse struct {
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type contactMessageOutput struct {
+	Body struct {
+		Message contactMessageResponse `json:"message"`
 	}
 }
 
@@ -163,7 +188,7 @@ type grapeItemOutput struct {
 	}
 }
 
-func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, migrated bool) {
+func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, contactService *usecasecontact.Service, migrated bool) {
 	huma.Get(api, "/healthz", func(ctx context.Context, input *struct{}) (*healthOutput, error) {
 		output := &healthOutput{}
 		output.Body.Status = "ok"
@@ -340,6 +365,17 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toNewsCatalogResponse(catalog), nil
 	})
 
+	huma.Post(api, "/v1/contact", func(ctx context.Context, input *contactMessageInput) (*contactMessageOutput, error) {
+		saved, err := contactService.SubmitMessage(ctx, toContactMessage(input.Body))
+		if err != nil {
+			return nil, mapContactError("failed to submit contact message", err)
+		}
+
+		output := &contactMessageOutput{}
+		output.Body.Message = toContactMessageResponse(saved)
+		return output, nil
+	})
+
 	huma.Get(api, "/v1/admin/news", func(ctx context.Context, input *sessionInput) (*newsCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
@@ -495,6 +531,15 @@ func mapNewsError(message string, err error) error {
 	}
 }
 
+func mapContactError(message string, err error) error {
+	switch {
+	case errors.Is(err, domaincontact.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
+	default:
+		return huma.Error500InternalServerError(message, err)
+	}
+}
+
 func bearerToken(header string) string {
 	value := strings.TrimSpace(header)
 	if value == "" {
@@ -626,6 +671,23 @@ func toNewsOrderCatalog(input struct {
 	}
 
 	return domainnews.Catalog{Items: items}
+}
+
+func toContactMessage(input contactMessagePayload) domaincontact.Message {
+	return domaincontact.Message{
+		Name:     input.Name,
+		Email:    input.Email,
+		Category: input.Category,
+		Subject:  input.Subject,
+		Body:     input.Message,
+	}
+}
+
+func toContactMessageResponse(message domaincontact.Message) contactMessageResponse {
+	return contactMessageResponse{
+		ID:        message.ID,
+		CreatedAt: message.CreatedAt,
+	}
 }
 
 func toNewsItemResponse(item domainnews.Item) newsItemResponse {
