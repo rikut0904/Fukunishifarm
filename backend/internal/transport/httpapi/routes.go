@@ -10,12 +10,14 @@ import (
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
-	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
 	huma "github.com/danielgtaylor/huma/v2"
 )
+
+const contactReplySenderName = "ふくにしファーム"
 
 type healthOutput struct {
 	Body struct {
@@ -90,12 +92,54 @@ type contactMessageInput struct {
 
 type contactMessageResponse struct {
 	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Category  string    `json:"category"`
+	Subject   string    `json:"subject"`
+	Message   string    `json:"message"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type contactReplyResponse struct {
+	ID          uint      `json:"id"`
+	MessageID   uint      `json:"messageId"`
+	SenderType  string    `json:"senderType"`
+	SenderName  string    `json:"senderName"`
+	SenderEmail string    `json:"senderEmail"`
+	Message     string    `json:"message"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type contactMessageOutput struct {
 	Body struct {
 		Message contactMessageResponse `json:"message"`
+	}
+}
+
+type contactMessageDetailResponse struct {
+	Body struct {
+		Message contactMessageResponse `json:"message"`
+		Replies []contactReplyResponse `json:"replies"`
+	}
+}
+
+type contactMessageCatalogResponse struct {
+	Body struct {
+		Messages []contactMessageResponse `json:"messages"`
+	}
+}
+
+type contactReplyInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+	Body          struct {
+		Message string `json:"message" required:"true"`
+	}
+}
+
+type contactReplyOutput struct {
+	Body struct {
+		Reply contactReplyResponse `json:"reply"`
 	}
 }
 
@@ -376,6 +420,81 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
+	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *sessionInput) (*contactMessageCatalogResponse, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		messages, err := contactService.ListMessages(ctx)
+		if err != nil {
+			return nil, mapContactError("failed to load contact messages", err)
+		}
+
+		output := &contactMessageCatalogResponse{}
+		output.Body.Messages = make([]contactMessageResponse, 0, len(messages))
+		for _, message := range messages {
+			output.Body.Messages = append(output.Body.Messages, toContactMessageResponse(message))
+		}
+		return output, nil
+	})
+
+	huma.Get(api, "/v1/admin/contact/{id}", func(ctx context.Context, input *struct {
+		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+		ID            uint   `path:"id"`
+	}) (*contactMessageDetailResponse, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		detail, err := contactService.GetMessageDetail(ctx, input.ID)
+		if err != nil {
+			return nil, mapContactError("failed to load contact message", err)
+		}
+
+		output := &contactMessageDetailResponse{}
+		output.Body.Message = toContactMessageResponse(detail.Message)
+		output.Body.Replies = make([]contactReplyResponse, 0, len(detail.Replies))
+		for _, reply := range detail.Replies {
+			output.Body.Replies = append(output.Body.Replies, toContactReplyResponse(reply))
+		}
+		return output, nil
+	})
+
+	huma.Post(api, "/v1/admin/contact/{id}/replies", func(ctx context.Context, input *contactReplyInput) (*contactReplyOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		user, err := authService.GetSession(ctx, token)
+		if err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		reply, err := contactService.ReplyMessage(ctx, input.ID, usecasecontact.ReplyAuthor{
+			UserID: user.ID,
+			Name:   contactReplySenderName,
+			Email:  user.Email,
+		}, input.Body.Message)
+		if err != nil {
+			return nil, mapContactError("failed to create contact reply", err)
+		}
+
+		output := &contactReplyOutput{}
+		output.Body.Reply = toContactReplyResponse(reply)
+		return output, nil
+	})
+
 	huma.Get(api, "/v1/admin/news", func(ctx context.Context, input *sessionInput) (*newsCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
@@ -535,6 +654,8 @@ func mapContactError(message string, err error) error {
 	switch {
 	case errors.Is(err, domaincontact.ErrInvalidInput):
 		return huma.Error400BadRequest("invalid input", err)
+	case errors.Is(err, domaincontact.ErrMessageNotFound):
+		return huma.Error404NotFound("not found", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}
@@ -686,7 +807,24 @@ func toContactMessage(input contactMessagePayload) domaincontact.Message {
 func toContactMessageResponse(message domaincontact.Message) contactMessageResponse {
 	return contactMessageResponse{
 		ID:        message.ID,
+		Name:      message.Name,
+		Email:     message.Email,
+		Category:  message.Category,
+		Subject:   message.Subject,
+		Message:   message.Body,
 		CreatedAt: message.CreatedAt,
+	}
+}
+
+func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
+	return contactReplyResponse{
+		ID:          reply.ID,
+		MessageID:   reply.MessageID,
+		SenderType:  reply.SenderType,
+		SenderName:  reply.SenderName,
+		SenderEmail: reply.SenderEmail,
+		Message:     reply.Message,
+		CreatedAt:   reply.CreatedAt,
 	}
 }
 

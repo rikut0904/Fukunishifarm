@@ -3,6 +3,7 @@
 import { ApiError, apiFetch } from "@/lib/api";
 import { adminMenuItems } from "@/lib/adminMenu";
 import AdminPageShell from "@/components/AdminPageShell";
+import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
 import NewsCatalogEditor from "@/components/NewsCatalogEditor";
 import { Loader2 } from "lucide-react";
@@ -168,78 +169,7 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
   }
 
   if (mode === "contact") {
-    const sampleContacts = [
-      {
-        id: "1",
-        name: "山田 太郎",
-        email: "taro@example.com",
-        category: "予約について",
-        subject: "家族5人での予約について",
-        status: "対応前",
-        date: "2026-06-19",
-      },
-      {
-        id: "2",
-        name: "鈴木 花子",
-        email: "hanako@example.com",
-        category: "料金について",
-        subject: "シャインマスカットの料金を知りたい",
-        status: "対応中",
-        date: "2026-06-18",
-      },
-      {
-        id: "3",
-        name: "田中 一郎",
-        email: "ichiro@example.com",
-        category: "アクセスについて",
-        subject: "車でのアクセス方法",
-        status: "対応済み",
-        date: "2026-06-17",
-      },
-    ];
-
-    return (
-      <AdminPageShell
-        title="お問い合わせ管理"
-        lead="送信されたお問い合わせを一覧で確認できる画面のたたき台です。"
-      >
-        <div className="admin-shell__summary">
-            <span>受付前 1件</span>
-            <span>対応中 1件</span>
-            <span>対応済み 1件</span>
-          </div>
-
-          <div className="card table-card">
-            <table className="info-table admin-contact-table">
-              <thead>
-                <tr>
-                  <th>日付</th>
-                  <th>名前</th>
-                  <th>種別</th>
-                  <th>件名</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sampleContacts.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.date}</td>
-                    <td>
-                      <div className="grid gap-1">
-                        <span>{item.name}</span>
-                        <span className="note m-0">{item.email}</span>
-                      </div>
-                    </td>
-                    <td>{item.category}</td>
-                    <td>{item.subject}</td>
-                    <td>{item.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-      </AdminPageShell>
-    );
+    return <ContactMessagesPanel token={status.token} onSignOut={handleSignOut} />;
   }
 
   if (mode === "news") {

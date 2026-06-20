@@ -1338,29 +1338,155 @@ h4 {
   font-weight: 700;
 }
 
+.admin-contact-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-contact-detail__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-contact-detail__summary span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(177, 101, 52, 0.16);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--brand-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(105, 55, 23, 0.06);
+}
+
+.admin-contact-detail__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-contact-detail__label {
+  margin: 0 0 0.25rem;
+  color: var(--brand-strong);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-contact-detail__value {
+  margin: 0;
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.admin-contact-detail__message {
+  margin: 0;
+  color: var(--foreground);
+  white-space: pre-wrap;
+}
+
+.admin-contact-reply {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-contact-reply__textarea {
+  min-height: 9rem;
+}
+
+.admin-contact-reply__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-contact-replies {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-contact-replies__list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-contact-reply-item {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: rgba(250, 248, 242, 0.92);
+}
+
+.admin-contact-reply-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.admin-contact-reply-item__body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.9;
+}
+
+@media (min-width: 768px) {
+  .admin-contact-detail__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .admin-contact-table th:nth-child(1),
 .admin-contact-table td:nth-child(1) {
-  width: 12%;
+  width: 20%;
 }
 
 .admin-contact-table th:nth-child(2),
 .admin-contact-table td:nth-child(2) {
-  width: 22%;
+  width: 18%;
 }
 
 .admin-contact-table th:nth-child(3),
 .admin-contact-table td:nth-child(3) {
-  width: 18%;
+  width: 24%;
 }
 
 .admin-contact-table th:nth-child(4),
 .admin-contact-table td:nth-child(4) {
-  width: 34%;
+  width: 16%;
 }
 
 .admin-contact-table th:nth-child(5),
 .admin-contact-table td:nth-child(5) {
-  width: 14%;
+  width: 22%;
+}
+
+.admin-contact-table__row {
+  cursor: pointer;
+}
+
+.admin-contact-table__row:hover,
+.admin-contact-table__row:focus-visible {
+  background: rgba(255, 244, 232, 0.72);
+}
+
+.admin-contact-table__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(247, 220, 192, 0.65);
+  color: var(--brand-strong);
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .admin-field {

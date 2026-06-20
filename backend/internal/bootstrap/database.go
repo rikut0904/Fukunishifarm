@@ -17,7 +17,7 @@ import (
 var ErrDatabaseNotMigrated = errors.New("database not migrated")
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
@@ -36,7 +36,7 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 }
 
 func RequireMigrated(ctx context.Context, db *gorm.DB) error {
-	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domainnews.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) {
+	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domainnews.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) || !db.Migrator().HasTable(&domaincontact.Reply{}) {
 		return ErrDatabaseNotMigrated
 	}
 
