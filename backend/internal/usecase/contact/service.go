@@ -42,13 +42,21 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 	return saved, nil
 }
 
-func (s *Service) ListMessages(ctx context.Context) ([]domaincontact.Message, error) {
-	messages, err := s.repository.ListMessages(ctx)
+func (s *Service) ListMessages(ctx context.Context, status string, page, limit int) ([]domaincontact.Message, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 25
+	}
+	offset := (page - 1) * limit
+
+	messages, total, err := s.repository.ListMessages(ctx, status, offset, limit)
 	if err != nil {
-		return nil, fmt.Errorf("list contact messages: %w", err)
+		return nil, 0, fmt.Errorf("list contact messages: %w", err)
 	}
 
-	return messages, nil
+	return messages, total, nil
 }
 
 func (s *Service) GetMessage(ctx context.Context, id uint) (domaincontact.Message, error) {

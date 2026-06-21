@@ -77,6 +77,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   const [toast, setToast] = useState<Toast | null>(null);
 
   const loadMessage = useCallback(async () => {
+    await Promise.resolve();
     setStatus({ kind: "loading" });
 
     try {
@@ -146,6 +147,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   }, [detail, id, loadMessage, onSignOut, replyMessage, token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadMessage();
   }, [loadMessage]);
 

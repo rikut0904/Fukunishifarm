@@ -75,15 +75,20 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [messages, setMessages] = useState<AdminContactMessage[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("unresolved");
+  const [page, setPage] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [limit] = useState<number>(25);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const loadMessages = useCallback(async () => {
+    await Promise.resolve();
     setStatus({ kind: "loading" });
 
     try {
-      const response = await fetchAdminContactCatalog(token);
+      const response = await fetchAdminContactCatalog(token, filterStatus, page, limit);
       setMessages(response.messages);
+      setTotalCount(response.total);
       setStatus({ kind: "ready" });
     } catch (error) {
       if (isAuthExpired(error)) {
@@ -96,16 +101,19 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
         message: error instanceof Error ? error.message : "お問い合わせを読み込めませんでした。",
       });
     }
-  }, [onSignOut, token]);
+  }, [onSignOut, token, filterStatus, page, limit]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadMessages();
   }, [loadMessages]);
 
-  const filteredMessages = useMemo(() => {
-    if (filterStatus === "all") return messages;
-    return messages.filter((msg) => msg.status === filterStatus);
-  }, [messages, filterStatus]);
+  const handleFilterChange = useCallback((newStatus: string) => {
+    setFilterStatus(newStatus);
+    setPage(1);
+  }, []);
+
+  const totalPages = useMemo(() => Math.ceil(totalCount / limit), [totalCount, limit]);
 
   const summary = useMemo(() => getSummary(messages), [messages]);
 
@@ -156,10 +164,7 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
         <>
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
             <div className="admin-shell__summary m-0 flex flex-wrap gap-x-4">
-              <span>総件数: {summary.total}件</span>
-              {filterStatus !== "all" && (
-                <span>該当件数: {filteredMessages.length}件</span>
-              )}
+              <span>総件数: {totalCount}件</span>
               <span>
                 {summary.latest
                   ? `最新: ${formatDateTime(summary.latest)}`
@@ -171,9 +176,10 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
               <select
                 className="admin-input py-1 px-3"
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={(e) => handleFilterChange(e.target.value)}
                 style={{ width: "auto", minWidth: "120px" }}
               >
+                <option value="unresolved">未対応・対応中</option>
                 <option value="all">すべて</option>
                 <option value="pending">未対応</option>
                 <option value="in_progress">対応中</option>
@@ -195,8 +201,8 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
                 </tr>
               </thead>
               <tbody>
-                {filteredMessages.length > 0 ? (
-                  filteredMessages.map((item) => (
+                {messages.length > 0 ? (
+                  messages.map((item) => (
                     <tr
                       key={item.id}
                       className="admin-contact-table__row"
@@ -228,6 +234,30 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                type="button"
+                className="button-link button-link--secondary py-1 px-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                前へ
+              </button>
+              <span className="text-sm font-medium text-[var(--text-main)] mx-2">
+                {page} / {totalPages} ページ
+              </span>
+              <button
+                type="button"
+                className="button-link button-link--secondary py-1 px-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                次へ
+              </button>
+            </div>
+          )}
         </>
       ) : null}
 

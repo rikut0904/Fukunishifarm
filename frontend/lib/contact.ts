@@ -41,6 +41,9 @@ export type AdminContactReply = {
 
 export type AdminContactCatalog = {
   messages: AdminContactMessage[];
+  total: number;
+  page: number;
+  limit: number;
 };
 
 export type AdminContactMessageDetail = {
@@ -59,8 +62,25 @@ export async function submitContactMessage(input: ContactMessageInput) {
   });
 }
 
-export async function fetchAdminContactCatalog(token: string) {
-  return apiFetch<AdminContactCatalog>("/v1/admin/contact", {
+export async function fetchAdminContactCatalog(
+  token: string,
+  status: string = "unresolved",
+  page: number = 1,
+  limit: number = 10
+) {
+  const params = new URLSearchParams();
+  if (status) {
+    params.set("status", status);
+  }
+  if (page) {
+    params.set("page", String(page));
+  }
+  if (limit) {
+    params.set("limit", String(limit));
+  }
+  const queryString = params.toString() ? `?${params.toString()}` : "";
+
+  return apiFetch<AdminContactCatalog>(`/v1/admin/contact${queryString}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

@@ -25,14 +25,36 @@ func (r *ContactRepository) CreateMessage(ctx context.Context, message domaincon
 	return message, nil
 }
 
-func (r *ContactRepository) ListMessages(ctx context.Context) ([]domaincontact.Message, error) {
+func (r *ContactRepository) ListMessages(ctx context.Context, status string, offset, limit int) ([]domaincontact.Message, int64, error) {
 	var messages []domaincontact.Message
-	tx := r.db.WithContext(ctx).Order("created_at DESC").Find(&messages)
-	if tx.Error != nil {
-		return nil, tx.Error
+	var total int64
+
+	query := r.db.WithContext(ctx).Model(&domaincontact.Message{})
+	if status != "" && status != "all" {
+		if status == "unresolved" {
+			query = query.Where("status = ? OR status = ?", "pending", "in_progress")
+		} else {
+			query = query.Where("status = ?", status)
+		}
 	}
 
-	return messages, nil
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	tx := query.Order("created_at DESC")
+	if limit > 0 {
+		tx = tx.Limit(limit)
+	}
+	if offset > 0 {
+		tx = tx.Offset(offset)
+	}
+
+	if err := tx.Find(&messages).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return messages, total, nil
 }
 
 func (r *ContactRepository) GetMessage(ctx context.Context, id uint) (domaincontact.Message, error) {

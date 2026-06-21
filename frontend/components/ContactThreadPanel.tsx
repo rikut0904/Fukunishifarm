@@ -67,6 +67,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   const [toast, setToast] = useState<Toast | null>(null);
 
   const loadThread = useCallback(async () => {
+    await Promise.resolve();
     setStatus({ kind: "loading" });
 
     try {
@@ -111,6 +112,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   }, [loadThread, replyMessage, threadId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadThread();
   }, [loadThread]);
 

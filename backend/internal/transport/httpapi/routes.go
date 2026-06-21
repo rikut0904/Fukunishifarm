@@ -126,9 +126,19 @@ type contactMessageDetailResponse struct {
 	}
 }
 
+type adminContactListInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	Status        string `query:"status" doc:"Filter by status (pending, in_progress, resolved, unresolved, all)"`
+	Page          int    `query:"page" doc:"Page number (1-based)"`
+	Limit         int    `query:"limit" doc:"Number of items per page"`
+}
+
 type contactMessageCatalogResponse struct {
 	Body struct {
 		Messages []contactMessageResponse `json:"messages"`
+		Total    int64                    `json:"total"`
+		Page     int                      `json:"page"`
+		Limit    int                      `json:"limit"`
 	}
 }
 
@@ -469,7 +479,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *sessionInput) (*contactMessageCatalogResponse, error) {
+	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *adminContactListInput) (*contactMessageCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error400BadRequest("missing bearer token")
@@ -479,7 +489,14 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 			return nil, mapAuthError("failed to load admin session", err)
 		}
 
-		messages, err := contactService.ListMessages(ctx)
+		if input.Page < 1 {
+			input.Page = 1
+		}
+		if input.Limit <= 0 {
+			input.Limit = 25
+		}
+
+		messages, total, err := contactService.ListMessages(ctx, input.Status, input.Page, input.Limit)
 		if err != nil {
 			return nil, mapContactError("failed to load contact messages", err)
 		}
@@ -489,6 +506,9 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		for _, message := range messages {
 			output.Body.Messages = append(output.Body.Messages, toContactMessageResponse(message))
 		}
+		output.Body.Total = total
+		output.Body.Page = input.Page
+		output.Body.Limit = input.Limit
 		return output, nil
 	})
 
