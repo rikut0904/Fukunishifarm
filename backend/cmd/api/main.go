@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -15,12 +16,14 @@ import (
 
 	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
+	domaincontact "fukunishifarm/backend/internal/domain/contact"
+	emailses "fukunishifarm/backend/internal/infra/email"
 	firebaseauth "fukunishifarm/backend/internal/infra/firebase"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
 	sessionjwt "fukunishifarm/backend/internal/infra/session"
 	"fukunishifarm/backend/internal/transport/httpapi"
-	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
 
@@ -70,8 +73,19 @@ func main() {
 	contactRepository := gormrepo.NewContactRepository(database)
 	grapeRepository := gormrepo.NewGrapeRepository(database)
 	newsRepository := gormrepo.NewNewsRepository(database)
+	var contactReplySender domaincontact.ReplyEmailSender
+	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
+		sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
+		if err != nil {
+			slog.Error("initialize SES reply sender", "error", err)
+			os.Exit(1)
+		}
+		contactReplySender = sender
+	} else {
+		slog.Warn("SES reply sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable contact replies by email")
+	}
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
-	contactService := usecasecontact.NewService(contactRepository)
+	contactService := usecasecontact.NewService(contactRepository, contactReplySender)
 	grapeService := usecasegrape.NewService(grapeRepository)
 	newsService := usecasenews.NewService(newsRepository)
 

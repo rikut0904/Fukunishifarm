@@ -10,6 +10,11 @@ type Config struct {
 	Port                   string
 	DatabaseURL            string
 	CORSAllowOrigins       []string
+	AWSRegion              string
+	AWSAccessKeyID         string
+	AWSSecretAccessKey     string
+	AWSSessionToken        string
+	SESFromEmail           string
 	FirebaseProjectID      string
 	FirebaseServiceAccount string
 	FirebaseWebAPIKey      string
@@ -29,6 +34,11 @@ func Load() Config {
 		Port:                   getenv("PORT", "8080"),
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+		AWSRegion:              strings.TrimSpace(os.Getenv("AWS_REGION")),
+		AWSAccessKeyID:         strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID")),
+		AWSSecretAccessKey:     strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY")),
+		AWSSessionToken:        strings.TrimSpace(os.Getenv("AWS_SESSION_TOKEN")),
+		SESFromEmail:           strings.TrimSpace(os.Getenv("SES_FROM_EMAIL")),
 		FirebaseProjectID:      firebaseProjectID,
 		FirebaseServiceAccount: serviceAccountJSON,
 		FirebaseWebAPIKey:      getenvAny("FIREBASE_WEB_API_KEY", "FIREBASE_API_KEY"),

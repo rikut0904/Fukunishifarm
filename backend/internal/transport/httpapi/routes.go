@@ -656,6 +656,8 @@ func mapContactError(message string, err error) error {
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domaincontact.ErrMessageNotFound):
 		return huma.Error404NotFound("not found", err)
+	case errors.Is(err, domaincontact.ErrMailNotConfigured):
+		return huma.Error500InternalServerError("mail configuration is missing", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}

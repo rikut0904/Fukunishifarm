@@ -11,6 +11,7 @@ import (
 
 type Service struct {
 	repository domaincontact.Repository
+	mailer     domaincontact.ReplyEmailSender
 }
 
 type ReplyAuthor struct {
@@ -19,8 +20,8 @@ type ReplyAuthor struct {
 	Email  string
 }
 
-func NewService(repository domaincontact.Repository) *Service {
-	return &Service{repository: repository}
+func NewService(repository domaincontact.Repository, mailer domaincontact.ReplyEmailSender) *Service {
+	return &Service{repository: repository, mailer: mailer}
 }
 
 func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -83,8 +84,9 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
 	}
 
-	if _, err := s.repository.GetMessage(ctx, messageID); err != nil {
-		return domaincontact.Reply{}, fmt.Errorf("get contact message: %w", err)
+	message, err := s.GetMessage(ctx, messageID)
+	if err != nil {
+		return domaincontact.Reply{}, err
 	}
 
 	author.Name = strings.TrimSpace(author.Name)
@@ -109,6 +111,30 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 	})
 	if err != nil {
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
+	}
+
+	if s.mailer != nil {
+		subject := "【ふくにしファーム】お問い合わせへのご返信"
+		if strings.TrimSpace(message.Subject) != "" {
+			subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " へのご返信"
+		}
+
+		bodyText := strings.Join([]string{
+			"いつもふくにしファームをご利用いただき、ありがとうございます。",
+			"",
+			"お問い合わせへのご返信をお送りします。",
+			"",
+			"返信内容",
+			body,
+			"",
+			"お名前: " + message.Name,
+			"メールアドレス: " + message.Email,
+			"件名: " + message.Subject,
+		}, "\n")
+
+		if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
+			return saved, nil
+		}
 	}
 
 	return saved, nil

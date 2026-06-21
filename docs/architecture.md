@@ -68,7 +68,7 @@
 
 - `Vercel` は Next.js のみをデプロイする
 - `Railway` は Go API と PostgreSQL を扱う
-- Railway 側では `DATABASE_URL`、`FIREBASE_PROJECT_ID`、`FIREBASE_SERVICE_ACCOUNT_JSON`、`FIREBASE_API_KEY`、`SESSION_JWT_SECRET` を設定する
+- Railway 側では `DATABASE_URL`、`FIREBASE_PROJECT_ID`、`FIREBASE_SERVICE_ACCOUNT_JSON`、`FIREBASE_API_KEY`、`SESSION_JWT_SECRET`、`AWS_REGION`、`AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`AWS_SESSION_TOKEN`、`SES_FROM_EMAIL` を設定する
 - DB migration と Lolipop へのデプロイは GitHub Actions を手動実行する
 - 実行順は `Migrate on main` を先に実行し、完了後に `Deploy to Lolipop on main` を実行する
 - どちらも GitHub Actions の `workflow_dispatch` から起動する
