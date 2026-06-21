@@ -10,6 +10,7 @@ type Config struct {
 	Port                   string
 	DatabaseURL            string
 	CORSAllowOrigins       []string
+	SiteBaseURL            string
 	AWSRegion              string
 	AWSAccessKeyID         string
 	AWSSecretAccessKey     string
@@ -34,6 +35,7 @@ func Load() Config {
 		Port:                   getenv("PORT", "8080"),
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
+		SiteBaseURL:            strings.TrimRight(strings.TrimSpace(os.Getenv("SITE_BASE_URL")), "/"),
 		AWSRegion:              strings.TrimSpace(os.Getenv("AWS_REGION")),
 		AWSAccessKeyID:         strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID")),
 		AWSSecretAccessKey:     strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY")),

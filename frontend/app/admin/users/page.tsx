@@ -4,7 +4,6 @@ import SiteFooter from "@/components/SiteFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "admin / users",
   description: "ユーザー管理の準備画面です。",
 };
 

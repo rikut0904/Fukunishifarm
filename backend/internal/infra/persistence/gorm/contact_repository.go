@@ -49,6 +49,20 @@ func (r *ContactRepository) GetMessage(ctx context.Context, id uint) (domaincont
 	return message, nil
 }
 
+func (r *ContactRepository) GetMessageByThreadID(ctx context.Context, threadID string) (domaincontact.Message, error) {
+	var message domaincontact.Message
+	tx := r.db.WithContext(ctx).Where("thread_id = ?", threadID).First(&message)
+	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			return domaincontact.Message{}, domaincontact.ErrMessageNotFound
+		}
+
+		return domaincontact.Message{}, tx.Error
+	}
+
+	return message, nil
+}
+
 func (r *ContactRepository) CreateReply(ctx context.Context, reply domaincontact.Reply) (domaincontact.Reply, error) {
 	tx := r.db.WithContext(ctx).Create(&reply)
 	if tx.Error != nil {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { submitContactMessage } from "@/lib/contact";
 
 const INQUIRY_TYPES = [
@@ -19,11 +20,13 @@ export default function ContactForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSuccessMessage(null);
+    setThreadId(null);
     setErrorMessage(null);
 
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
@@ -42,6 +45,7 @@ export default function ContactForm() {
       });
 
       setSuccessMessage(`お問い合わせを受け付けました。`);
+      setThreadId(response.message.threadId);
       setName("");
       setEmail("");
       setCategory(INQUIRY_TYPES[0]);
@@ -123,6 +127,11 @@ export default function ContactForm() {
       </label>
 
       {successMessage ? <p className="text-sm text-green-700">{successMessage}</p> : null}
+      {threadId ? (
+        <p className="text-sm text-green-700">
+          返信用URL: <Link href={`/contact/${threadId}`}>/contact/{threadId}</Link>
+        </p>
+      ) : null}
       {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
 
       <div className="contact-form__footer">

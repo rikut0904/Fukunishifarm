@@ -1,16 +1,10 @@
 "use client";
 
-import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
-import {
-  createAdminContactReply,
-  fetchAdminContactMessage,
-  type AdminContactMessageDetail,
-  type AdminContactReply,
-} from "@/lib/contact";
-import { ArrowLeft, Loader2, LogOut, RefreshCcw } from "lucide-react";
+import { createPublicContactReply, fetchPublicContactThread, type PublicContactThread } from "@/lib/contact";
+import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Status =
   | { kind: "loading" }
@@ -22,14 +16,12 @@ type Toast = {
   message: string;
 };
 
-type ContactMessageDetailPanelProps = {
-  token: string;
-  id: number;
-  onSignOut: () => void;
+type ContactThreadPanelProps = {
+  threadId: string;
 };
 
-function isAuthExpired(error: unknown) {
-  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+function isThreadNotFound(error: unknown) {
+  return error instanceof ApiError && error.status === 404;
 }
 
 function formatDateTime(value: string) {
@@ -58,7 +50,7 @@ function getCategoryLabel(category: string) {
   return mapping[category] ?? category;
 }
 
-function getSenderLabel(reply: AdminContactReply) {
+function getSenderLabel(reply: PublicContactThread["replies"][number]) {
   if (reply.senderType === "admin") {
     return reply.senderName || reply.senderEmail || "運営";
   }
@@ -66,39 +58,36 @@ function getSenderLabel(reply: AdminContactReply) {
   return reply.senderName || "お問い合わせ者";
 }
 
-export default function ContactMessageDetailPanel({ token, id, onSignOut }: ContactMessageDetailPanelProps) {
+export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps) {
   const [status, setStatus] = useState<Status>({ kind: "loading" });
-  const [detail, setDetail] = useState<AdminContactMessageDetail | null>(null);
+  const [detail, setDetail] = useState<PublicContactThread | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
-  const [replyError, setReplyError] = useState<string | null>(null);
   const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  const loadMessage = useCallback(async () => {
+  const loadThread = useCallback(async () => {
     setStatus({ kind: "loading" });
 
     try {
-      const response = await fetchAdminContactMessage(token, id);
+      const response = await fetchPublicContactThread(threadId);
       setDetail(response);
       setStatus({ kind: "ready" });
     } catch (error) {
-      if (isAuthExpired(error)) {
-        onSignOut();
-        return;
-      }
-
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "お問い合わせ詳細を読み込めませんでした。",
+        message: isThreadNotFound(error)
+          ? "このスレッドは見つかりませんでした。"
+          : error instanceof Error
+            ? error.message
+            : "スレッドを読み込めませんでした。",
       });
     }
-  }, [id, onSignOut, token]);
+  }, [threadId]);
+
+  const threadUrl = useMemo(() => `/contact/${threadId}`, [threadId]);
 
   const handleReply = useCallback(async () => {
-    if (!detail) {
-      return;
-    }
-
     const message = replyMessage.trim();
     if (!message) {
       setReplyError("返信内容を入力してください。");
@@ -109,26 +98,21 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
     setReplyError(null);
 
     try {
-      await createAdminContactReply(token, id, { message });
+      await createPublicContactReply(threadId, { message });
       setReplyMessage("");
       setToast({ kind: "success", message: "返信を送信しました。" });
-      await loadMessage();
+      await loadThread();
     } catch (error) {
-      if (isAuthExpired(error)) {
-        onSignOut();
-        return;
-      }
-
       setReplyError(error instanceof Error ? error.message : "返信の送信に失敗しました。");
       setToast({ kind: "error", message: "返信の送信に失敗しました。" });
     } finally {
       setReplyLoading(false);
     }
-  }, [detail, id, loadMessage, onSignOut, replyMessage, token]);
+  }, [loadThread, replyMessage, threadId]);
 
   useEffect(() => {
-    void loadMessage();
-  }, [loadMessage]);
+    void loadThread();
+  }, [loadThread]);
 
   useEffect(() => {
     if (!toast) {
@@ -140,16 +124,21 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   }, [toast]);
 
   return (
-    <AdminPageShell
-      title="お問い合わせ詳細"
-      lead="実際に送信されたお問い合わせの内容と返信履歴を確認できます。"
-      actions={
-        <Link href="/admin/contact" className="button-link button-link--secondary">
-          <ArrowLeft className="h-4 w-4" />
-          一覧へ戻る
-        </Link>
-      }
-    >
+    <section className="section">
+      <div className="section__head">
+        <p className="eyebrow">Contact Thread</p>
+        <h1 className="section__title">お問い合わせスレッド</h1>
+        <p className="section__lead">
+          返信メールに記載されたURLから、このお問い合わせの内容とやり取りを確認できます。
+        </p>
+        <div className="section__actions">
+          <Link href="/contact" className="button-link button-link--secondary">
+            <ArrowLeft className="h-4 w-4" />
+            お問い合わせへ戻る
+          </Link>
+        </div>
+      </div>
+
       {status.kind === "loading" ? (
         <div className="admin-login-state">
           <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
@@ -158,34 +147,24 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       ) : null}
 
       {status.kind === "error" ? (
-        <div className="admin-error-panel">
+        <div className="card card__body">
           <p className="admin-error">{status.message}</p>
           <div className="admin-error-panel__actions">
-            <button type="button" className="button-link button-link--primary" onClick={() => void loadMessage()}>
+            <button type="button" className="button-link button-link--primary" onClick={() => void loadThread()}>
               <RefreshCcw className="h-4 w-4" />
               再試行
-            </button>
-            <button type="button" className="button-link button-link--secondary" onClick={onSignOut}>
-              <LogOut className="h-4 w-4" />
-              ログアウト
             </button>
           </div>
         </div>
       ) : null}
 
       {status.kind === "ready" && detail ? (
-        <div className="admin-contact-detail">
-          <div className="admin-contact-detail__summary">
-            <span>{formatDateTime(detail.message.createdAt)}</span>
-            <span>{getCategoryLabel(detail.message.category)}</span>
-            <span>
-              <Link href={`/contact/${detail.message.threadId}`} className="admin-contact-detail__thread-link">
-                スレッドURL
-              </Link>
-            </span>
-          </div>
-
-          <div className="card card__body">
+        <div className="contact-thread">
+          <div className="card card__body contact-thread__summary">
+            <div className="admin-shell__summary">
+              <span>{formatDateTime(detail.message.createdAt)}</span>
+              <span>{getCategoryLabel(detail.message.category)}</span>
+            </div>
             <div className="admin-contact-detail__grid">
               <div>
                 <p className="admin-contact-detail__label">お名前</p>
@@ -196,37 +175,30 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
                 <p className="admin-contact-detail__value">{detail.message.email}</p>
               </div>
               <div>
-                <p className="admin-contact-detail__label">種別</p>
-                <p className="admin-contact-detail__value">{getCategoryLabel(detail.message.category)}</p>
-              </div>
-              <div>
-                <p className="admin-contact-detail__label">受信日時</p>
-                <p className="admin-contact-detail__value">{formatDateTime(detail.message.createdAt)}</p>
+                <p className="admin-contact-detail__label">件名</p>
+                <p className="admin-contact-detail__value">{detail.message.subject}</p>
               </div>
             </div>
           </div>
 
           <div className="card card__body">
-            <p className="admin-contact-detail__label">件名</p>
-            <p className="admin-contact-detail__value">{detail.message.subject}</p>
-          </div>
-
-          <div className="card card__body">
-            <p className="admin-contact-detail__label">内容</p>
+            <p className="admin-contact-detail__label">お問い合わせ内容</p>
             <p className="admin-contact-detail__message">{detail.message.message}</p>
           </div>
 
           <div className="card card__body admin-contact-reply">
-            <p className="admin-contact-detail__label">返信</p>
+            <p className="admin-contact-detail__label">返信する</p>
             <textarea
               className="admin-textarea admin-contact-reply__textarea"
               value={replyMessage}
               onChange={(event) => setReplyMessage(event.target.value)}
               placeholder="返信内容を入力してください"
+              rows={6}
             />
             {replyError ? <p className="admin-error">{replyError}</p> : null}
             <div className="admin-contact-reply__actions">
               <button type="button" className="button-link button-link--primary" onClick={() => void handleReply()} disabled={replyLoading}>
+                <Send className="h-4 w-4" />
                 {replyLoading ? "送信中..." : "返信を送信"}
               </button>
             </div>
@@ -254,6 +226,6 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       ) : null}
 
       {toast ? <div className={`admin-toast admin-toast--${toast.kind}`}>{toast.message}</div> : null}
-    </AdminPageShell>
+    </section>
   );
 }

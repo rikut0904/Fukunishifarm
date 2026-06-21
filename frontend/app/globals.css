@@ -1362,6 +1362,16 @@ h4 {
   box-shadow: 0 10px 22px rgba(105, 55, 23, 0.06);
 }
 
+.admin-contact-detail__thread-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-contact-detail__thread-link:focus-visible,
+.admin-contact-detail__thread-link:hover {
+  text-decoration: underline;
+}
+
 .admin-contact-detail__grid {
   display: grid;
   gap: 1rem;

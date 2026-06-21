@@ -11,12 +11,14 @@ export type ContactMessageInput = {
 export type ContactMessageResponse = {
   message: {
     id: number;
+    threadId: string;
     createdAt: string;
   };
 };
 
 export type AdminContactMessage = {
   id: number;
+  threadId: string;
   name: string;
   email: string;
   category: string;
@@ -28,6 +30,7 @@ export type AdminContactMessage = {
 export type AdminContactReply = {
   id: number;
   messageId: number;
+  threadId: string;
   senderType: string;
   senderName: string;
   senderEmail: string;
@@ -77,6 +80,22 @@ export async function createAdminContactReply(token: string, id: number, input: 
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    body: JSON.stringify(input),
+  });
+}
+
+export type PublicContactThread = {
+  message: AdminContactMessage;
+  replies: AdminContactReply[];
+};
+
+export async function fetchPublicContactThread(threadId: string) {
+  return apiFetch<PublicContactThread>(`/v1/contact/${threadId}`);
+}
+
+export async function createPublicContactReply(threadId: string, input: AdminContactReplyInput) {
+  return apiFetch<{ reply: AdminContactReply }>(`/v1/contact/${threadId}/replies`, {
+    method: "POST",
     body: JSON.stringify(input),
   });
 }

@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
+	"github.com/google/uuid"
 )
 
 type Service struct {
-	repository domaincontact.Repository
-	mailer     domaincontact.ReplyEmailSender
+	repository  domaincontact.Repository
+	mailer      domaincontact.ReplyEmailSender
+	siteBaseURL string
 }
 
 type ReplyAuthor struct {
@@ -20,8 +22,8 @@ type ReplyAuthor struct {
 	Email  string
 }
 
-func NewService(repository domaincontact.Repository, mailer domaincontact.ReplyEmailSender) *Service {
-	return &Service{repository: repository, mailer: mailer}
+func NewService(repository domaincontact.Repository, mailer domaincontact.ReplyEmailSender, siteBaseURL string) *Service {
+	return &Service{repository: repository, mailer: mailer, siteBaseURL: strings.TrimRight(strings.TrimSpace(siteBaseURL), "/")}
 }
 
 func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -29,6 +31,8 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 	if err != nil {
 		return domaincontact.Message{}, err
 	}
+
+	normalized.ThreadID = uuid.NewString()
 
 	saved, err := s.repository.CreateMessage(ctx, normalized)
 	if err != nil {
@@ -56,9 +60,35 @@ func (s *Service) GetMessage(ctx context.Context, id uint) (domaincontact.Messag
 	return message, nil
 }
 
+func (s *Service) GetMessageByThreadID(ctx context.Context, threadID string) (domaincontact.Message, error) {
+	message, err := s.repository.GetMessageByThreadID(ctx, strings.TrimSpace(threadID))
+	if err != nil {
+		return domaincontact.Message{}, fmt.Errorf("get contact message: %w", err)
+	}
+
+	return message, nil
+}
+
 type MessageDetail struct {
 	Message domaincontact.Message
 	Replies []domaincontact.Reply
+}
+
+func (s *Service) GetMessageDetailByThreadID(ctx context.Context, threadID string) (MessageDetail, error) {
+	message, err := s.GetMessageByThreadID(ctx, threadID)
+	if err != nil {
+		return MessageDetail{}, err
+	}
+
+	replies, err := s.repository.ListReplies(ctx, message.ID)
+	if err != nil {
+		return MessageDetail{}, fmt.Errorf("list contact replies: %w", err)
+	}
+
+	return MessageDetail{
+		Message: message,
+		Replies: replies,
+	}, nil
 }
 
 func (s *Service) GetMessageDetail(ctx context.Context, id uint) (MessageDetail, error) {
@@ -103,6 +133,7 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 
 	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
 		MessageID:    messageID,
+		ThreadID:     message.ThreadID,
 		SenderType:   "admin",
 		SenderUserID: author.UserID,
 		SenderName:   author.Name,
@@ -119,7 +150,12 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 			subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " へのご返信"
 		}
 
-		bodyText := strings.Join([]string{
+		replyURL := ""
+		if s.siteBaseURL != "" {
+			replyURL = s.siteBaseURL + "/contact/" + message.ThreadID
+		}
+
+		lines := []string{
 			"いつもふくにしファームをご利用いただき、ありがとうございます。",
 			"",
 			"お問い合わせへのご返信をお送りします。",
@@ -130,11 +166,43 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 			"お名前: " + message.Name,
 			"メールアドレス: " + message.Email,
 			"件名: " + message.Subject,
-		}, "\n")
+		}
+		if replyURL != "" {
+			lines = append(lines, "", "返信用URL: "+replyURL)
+		}
+
+		bodyText := strings.Join(lines, "\n")
 
 		if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
 			return saved, nil
 		}
+	}
+
+	return saved, nil
+}
+
+func (s *Service) ReplyThread(ctx context.Context, threadID string, body string) (domaincontact.Reply, error) {
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
+	}
+
+	message, err := s.GetMessageByThreadID(ctx, threadID)
+	if err != nil {
+		return domaincontact.Reply{}, err
+	}
+
+	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
+		MessageID:    message.ID,
+		ThreadID:     message.ThreadID,
+		SenderType:   "customer",
+		SenderUserID: 0,
+		SenderName:   message.Name,
+		SenderEmail:  message.Email,
+		Message:      body,
+	})
+	if err != nil {
+		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
 	}
 
 	return saved, nil

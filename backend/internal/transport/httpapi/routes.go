@@ -92,6 +92,7 @@ type contactMessageInput struct {
 
 type contactMessageResponse struct {
 	ID        uint      `json:"id"`
+	ThreadID  string    `json:"threadId"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	Category  string    `json:"category"`
@@ -103,6 +104,7 @@ type contactMessageResponse struct {
 type contactReplyResponse struct {
 	ID          uint      `json:"id"`
 	MessageID   uint      `json:"messageId"`
+	ThreadID    string    `json:"threadId"`
 	SenderType  string    `json:"senderType"`
 	SenderName  string    `json:"senderName"`
 	SenderEmail string    `json:"senderEmail"`
@@ -126,6 +128,23 @@ type contactMessageDetailResponse struct {
 type contactMessageCatalogResponse struct {
 	Body struct {
 		Messages []contactMessageResponse `json:"messages"`
+	}
+}
+
+type contactThreadInput struct {
+	ThreadID string `path:"threadId"`
+}
+
+type contactThreadReplyInput struct {
+	ThreadID string `path:"threadId"`
+	Body     struct {
+		Message string `json:"message" required:"true"`
+	}
+}
+
+type contactThreadReplyOutput struct {
+	Body struct {
+		Reply contactReplyResponse `json:"reply"`
 	}
 }
 
@@ -420,6 +439,21 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
+	huma.Get(api, "/v1/contact/{threadId}", func(ctx context.Context, input *contactThreadInput) (*contactMessageDetailResponse, error) {
+		detail, err := contactService.GetMessageDetailByThreadID(ctx, input.ThreadID)
+		if err != nil {
+			return nil, mapContactError("failed to load contact thread", err)
+		}
+
+		output := &contactMessageDetailResponse{}
+		output.Body.Message = toContactMessageResponse(detail.Message)
+		output.Body.Replies = make([]contactReplyResponse, 0, len(detail.Replies))
+		for _, reply := range detail.Replies {
+			output.Body.Replies = append(output.Body.Replies, toContactReplyResponse(reply))
+		}
+		return output, nil
+	})
+
 	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *sessionInput) (*contactMessageCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
@@ -491,6 +525,17 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		}
 
 		output := &contactReplyOutput{}
+		output.Body.Reply = toContactReplyResponse(reply)
+		return output, nil
+	})
+
+	huma.Post(api, "/v1/contact/{threadId}/replies", func(ctx context.Context, input *contactThreadReplyInput) (*contactThreadReplyOutput, error) {
+		reply, err := contactService.ReplyThread(ctx, input.ThreadID, input.Body.Message)
+		if err != nil {
+			return nil, mapContactError("failed to create contact reply", err)
+		}
+
+		output := &contactThreadReplyOutput{}
 		output.Body.Reply = toContactReplyResponse(reply)
 		return output, nil
 	})
@@ -809,6 +854,7 @@ func toContactMessage(input contactMessagePayload) domaincontact.Message {
 func toContactMessageResponse(message domaincontact.Message) contactMessageResponse {
 	return contactMessageResponse{
 		ID:        message.ID,
+		ThreadID:  message.ThreadID,
 		Name:      message.Name,
 		Email:     message.Email,
 		Category:  message.Category,
@@ -822,6 +868,7 @@ func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
 	return contactReplyResponse{
 		ID:          reply.ID,
 		MessageID:   reply.MessageID,
+		ThreadID:    reply.ThreadID,
 		SenderType:  reply.SenderType,
 		SenderName:  reply.SenderName,
 		SenderEmail: reply.SenderEmail,

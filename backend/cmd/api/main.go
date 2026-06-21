@@ -85,7 +85,7 @@ func main() {
 		slog.Warn("SES reply sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable contact replies by email")
 	}
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
-	contactService := usecasecontact.NewService(contactRepository, contactReplySender)
+	contactService := usecasecontact.NewService(contactRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
 	newsService := usecasenews.NewService(newsRepository)
 

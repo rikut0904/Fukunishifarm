@@ -4,7 +4,6 @@ import SiteFooter from "@/components/SiteFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "admin / contact / detail",
   description: "お問い合わせ詳細の表示画面です。",
 };
 
