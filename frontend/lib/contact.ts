@@ -24,6 +24,7 @@ export type AdminContactMessage = {
   category: string;
   subject: string;
   message: string;
+  status: string;
   createdAt: string;
 };
 
@@ -81,6 +82,17 @@ export async function createAdminContactReply(token: string, id: number, input: 
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(input),
+  });
+}
+
+export async function updateAdminContactStatus(token: string, id: number, status: string) {
+  return apiFetch<{ success: boolean }>(`/v1/admin/contact/${id}/status`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
   });
 }
 

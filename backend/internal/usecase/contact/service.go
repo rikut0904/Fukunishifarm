@@ -208,6 +208,14 @@ func (s *Service) ReplyThread(ctx context.Context, threadID string, body string)
 	return saved, nil
 }
 
+func (s *Service) UpdateStatus(ctx context.Context, id uint, status string) error {
+	status = strings.TrimSpace(status)
+	if status != "pending" && status != "in_progress" && status != "resolved" {
+		return domaincontact.ErrInvalidInput
+	}
+	return s.repository.UpdateMessageStatus(ctx, id, status)
+}
+
 func normalizeMessage(message domaincontact.Message) (domaincontact.Message, error) {
 	message.Name = strings.TrimSpace(message.Name)
 	message.Email = strings.TrimSpace(message.Email)
@@ -217,6 +225,10 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 
 	if message.Category == "" {
 		message.Category = "general"
+	}
+
+	if message.Status == "" {
+		message.Status = "pending"
 	}
 
 	if message.Name == "" || message.Email == "" || message.Subject == "" || message.Body == "" {

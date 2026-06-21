@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api";
 import {
   createAdminContactReply,
   fetchAdminContactMessage,
+  updateAdminContactStatus,
   type AdminContactMessageDetail,
   type AdminContactReply,
 } from "@/lib/contact";
@@ -72,6 +73,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   const [replyMessage, setReplyMessage] = useState("");
   const [replyError, setReplyError] = useState<string | null>(null);
   const [replyLoading, setReplyLoading] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const loadMessage = useCallback(async () => {
@@ -93,6 +95,23 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       });
     }
   }, [id, onSignOut, token]);
+
+  const handleStatusChange = useCallback(async (newStatus: string) => {
+    setStatusUpdating(true);
+    try {
+      await updateAdminContactStatus(token, id, newStatus);
+      setToast({ kind: "success", message: "ステータスを更新しました。" });
+      await loadMessage();
+    } catch (error) {
+      if (isAuthExpired(error)) {
+        onSignOut();
+        return;
+      }
+      setToast({ kind: "error", message: "ステータスの更新に失敗しました。" });
+    } finally {
+      setStatusUpdating(false);
+    }
+  }, [id, loadMessage, onSignOut, token]);
 
   const handleReply = useCallback(async () => {
     if (!detail) {
@@ -202,6 +221,20 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
               <div>
                 <p className="admin-contact-detail__label">受信日時</p>
                 <p className="admin-contact-detail__value">{formatDateTime(detail.message.createdAt)}</p>
+              </div>
+              <div>
+                <p className="admin-contact-detail__label">ステータス</p>
+                <select
+                  className="admin-input py-1 px-2 text-sm mt-1"
+                  value={detail.message.status}
+                  onChange={(e) => void handleStatusChange(e.target.value)}
+                  disabled={statusUpdating}
+                  style={{ width: "auto", minWidth: "120px" }}
+                >
+                  <option value="pending">未対応</option>
+                  <option value="in_progress">対応中</option>
+                  <option value="resolved">対応済</option>
+                </select>
               </div>
             </div>
           </div>

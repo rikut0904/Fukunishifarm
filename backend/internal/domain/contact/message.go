@@ -10,6 +10,7 @@ type Message struct {
 	Category  string    `gorm:"size:64;not null" json:"category"`
 	Subject   string    `gorm:"size:160;not null" json:"subject"`
 	Body      string    `gorm:"type:text;not null" json:"body"`
+	Status    string    `gorm:"size:32;not null;default:'pending'" json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

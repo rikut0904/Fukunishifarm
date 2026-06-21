@@ -45,7 +45,7 @@ func RequireMigrated(ctx context.Context, db *gorm.DB) error {
 		return ErrDatabaseNotMigrated
 	}
 
-	if !db.Migrator().HasColumn(&domaincontact.Message{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "thread_id") {
+	if !db.Migrator().HasColumn(&domaincontact.Message{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Message{}, "status") {
 		return ErrDatabaseNotMigrated
 	}
 

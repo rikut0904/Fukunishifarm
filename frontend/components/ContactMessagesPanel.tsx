@@ -59,10 +59,23 @@ function getSummary(messages: AdminContactMessage[]) {
   };
 }
 
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "resolved":
+      return <span className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">対応済</span>;
+    case "in_progress":
+      return <span className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">対応中</span>;
+    case "pending":
+    default:
+      return <span className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 border border-amber-200">未対応</span>;
+  }
+}
+
 export default function ContactMessagesPanel({ token, onSignOut }: ContactMessagesPanelProps) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [messages, setMessages] = useState<AdminContactMessage[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [toast, setToast] = useState<Toast | null>(null);
 
   const loadMessages = useCallback(async () => {
@@ -88,6 +101,11 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
   useEffect(() => {
     void loadMessages();
   }, [loadMessages]);
+
+  const filteredMessages = useMemo(() => {
+    if (filterStatus === "all") return messages;
+    return messages.filter((msg) => msg.status === filterStatus);
+  }, [messages, filterStatus]);
 
   const summary = useMemo(() => getSummary(messages), [messages]);
 
@@ -136,9 +154,32 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
 
       {status.kind === "ready" ? (
         <>
-          <div className="admin-shell__summary">
-            <span>総件数 {summary.total}件</span>
-            <span>{summary.latest ? `最新 ${formatDateTime(summary.latest)}` : "まだお問い合わせはありません"}</span>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+            <div className="admin-shell__summary m-0 flex flex-wrap gap-x-4">
+              <span>総件数: {summary.total}件</span>
+              {filterStatus !== "all" && (
+                <span>該当件数: {filteredMessages.length}件</span>
+              )}
+              <span>
+                {summary.latest
+                  ? `最新: ${formatDateTime(summary.latest)}`
+                  : "まだお問い合わせはありません"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-[var(--text-main)]">ステータス:</span>
+              <select
+                className="admin-input py-1 px-3"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{ width: "auto", minWidth: "120px" }}
+              >
+                <option value="all">すべて</option>
+                <option value="pending">未対応</option>
+                <option value="in_progress">対応中</option>
+                <option value="resolved">対応済</option>
+              </select>
+            </div>
           </div>
 
           <div className="card table-card">
@@ -149,12 +190,13 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
                   <th>名前</th>
                   <th>メール</th>
                   <th>種別</th>
+                  <th>ステータス</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody>
-                {messages.length > 0 ? (
-                  messages.map((item) => (
+                {filteredMessages.length > 0 ? (
+                  filteredMessages.map((item) => (
                     <tr
                       key={item.id}
                       className="admin-contact-table__row"
@@ -172,6 +214,7 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
                       <td>{item.name}</td>
                       <td>{item.email}</td>
                       <td>{getCategoryLabel(item.category)}</td>
+                      <td>{getStatusBadge(item.status)}</td>
                       <td>
                         <span className="admin-contact-table__action">詳細</span>
                       </td>
@@ -179,7 +222,7 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5}>まだお問い合わせはありません。</td>
+                    <td colSpan={6}>条件に一致するお問い合わせはありません。</td>
                   </tr>
                 )}
               </tbody>

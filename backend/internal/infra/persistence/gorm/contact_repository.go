@@ -81,3 +81,15 @@ func (r *ContactRepository) ListReplies(ctx context.Context, messageID uint) ([]
 
 	return replies, nil
 }
+
+func (r *ContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
+	tx := r.db.WithContext(ctx).Model(&domaincontact.Message{}).Where("id = ?", id).Update("status", status)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return domaincontact.ErrMessageNotFound
+	}
+	return nil
+}
+

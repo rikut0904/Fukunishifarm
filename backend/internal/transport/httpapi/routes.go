@@ -98,6 +98,7 @@ type contactMessageResponse struct {
 	Category  string    `json:"category"`
 	Subject   string    `json:"subject"`
 	Message   string    `json:"message"`
+	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -159,6 +160,20 @@ type contactReplyInput struct {
 type contactReplyOutput struct {
 	Body struct {
 		Reply contactReplyResponse `json:"reply"`
+	}
+}
+
+type contactStatusInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+	Body          struct {
+		Status string `json:"status" required:"true" example:"in_progress"`
+	}
+}
+
+type contactStatusOutput struct {
+	Body struct {
+		Success bool `json:"success"`
 	}
 }
 
@@ -529,6 +544,26 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
+	huma.Put(api, "/v1/admin/contact/{id}/status", func(ctx context.Context, input *contactStatusInput) (*contactStatusOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		err := contactService.UpdateStatus(ctx, input.ID, input.Body.Status)
+		if err != nil {
+			return nil, mapContactError("failed to update contact status", err)
+		}
+
+		output := &contactStatusOutput{}
+		output.Body.Success = true
+		return output, nil
+	})
+
 	huma.Post(api, "/v1/contact/{threadId}/replies", func(ctx context.Context, input *contactThreadReplyInput) (*contactThreadReplyOutput, error) {
 		reply, err := contactService.ReplyThread(ctx, input.ThreadID, input.Body.Message)
 		if err != nil {
@@ -860,6 +895,7 @@ func toContactMessageResponse(message domaincontact.Message) contactMessageRespo
 		Category:  message.Category,
 		Subject:   message.Subject,
 		Message:   message.Body,
+		Status:    message.Status,
 		CreatedAt: message.CreatedAt,
 	}
 }
