@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { submitContactMessage } from "@/lib/contact";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 
 const INQUIRY_TYPES = [
   "ぶどう狩りについて",
@@ -44,7 +45,7 @@ export default function ContactForm() {
         message: message.trim(),
       });
 
-      setSuccessMessage(`お問い合わせを受け付けました。`);
+      setSuccessMessage("お問い合わせを受け付けました。");
       setThreadId(response.message.threadId);
       setName("");
       setEmail("");
@@ -65,7 +66,7 @@ export default function ContactForm() {
         <label className="contact-field">
           <span>お名前</span>
           <input
-            className="admin-input"
+            className="contact-input"
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -78,7 +79,7 @@ export default function ContactForm() {
         <label className="contact-field">
           <span>メールアドレス</span>
           <input
-            className="admin-input"
+            className="contact-input"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -92,7 +93,7 @@ export default function ContactForm() {
       <div className="grid grid--2">
         <label className="contact-field">
           <span>お問い合わせ種別</span>
-          <select className="admin-input" value={category} onChange={(event) => setCategory(event.target.value)}>
+          <select className="contact-input" value={category} onChange={(event) => setCategory(event.target.value)}>
             {INQUIRY_TYPES.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -104,7 +105,7 @@ export default function ContactForm() {
         <label className="contact-field">
           <span>件名</span>
           <input
-            className="admin-input"
+            className="contact-input"
             type="text"
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
@@ -117,7 +118,7 @@ export default function ContactForm() {
       <label className="contact-field">
         <span>お問い合わせ内容</span>
         <textarea
-          className="admin-textarea"
+          className="contact-textarea"
           rows={8}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
@@ -126,17 +127,45 @@ export default function ContactForm() {
         />
       </label>
 
-      {successMessage ? <p className="text-sm text-green-700">{successMessage}</p> : null}
-      {threadId ? (
-        <p className="text-sm text-green-700">
-          返信用URL: <Link href={`/contact/${threadId}`}>/contact/{threadId}</Link>
-        </p>
+      {successMessage ? (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-6 my-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-green-900 text-base mb-1">{successMessage}</h3>
+              <p className="text-sm text-green-700 leading-relaxed mb-3">
+                お問い合わせいただきありがとうございます。内容を確認の上、メールにてご返信いたします。
+              </p>
+              {threadId && (
+                <div className="bg-white border border-green-100 rounded-lg p-3 text-xs md:text-sm font-semibold flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-gray-600">返信・やり取り確認用URL:</span>
+                  <Link href={`/contact/${threadId}`} className="text-green-700 hover:text-green-900 underline break-all">
+                    /contact/{threadId}
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       ) : null}
-      {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
+
+      {errorMessage ? (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 my-4 flex items-center gap-3 shadow-sm">
+          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <p className="text-sm text-red-700 m-0">{errorMessage}</p>
+        </div>
+      ) : null}
 
       <div className="contact-form__footer">
-        <button type="submit" className="button-link button-link--primary" disabled={isSubmitting}>
-          {isSubmitting ? "送信中..." : "送信する"}
+        <button type="submit" className="button-link button-link--primary flex items-center gap-2" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              送信中...
+            </>
+          ) : (
+            "送信する"
+          )}
         </button>
       </div>
     </form>

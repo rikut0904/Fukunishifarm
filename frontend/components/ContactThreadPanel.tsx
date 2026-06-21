@@ -130,9 +130,6 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
       <div className="section__head">
         <p className="eyebrow">Contact Thread</p>
         <h1 className="section__title">お問い合わせスレッド</h1>
-        <p className="section__lead">
-          返信メールに記載されたURLから、このお問い合わせの内容とやり取りを確認できます。
-        </p>
         <div className="section__actions">
           <Link href="/contact" className="button-link button-link--secondary">
             <ArrowLeft className="h-4 w-4" />
@@ -191,7 +188,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
           <div className="card card__body admin-contact-reply">
             <p className="admin-contact-detail__label">返信する</p>
             <textarea
-              className="admin-textarea admin-contact-reply__textarea"
+              className="contact-textarea admin-contact-reply__textarea"
               value={replyMessage}
               onChange={(event) => setReplyMessage(event.target.value)}
               placeholder="返信内容を入力してください"
@@ -211,12 +208,34 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
             {detail.replies.length > 0 ? (
               <div className="admin-contact-replies__list">
                 {detail.replies.map((reply) => (
-                  <div key={reply.id} className="admin-contact-reply-item">
+                  <div
+                    key={reply.id}
+                    className={`admin-contact-reply-item ${
+                      reply.senderType === "admin"
+                        ? "admin-contact-reply-item--admin"
+                        : "admin-contact-reply-item--customer"
+                    }`}
+                  >
                     <div className="admin-contact-reply-item__meta">
-                      <span>{getSenderLabel(reply)}</span>
-                      <span>{formatDateTime(reply.createdAt)}</span>
+                      <span className="flex items-center gap-2">
+                        {reply.senderType === "admin" ? (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded bg-[var(--brand)] text-white">
+                            運営
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded bg-gray-200 text-gray-700">
+                            お客様
+                          </span>
+                        )}
+                        <span className="font-bold text-[var(--text-main)]">
+                          {getSenderLabel(reply)}
+                        </span>
+                      </span>
+                      <span className="text-xs text-gray-500">{formatDateTime(reply.createdAt)}</span>
                     </div>
-                    <p className="admin-contact-reply-item__body">{reply.message}</p>
+                    <p className="admin-contact-reply-item__body mt-2 leading-relaxed text-gray-800">
+                      {reply.message}
+                    </p>
                   </div>
                 ))}
               </div>

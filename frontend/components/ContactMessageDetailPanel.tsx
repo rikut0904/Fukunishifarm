@@ -254,10 +254,11 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
           <div className="card card__body admin-contact-reply">
             <p className="admin-contact-detail__label">返信</p>
             <textarea
-              className="admin-textarea admin-contact-reply__textarea"
+              className="contact-textarea admin-contact-reply__textarea"
               value={replyMessage}
               onChange={(event) => setReplyMessage(event.target.value)}
               placeholder="返信内容を入力してください"
+              rows={6}
             />
             {replyError ? <p className="admin-error">{replyError}</p> : null}
             <div className="admin-contact-reply__actions">
@@ -272,12 +273,34 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
             {detail.replies.length > 0 ? (
               <div className="admin-contact-replies__list">
                 {detail.replies.map((reply) => (
-                  <div key={reply.id} className="admin-contact-reply-item">
+                  <div
+                    key={reply.id}
+                    className={`admin-contact-reply-item ${
+                      reply.senderType === "admin"
+                        ? "admin-contact-reply-item--admin"
+                        : "admin-contact-reply-item--customer"
+                    }`}
+                  >
                     <div className="admin-contact-reply-item__meta">
-                      <span>{getSenderLabel(reply)}</span>
-                      <span>{formatDateTime(reply.createdAt)}</span>
+                      <span className="flex items-center gap-2">
+                        {reply.senderType === "admin" ? (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded bg-[var(--brand)] text-white">
+                            運営
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded bg-gray-200 text-gray-700">
+                            お客様
+                          </span>
+                        )}
+                        <span className="font-bold text-[var(--text-main)]">
+                          {getSenderLabel(reply)}
+                        </span>
+                      </span>
+                      <span className="text-xs text-gray-500">{formatDateTime(reply.createdAt)}</span>
                     </div>
-                    <p className="admin-contact-reply-item__body">{reply.message}</p>
+                    <p className="admin-contact-reply-item__body mt-2 leading-relaxed text-gray-800">
+                      {reply.message}
+                    </p>
                   </div>
                 ))}
               </div>
