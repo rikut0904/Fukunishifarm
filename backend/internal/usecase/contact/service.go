@@ -297,7 +297,12 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
 	}
 
-	if _, err := mail.ParseAddress(message.Email); err != nil {
+	addr, err := mail.ParseAddress(message.Email)
+	if err != nil {
+		return domaincontact.Message{}, domaincontact.ErrInvalidInput
+	}
+	message.Email = strings.TrimSpace(addr.Address)
+	if message.Email == "" {
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
 	}
 

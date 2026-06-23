@@ -177,6 +177,27 @@ func TestSubmitMessageContinuesWhenAdminListFails(t *testing.T) {
 	}
 }
 
+func TestSubmitMessageNormalizesEmailAddress(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{}
+	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+	_, err := service.SubmitMessage(context.Background(), domaincontact.Message{
+		Name:    "山田 太郎",
+		Email:   "Taro Yamada <taro@example.com>",
+		Subject: "お問い合わせ",
+		Body:    "内容です",
+	})
+	if err != nil {
+		t.Fatalf("SubmitMessage returned error: %v", err)
+	}
+
+	if got := repo.savedMessage.Email; got != "taro@example.com" {
+		t.Fatalf("saved email = %q, want %q", got, "taro@example.com")
+	}
+}
+
 func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	t.Parallel()
 
