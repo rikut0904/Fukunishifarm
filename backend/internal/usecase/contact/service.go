@@ -293,6 +293,8 @@ type adminNotification struct {
 	body    string
 }
 
+const adminNotificationTimeout = 10 * time.Second
+
 func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notification adminNotification) {
 	if s.mailer == nil || len(adminUsers) == 0 {
 		return
@@ -303,7 +305,9 @@ func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notif
 			if strings.TrimSpace(admin.Email) == "" {
 				continue
 			}
-			if err := s.mailer.SendReplyEmail(context.Background(), admin.Email, subject, bodyText); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), adminNotificationTimeout)
+			defer cancel()
+			if err := s.mailer.SendReplyEmail(ctx, admin.Email, subject, bodyText); err != nil {
 				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
 			}
 		}
