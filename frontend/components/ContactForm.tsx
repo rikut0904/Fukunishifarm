@@ -6,12 +6,14 @@ import { submitContactMessage } from "@/lib/contact";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 
 const INQUIRY_TYPES = [
-  "ぶどう狩りについて",
-  "料金について",
-  "アクセスについて",
-  "予約について",
-  "その他",
-];
+  { value: "grape", label: "ぶどう狩りについて" },
+  { value: "price", label: "料金について" },
+  { value: "access", label: "アクセスについて" },
+  { value: "reservation", label: "予約について" },
+  { value: "other", label: "その他" },
+] as const;
+
+type InquiryType = (typeof INQUIRY_TYPES)[number]["value"];
 
 function isValidEmailAddress(value: string) {
   const email = value.trim();
@@ -25,7 +27,7 @@ function isValidEmailAddress(value: string) {
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [category, setCategory] = useState(INQUIRY_TYPES[0]);
+  const [category, setCategory] = useState<InquiryType>(INQUIRY_TYPES[0].value);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,7 +68,7 @@ export default function ContactForm() {
       setThreadId(response.message.threadId);
       setName("");
       setEmail("");
-      setCategory(INQUIRY_TYPES[0]);
+      setCategory(INQUIRY_TYPES[0].value);
       setSubject("");
       setMessage("");
     } catch (error) {
@@ -112,10 +114,10 @@ export default function ContactForm() {
       <div className="grid grid--2">
         <label className="contact-field">
           <span>お問い合わせ種別</span>
-          <select className="contact-input" value={category} onChange={(event) => setCategory(event.target.value)}>
+          <select className="contact-input" value={category} onChange={(event) => setCategory(event.target.value as InquiryType)}>
             {INQUIRY_TYPES.map((item) => (
-              <option key={item} value={item}>
-                {item}
+              <option key={item.value} value={item.value}>
+                {item.label}
               </option>
             ))}
           </select>

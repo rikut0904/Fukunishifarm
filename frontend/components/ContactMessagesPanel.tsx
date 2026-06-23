@@ -44,10 +44,17 @@ function formatDateTime(value: string) {
 
 function getCategoryLabel(category: string) {
   const mapping: Record<string, string> = {
+    grape: "ぶどう狩りについて",
+    reservation: "予約について",
+    price: "料金について",
+    access: "アクセスについて",
+    other: "その他",
     general: "一般",
-    reservation: "予約",
-    price: "料金",
-    access: "アクセス",
+    "ぶどう狩りについて": "ぶどう狩りについて",
+    "予約について": "予約について",
+    "料金について": "料金について",
+    "アクセスについて": "アクセスについて",
+    "その他": "その他",
   };
 
   return mapping[category] ?? category;
