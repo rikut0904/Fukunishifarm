@@ -38,7 +38,7 @@ func (r *ContactRepository) ListMessages(ctx context.Context, status string, off
 		}
 	}
 
-	if err := query.Count(&total).Error; err != nil {
+	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -114,4 +114,3 @@ func (r *ContactRepository) UpdateMessageStatus(ctx context.Context, id uint, st
 	}
 	return nil
 }
-
