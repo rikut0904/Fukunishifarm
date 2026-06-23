@@ -254,7 +254,7 @@ func (s *Service) ReplyThread(ctx context.Context, threadID string, body string)
 		return domaincontact.Reply{}, err
 	}
 
-	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
+	saved, err := s.repository.CreateReplyAndUpdateMessageStatus(ctx, domaincontact.Reply{
 		MessageID:    message.ID,
 		ThreadID:     message.ThreadID,
 		SenderType:   "customer",
@@ -262,7 +262,7 @@ func (s *Service) ReplyThread(ctx context.Context, threadID string, body string)
 		SenderName:   message.Name,
 		SenderEmail:  message.Email,
 		Message:      body,
-	})
+	}, "in_progress")
 	if err != nil {
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
 	}

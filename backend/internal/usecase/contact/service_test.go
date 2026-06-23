@@ -14,6 +14,7 @@ type fakeContactRepository struct {
 	savedMessage domaincontact.Message
 	message      domaincontact.Message
 	messageErr   error
+	statuses     []string
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -51,6 +52,11 @@ func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincon
 		ThreadID: reply.ThreadID,
 	}
 	return reply, nil
+}
+
+func (r *fakeContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Context, reply domaincontact.Reply, status string) (domaincontact.Reply, error) {
+	r.statuses = append(r.statuses, status)
+	return r.CreateReply(ctx, reply)
 }
 
 func (r *fakeContactRepository) ListReplies(ctx context.Context, messageID uint) ([]domaincontact.Reply, error) {
@@ -229,5 +235,35 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	}
 	if got := len(mailer.calls); got != 1 {
 		t.Fatalf("mail call count = %d, want 1", got)
+	}
+}
+
+func TestReplyThreadReopensThreadAsInProgress(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Status:   "resolved",
+		},
+	}
+	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+	saved, err := service.ReplyThread(context.Background(), "thread-42", "新しい返信です")
+	if err != nil {
+		t.Fatalf("ReplyThread returned error: %v", err)
+	}
+
+	if len(repo.statuses) != 1 {
+		t.Fatalf("status update count = %d, want 1", len(repo.statuses))
+	}
+	if got := repo.statuses[0]; got != "in_progress" {
+		t.Fatalf("status = %q, want %q", got, "in_progress")
+	}
+	if saved.Message != "新しい返信です" {
+		t.Fatalf("saved reply body = %q, want %q", saved.Message, "新しい返信です")
 	}
 }

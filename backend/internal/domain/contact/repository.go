@@ -9,5 +9,6 @@ type Repository interface {
 	GetMessageByThreadID(ctx context.Context, threadID string) (Message, error)
 	UpdateMessageStatus(ctx context.Context, id uint, status string) error
 	CreateReply(ctx context.Context, reply Reply) (Reply, error)
+	CreateReplyAndUpdateMessageStatus(ctx context.Context, reply Reply, status string) (Reply, error)
 	ListReplies(ctx context.Context, messageID uint) ([]Reply, error)
 }

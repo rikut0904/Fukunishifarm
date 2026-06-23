@@ -94,6 +94,27 @@ func (r *ContactRepository) CreateReply(ctx context.Context, reply domaincontact
 	return reply, nil
 }
 
+func (r *ContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Context, reply domaincontact.Reply, status string) (domaincontact.Reply, error) {
+	var saved domaincontact.Reply
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&reply).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&domaincontact.Message{}).Where("id = ?", reply.MessageID).Update("status", status).Error; err != nil {
+			return err
+		}
+
+		saved = reply
+		return nil
+	})
+	if err != nil {
+		return domaincontact.Reply{}, err
+	}
+
+	return saved, nil
+}
+
 func (r *ContactRepository) ListReplies(ctx context.Context, messageID uint) ([]domaincontact.Reply, error) {
 	var replies []domaincontact.Reply
 	tx := r.db.WithContext(ctx).Where("message_id = ?", messageID).Order("created_at ASC").Find(&replies)
