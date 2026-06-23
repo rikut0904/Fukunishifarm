@@ -336,3 +336,53 @@ func TestReplyThreadReopensThreadAsInProgress(t *testing.T) {
 		t.Fatalf("saved reply body = %q, want %q", saved.Message, "新しい返信です")
 	}
 }
+
+func TestReplyThreadSendsNotificationToAdmins(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+			Category: "general",
+		},
+	}
+	adminRepo := &fakeAdminRepository{
+		users: []domainauth.AdminUser{
+			{Email: "admin@example.com"},
+		},
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, adminRepo, mailer, "https://example.com")
+
+	_, err := service.ReplyThread(context.Background(), "thread-42", "新しい返信です")
+	if err != nil {
+		t.Fatalf("ReplyThread returned error: %v", err)
+	}
+
+	waitForMailCalls(t, mailer, 1)
+
+	if got := mailer.callCount(); got != 1 {
+		t.Fatalf("mail call count = %d, want 1", got)
+	}
+
+	call := mailer.snapshot()[0]
+	if call.toEmail != "admin@example.com" {
+		t.Fatalf("recipient = %q, want %q", call.toEmail, "admin@example.com")
+	}
+	if !strings.Contains(call.subject, "お問い合わせ") {
+		t.Fatalf("subject = %q, want to contain inquiry subject", call.subject)
+	}
+	if !strings.Contains(call.body, "返信日時") {
+		t.Fatalf("body does not contain reply timestamp: %s", call.body)
+	}
+	if !strings.Contains(call.body, "新しい返信です") {
+		t.Fatalf("body does not contain reply content: %s", call.body)
+	}
+	if !strings.Contains(call.body, "https://example.com/contact/thread-42") {
+		t.Fatalf("body does not contain thread URL: %s", call.body)
+	}
+}

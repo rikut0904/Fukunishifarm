@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/mail"
 	"strings"
+	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
@@ -56,43 +57,7 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 		}
 	}
 
-	if s.mailer != nil && len(adminUsers) > 0 {
-		adminURL := ""
-		if s.siteBaseURL != "" {
-			adminURL = fmt.Sprintf("%s/admin/contact/%d", s.siteBaseURL, saved.ID)
-		}
-
-		subject := "【ふくにしファーム】新規お問い合わせがありました"
-		lines := []string{
-			"ふくにしファームの管理者様",
-			"",
-			"ウェブサイトより新しいお問い合わせがありました。",
-			"",
-			"■ お問い合わせ内容",
-			"お名前: " + saved.Name,
-			"メールアドレス: " + saved.Email,
-			"カテゴリ: " + saved.Category,
-			"件名: " + saved.Subject,
-			"",
-			"内容:",
-			saved.Body,
-		}
-		if adminURL != "" {
-			lines = append(lines, "", "■ 管理者対応URL", adminURL)
-		}
-		bodyText := strings.Join(lines, "\n")
-
-		go func(adminUsers []domainauth.AdminUser, subject, bodyText string) {
-			for _, admin := range adminUsers {
-				if strings.TrimSpace(admin.Email) == "" {
-					continue
-				}
-				if err := s.mailer.SendReplyEmail(context.Background(), admin.Email, subject, bodyText); err != nil {
-					slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
-				}
-			}
-		}(append([]domainauth.AdminUser(nil), adminUsers...), subject, bodyText)
-	}
+	s.notifyAdminUsersAsync(adminUsers, buildNewInquiryNotification(saved, s.siteBaseURL))
 
 	return saved, nil
 }
@@ -271,6 +236,16 @@ func (s *Service) ReplyThread(ctx context.Context, threadID string, body string)
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
 	}
 
+	var adminUsers []domainauth.AdminUser
+	if s.adminRepo != nil {
+		adminUsers, err = s.adminRepo.ListAdminUsers(ctx)
+		if err != nil {
+			slog.Error("failed to list admin users for contact reply notification", "error", err)
+		}
+	}
+
+	s.notifyAdminUsersAsync(adminUsers, buildCustomerReplyNotification(message, body, s.siteBaseURL))
+
 	return saved, nil
 }
 
@@ -311,4 +286,96 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 	}
 
 	return message, nil
+}
+
+type adminNotification struct {
+	subject string
+	body    string
+}
+
+func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notification adminNotification) {
+	if s.mailer == nil || len(adminUsers) == 0 {
+		return
+	}
+
+	go func(adminUsers []domainauth.AdminUser, subject, bodyText string) {
+		for _, admin := range adminUsers {
+			if strings.TrimSpace(admin.Email) == "" {
+				continue
+			}
+			if err := s.mailer.SendReplyEmail(context.Background(), admin.Email, subject, bodyText); err != nil {
+				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
+			}
+		}
+	}(append([]domainauth.AdminUser(nil), adminUsers...), notification.subject, notification.body)
+}
+
+func buildNewInquiryNotification(message domaincontact.Message, siteBaseURL string) adminNotification {
+	adminURL := ""
+	if siteBaseURL != "" {
+		adminURL = fmt.Sprintf("%s/admin/contact/%d", siteBaseURL, message.ID)
+	}
+
+	lines := []string{
+		"ふくにしファームの管理者様",
+		"",
+		"ウェブサイトより新しいお問い合わせがありました。",
+		"",
+		"■ お問い合わせ内容",
+		"お名前: " + message.Name,
+		"メールアドレス: " + message.Email,
+		"カテゴリ: " + message.Category,
+		"件名: " + message.Subject,
+		"",
+		"内容:",
+		message.Body,
+	}
+	if adminURL != "" {
+		lines = append(lines, "", "■ 管理者対応URL", adminURL)
+	}
+
+	return adminNotification{
+		subject: "【ふくにしファーム】新規お問い合わせがありました",
+		body:    strings.Join(lines, "\n"),
+	}
+}
+
+func buildCustomerReplyNotification(message domaincontact.Message, body, siteBaseURL string) adminNotification {
+	replyURL := ""
+	if siteBaseURL != "" {
+		replyURL = siteBaseURL + "/contact/" + message.ThreadID
+	}
+
+	replyTime := time.Now().In(time.FixedZone("JST", 9*60*60)).Format("2006/01/02 15:04:05")
+
+	subject := "【ふくにしファーム】お問い合わせに新しい返信がありました"
+	if strings.TrimSpace(message.Subject) != "" {
+		subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " への新しい返信がありました"
+	}
+
+	lines := []string{
+		"ふくにしファームの管理者様",
+		"",
+		"お客様からお問い合わせスレッドに新しい返信がありました。",
+		"",
+		"■ 返信日時",
+		replyTime,
+		"",
+		"■ お問い合わせ内容",
+		"お名前: " + message.Name,
+		"メールアドレス: " + message.Email,
+		"件名: " + message.Subject,
+		"カテゴリ: " + message.Category,
+		"",
+		"■ 返信内容",
+		body,
+	}
+	if replyURL != "" {
+		lines = append(lines, "", "■ スレッドURL", replyURL)
+	}
+
+	return adminNotification{
+		subject: subject,
+		body:    strings.Join(lines, "\n"),
+	}
 }
