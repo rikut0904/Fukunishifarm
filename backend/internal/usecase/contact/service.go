@@ -3,15 +3,18 @@ package contact
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/mail"
 	"strings"
 
+	domainauth "fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	"github.com/google/uuid"
 )
 
 type Service struct {
 	repository  domaincontact.Repository
+	adminRepo   domainauth.Repository
 	mailer      domaincontact.ReplyEmailSender
 	siteBaseURL string
 }
@@ -22,8 +25,13 @@ type ReplyAuthor struct {
 	Email  string
 }
 
-func NewService(repository domaincontact.Repository, mailer domaincontact.ReplyEmailSender, siteBaseURL string) *Service {
-	return &Service{repository: repository, mailer: mailer, siteBaseURL: strings.TrimRight(strings.TrimSpace(siteBaseURL), "/")}
+func NewService(repository domaincontact.Repository, adminRepo domainauth.Repository, mailer domaincontact.ReplyEmailSender, siteBaseURL string) *Service {
+	return &Service{
+		repository:  repository,
+		adminRepo:   adminRepo,
+		mailer:      mailer,
+		siteBaseURL: strings.TrimRight(strings.TrimSpace(siteBaseURL), "/"),
+	}
 }
 
 func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -37,6 +45,51 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 	saved, err := s.repository.CreateMessage(ctx, normalized)
 	if err != nil {
 		return domaincontact.Message{}, fmt.Errorf("create contact message: %w", err)
+	}
+
+	var adminUsers []domainauth.AdminUser
+	if s.adminRepo != nil {
+		// 管理者ユーザー全員を取得
+		adminUsers, err = s.adminRepo.ListAdminUsers(ctx)
+		if err != nil {
+			slog.Error("failed to list admin users for contact notification", "error", err)
+		}
+	}
+
+	if s.mailer != nil && len(adminUsers) > 0 {
+		adminURL := ""
+		if s.siteBaseURL != "" {
+			adminURL = fmt.Sprintf("%s/admin/contact/%d", s.siteBaseURL, saved.ID)
+		}
+
+		subject := "【ふくにしファーム】新規お問い合わせがありました"
+		lines := []string{
+			"ふくにしファームの管理者様",
+			"",
+			"ウェブサイトより新しいお問い合わせがありました。",
+			"",
+			"■ お問い合わせ内容",
+			"お名前: " + saved.Name,
+			"メールアドレス: " + saved.Email,
+			"カテゴリ: " + saved.Category,
+			"件名: " + saved.Subject,
+			"",
+			"内容:",
+			saved.Body,
+		}
+		if adminURL != "" {
+			lines = append(lines, "", "■ 管理者対応URL", adminURL)
+		}
+		bodyText := strings.Join(lines, "\n")
+
+		for _, admin := range adminUsers {
+			if strings.TrimSpace(admin.Email) == "" {
+				continue
+			}
+			if err := s.mailer.SendReplyEmail(ctx, admin.Email, subject, bodyText); err != nil {
+				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
+			}
+		}
 	}
 
 	return saved, nil
