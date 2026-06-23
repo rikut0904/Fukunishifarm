@@ -82,14 +82,16 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 		}
 		bodyText := strings.Join(lines, "\n")
 
-		for _, admin := range adminUsers {
-			if strings.TrimSpace(admin.Email) == "" {
-				continue
+		go func(adminUsers []domainauth.AdminUser, subject, bodyText string) {
+			for _, admin := range adminUsers {
+				if strings.TrimSpace(admin.Email) == "" {
+					continue
+				}
+				if err := s.mailer.SendReplyEmail(context.Background(), admin.Email, subject, bodyText); err != nil {
+					slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
+				}
 			}
-			if err := s.mailer.SendReplyEmail(ctx, admin.Email, subject, bodyText); err != nil {
-				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
-			}
-		}
+		}(append([]domainauth.AdminUser(nil), adminUsers...), subject, bodyText)
 	}
 
 	return saved, nil

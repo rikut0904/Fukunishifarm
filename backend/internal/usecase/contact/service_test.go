@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
@@ -84,6 +86,7 @@ func (r *fakeAdminRepository) ListAdminUsers(ctx context.Context) ([]domainauth.
 }
 
 type fakeMailSender struct {
+	mu    sync.Mutex
 	calls []mailCall
 	err   error
 }
@@ -95,12 +98,46 @@ type mailCall struct {
 }
 
 func (s *fakeMailSender) SendReplyEmail(ctx context.Context, toEmail, subject, body string) error {
+	s.mu.Lock()
 	s.calls = append(s.calls, mailCall{
 		toEmail: toEmail,
 		subject: subject,
 		body:    body,
 	})
+	s.mu.Unlock()
 	return s.err
+}
+
+func (s *fakeMailSender) callCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.calls)
+}
+
+func (s *fakeMailSender) snapshot() []mailCall {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]mailCall(nil), s.calls...)
+}
+
+func waitForMailCalls(t *testing.T, sender *fakeMailSender, want int) {
+	t.Helper()
+
+	deadline := time.After(500 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		if sender.callCount() >= want {
+			return
+		}
+
+		select {
+		case <-deadline:
+			t.Fatalf("mail call count = %d, want at least %d", sender.callCount(), want)
+		case <-ticker.C:
+		}
+	}
 }
 
 func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
@@ -134,11 +171,13 @@ func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
 		t.Fatal("saved ThreadID is empty")
 	}
 
-	if got := len(mailer.calls); got != 2 {
+	waitForMailCalls(t, mailer, 2)
+
+	if got := mailer.callCount(); got != 2 {
 		t.Fatalf("mail call count = %d, want 2", got)
 	}
 
-	for _, call := range mailer.calls {
+	for _, call := range mailer.snapshot() {
 		if call.subject != "【ふくにしファーム】新規お問い合わせがありました" {
 			t.Fatalf("subject = %q, want contact notification subject", call.subject)
 		}
@@ -156,6 +195,7 @@ func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
 		}
 	}
 }
+
 
 func TestSubmitMessageContinuesWhenAdminListFails(t *testing.T) {
 	t.Parallel()
@@ -178,7 +218,7 @@ func TestSubmitMessageContinuesWhenAdminListFails(t *testing.T) {
 	if saved.ID != 42 {
 		t.Fatalf("saved ID = %d, want 42", saved.ID)
 	}
-	if got := len(mailer.calls); got != 0 {
+	if got := mailer.callCount(); got != 0 {
 		t.Fatalf("mail call count = %d, want 0", got)
 	}
 }
@@ -233,7 +273,9 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	if saved.Message != "返信内容" {
 		t.Fatalf("saved reply body = %q, want %q", saved.Message, "返信内容")
 	}
-	if got := len(mailer.calls); got != 1 {
+	waitForMailCalls(t, mailer, 1)
+
+	if got := mailer.callCount(); got != 1 {
 		t.Fatalf("mail call count = %d, want 1", got)
 	}
 }
