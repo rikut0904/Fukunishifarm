@@ -61,20 +61,22 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 		return err
 	}
 
-	for _, message := range messages {
-		threadID := uuid.NewString()
-		if err := db.WithContext(ctx).Model(&domaincontact.Message{}).
-			Where("id = ?", message.ID).
-			Update("thread_id", threadID).Error; err != nil {
-			return err
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, message := range messages {
+			threadID := uuid.NewString()
+			if err := tx.Model(&domaincontact.Message{}).
+				Where("id = ?", message.ID).
+				Update("thread_id", threadID).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Model(&domaincontact.Reply{}).
+				Where("message_id = ?", message.ID).
+				Update("thread_id", threadID).Error; err != nil {
+				return err
+			}
 		}
 
-		if err := db.WithContext(ctx).Model(&domaincontact.Reply{}).
-			Where("message_id = ?", message.ID).
-			Update("thread_id", threadID).Error; err != nil {
-			return err
-		}
-	}
-
-	return nil
+		return nil
+	})
 }
