@@ -13,6 +13,15 @@ const INQUIRY_TYPES = [
   "その他",
 ];
 
+function isValidEmailAddress(value: string) {
+  const email = value.trim();
+  if (!email) {
+    return false;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,6 +41,11 @@ export default function ContactForm() {
 
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
       setErrorMessage("お名前、メールアドレス、件名、お問い合わせ内容を入力してください。");
+      return;
+    }
+
+    if (!isValidEmailAddress(email)) {
+      setErrorMessage("メールアドレスの形式が正しくありません。");
       return;
     }
 
@@ -81,10 +95,12 @@ export default function ContactForm() {
           <input
             className="contact-input"
             type="email"
+            inputMode="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="example@email.com"
             autoComplete="email"
+            aria-invalid={errorMessage === "メールアドレスの形式が正しくありません。"}
             required
           />
         </label>
