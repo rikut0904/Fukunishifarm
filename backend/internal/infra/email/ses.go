@@ -3,6 +3,7 @@ package email
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -71,7 +72,7 @@ func (s *SESReplySender) SendReplyEmail(ctx context.Context, toEmail, subject, b
 	}
 
 	_, err := s.client.SendEmail(ctx, &sesv2.SendEmailInput{
-		FromEmailAddress: aws.String(s.fromEmail),
+		FromEmailAddress: aws.String(formatFromAddress(s.fromName, s.fromEmail)),
 		Destination: &types.Destination{
 			ToAddresses: []string{toEmail},
 		},
@@ -95,4 +96,17 @@ func (s *SESReplySender) SendReplyEmail(ctx context.Context, toEmail, subject, b
 	}
 
 	return nil
+}
+
+func formatFromAddress(name, email string) string {
+	name = strings.TrimSpace(name)
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return ""
+	}
+	if name == "" {
+		return email
+	}
+
+	return (&mail.Address{Name: name, Address: email}).String()
 }
