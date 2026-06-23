@@ -35,6 +35,9 @@ export default function ContactForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
     setSuccessMessage(null);
     setThreadId(null);
     setErrorMessage(null);
