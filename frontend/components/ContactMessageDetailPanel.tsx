@@ -119,6 +119,9 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
     if (!detail) {
       return;
     }
+    if (replyLoading) {
+      return;
+    }
 
     const message = replyMessage.trim();
     if (!message) {
@@ -145,7 +148,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
     } finally {
       setReplyLoading(false);
     }
-  }, [detail, id, loadMessage, onSignOut, replyMessage, token]);
+  }, [detail, id, loadMessage, onSignOut, replyLoading, replyMessage, token]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

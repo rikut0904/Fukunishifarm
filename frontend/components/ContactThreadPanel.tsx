@@ -90,6 +90,10 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   const threadUrl = useMemo(() => `/contact/${threadId}`, [threadId]);
 
   const handleReply = useCallback(async () => {
+    if (replyLoading) {
+      return;
+    }
+
     const message = replyMessage.trim();
     if (!message) {
       setReplyError("返信内容を入力してください。");
@@ -110,7 +114,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
     } finally {
       setReplyLoading(false);
     }
-  }, [loadThread, replyMessage, threadId]);
+  }, [loadThread, replyLoading, replyMessage, threadId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
