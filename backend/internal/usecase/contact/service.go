@@ -192,6 +192,10 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		author.Email = "unknown@example.com"
 	}
 
+	if s.mailer == nil {
+		return domaincontact.Reply{}, domaincontact.ErrMailNotConfigured
+	}
+
 	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
 		MessageID:    messageID,
 		ThreadID:     message.ThreadID,
@@ -205,39 +209,37 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
 	}
 
-	if s.mailer != nil {
-		subject := "【ふくにしファーム】お問い合わせへのご返信"
-		if strings.TrimSpace(message.Subject) != "" {
-			subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " へのご返信"
-		}
+	subject := "【ふくにしファーム】お問い合わせへのご返信"
+	if strings.TrimSpace(message.Subject) != "" {
+		subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " へのご返信"
+	}
 
-		replyURL := ""
-		if s.siteBaseURL != "" {
-			replyURL = s.siteBaseURL + "/contact/" + message.ThreadID
-		}
+	replyURL := ""
+	if s.siteBaseURL != "" {
+		replyURL = s.siteBaseURL + "/contact/" + message.ThreadID
+	}
 
-		lines := []string{
-			"いつもふくにしファームをご利用いただき、ありがとうございます。",
-			"",
-			"お問い合わせへのご返信をお送りします。",
-			"",
-			"返信内容",
-			body,
-			"",
-			"お名前: " + message.Name,
-			"メールアドレス: " + message.Email,
-			"件名: " + message.Subject,
-		}
-		if replyURL != "" {
-			lines = append(lines, "", "返信用URL: "+replyURL)
-		}
+	lines := []string{
+		"いつもふくにしファームをご利用いただき、ありがとうございます。",
+		"",
+		"お問い合わせへのご返信をお送りします。",
+		"",
+		"返信内容",
+		body,
+		"",
+		"お名前: " + message.Name,
+		"メールアドレス: " + message.Email,
+		"件名: " + message.Subject,
+	}
+	if replyURL != "" {
+		lines = append(lines, "", "返信用URL: "+replyURL)
+	}
 
-		bodyText := strings.Join(lines, "\n")
+	bodyText := strings.Join(lines, "\n")
 
-		if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
-			slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
-			return saved, fmt.Errorf("send contact reply email: %w", err)
-		}
+	if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
+		slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
+		return saved, fmt.Errorf("send contact reply email: %w", err)
 	}
 
 	return saved, nil

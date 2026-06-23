@@ -238,6 +238,33 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	}
 }
 
+func TestReplyMessageReturnsErrorWhenMailerIsNotConfigured(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+		},
+	}
+	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+	_, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if !errors.Is(err, domaincontact.ErrMailNotConfigured) {
+		t.Fatalf("error = %v, want ErrMailNotConfigured", err)
+	}
+	if repo.savedMessage.ID != 0 {
+		t.Fatalf("reply should not be saved when mailer is nil")
+	}
+}
+
 func TestReplyThreadReopensThreadAsInProgress(t *testing.T) {
 	t.Parallel()
 
