@@ -235,7 +235,8 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		bodyText := strings.Join(lines, "\n")
 
 		if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
-			return saved, nil
+			slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
+			return saved, fmt.Errorf("send contact reply email: %w", err)
 		}
 	}
 

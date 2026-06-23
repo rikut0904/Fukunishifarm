@@ -12,6 +12,8 @@ import (
 
 type fakeContactRepository struct {
 	savedMessage domaincontact.Message
+	message      domaincontact.Message
+	messageErr   error
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -25,11 +27,17 @@ func (r *fakeContactRepository) ListMessages(ctx context.Context, status string,
 }
 
 func (r *fakeContactRepository) GetMessage(ctx context.Context, id uint) (domaincontact.Message, error) {
-	return domaincontact.Message{}, nil
+	if r.messageErr != nil {
+		return domaincontact.Message{}, r.messageErr
+	}
+	return r.message, nil
 }
 
 func (r *fakeContactRepository) GetMessageByThreadID(ctx context.Context, threadID string) (domaincontact.Message, error) {
-	return domaincontact.Message{}, nil
+	if r.messageErr != nil {
+		return domaincontact.Message{}, r.messageErr
+	}
+	return r.message, nil
 }
 
 func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
@@ -37,7 +45,12 @@ func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint
 }
 
 func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincontact.Reply) (domaincontact.Reply, error) {
-	return domaincontact.Reply{}, nil
+	reply.ID = 99
+	r.savedMessage = domaincontact.Message{
+		ID:       reply.MessageID,
+		ThreadID: reply.ThreadID,
+	}
+	return reply, nil
 }
 
 func (r *fakeContactRepository) ListReplies(ctx context.Context, messageID uint) ([]domaincontact.Reply, error) {
@@ -66,6 +79,7 @@ func (r *fakeAdminRepository) ListAdminUsers(ctx context.Context) ([]domainauth.
 
 type fakeMailSender struct {
 	calls []mailCall
+	err   error
 }
 
 type mailCall struct {
@@ -80,7 +94,7 @@ func (s *fakeMailSender) SendReplyEmail(ctx context.Context, toEmail, subject, b
 		subject: subject,
 		body:    body,
 	})
-	return nil
+	return s.err
 }
 
 func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
@@ -160,5 +174,39 @@ func TestSubmitMessageContinuesWhenAdminListFails(t *testing.T) {
 	}
 	if got := len(mailer.calls); got != 0 {
 		t.Fatalf("mail call count = %d, want 0", got)
+	}
+}
+
+func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:      42,
+			ThreadID: "thread-42",
+			Name:    "問い合わせ者",
+			Email:   "customer@example.com",
+			Subject: "お問い合わせ",
+		},
+	}
+	mailer := &fakeMailSender{err: errors.New("ses send failed")}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	saved, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err == nil {
+		t.Fatal("ReplyMessage returned nil error, want error")
+	}
+	if !strings.Contains(err.Error(), "send contact reply email") {
+		t.Fatalf("error = %q, want send contact reply email wrapper", err.Error())
+	}
+	if saved.Message != "返信内容" {
+		t.Fatalf("saved reply body = %q, want %q", saved.Message, "返信内容")
+	}
+	if got := len(mailer.calls); got != 1 {
+		t.Fatalf("mail call count = %d, want 1", got)
 	}
 }
