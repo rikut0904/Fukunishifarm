@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
@@ -18,7 +19,7 @@ import (
 var ErrDatabaseNotMigrated = errors.New("database not migrated")
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &contactMessageSchemaV2{}, &contactReplySchemaV2{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
@@ -30,6 +31,10 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 
 	if err := backfillContactThreadIDs(ctx, db); err != nil {
 		return fmt.Errorf("backfill contact thread ids: %w", err)
+	}
+
+	if err := ensureContactThreadIDIndex(ctx, db); err != nil {
+		return fmt.Errorf("ensure contact thread id index: %w", err)
 	}
 
 	grapeService := usecasegrape.NewService(gormrepo.NewGrapeRepository(db))
@@ -79,4 +84,45 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 
 		return nil
 	})
+}
+
+func ensureContactThreadIDIndex(ctx context.Context, db *gorm.DB) error {
+	return db.WithContext(ctx).Exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_contact_messages_thread_id
+		ON contact_messages (thread_id)
+		WHERE thread_id IS NOT NULL AND thread_id <> ''
+	`).Error
+}
+
+type contactMessageSchemaV2 struct {
+	ID        uint      `gorm:"primaryKey"`
+	ThreadID  string    `gorm:"size:36"`
+	Name      string    `gorm:"size:80;not null"`
+	Email     string    `gorm:"size:320;not null"`
+	Category  string    `gorm:"size:64;not null"`
+	Subject   string    `gorm:"size:160;not null"`
+	Body      string    `gorm:"type:text;not null"`
+	Status    string    `gorm:"size:32;not null;default:'pending'"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (contactMessageSchemaV2) TableName() string {
+	return "contact_messages"
+}
+
+type contactReplySchemaV2 struct {
+	ID           uint      `gorm:"primaryKey"`
+	MessageID    uint      `gorm:"not null;index"`
+	ThreadID     string    `gorm:"size:36;index"`
+	SenderType   string    `gorm:"size:32;not null"`
+	SenderUserID uint      `gorm:"not null"`
+	SenderName   string    `gorm:"size:255;not null"`
+	SenderEmail  string    `gorm:"size:320;not null"`
+	Message      string    `gorm:"type:text;not null"`
+	CreatedAt    time.Time
+}
+
+func (contactReplySchemaV2) TableName() string {
+	return "contact_replies"
 }

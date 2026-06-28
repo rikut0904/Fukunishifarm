@@ -276,6 +276,10 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
 	}
 
+	if !isAllowedContactCategory(message.Category) {
+		return domaincontact.Message{}, domaincontact.ErrInvalidInput
+	}
+
 	addr, err := mail.ParseAddress(message.Email)
 	if err != nil {
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
@@ -286,6 +290,15 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 	}
 
 	return message, nil
+}
+
+func isAllowedContactCategory(category string) bool {
+	switch category {
+	case "grape", "price", "access", "reservation", "other", "general":
+		return true
+	default:
+		return false
+	}
 }
 
 type adminNotification struct {

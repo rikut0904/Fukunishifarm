@@ -244,6 +244,50 @@ func TestSubmitMessageNormalizesEmailAddress(t *testing.T) {
 	}
 }
 
+func TestSubmitMessageRejectsInvalidCategory(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{}
+	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+	_, err := service.SubmitMessage(context.Background(), domaincontact.Message{
+		Name:    "山田 太郎",
+		Email:   "taro@example.com",
+		Category: "invalid-category",
+		Subject: "お問い合わせ",
+		Body:    "内容です",
+	})
+	if !errors.Is(err, domaincontact.ErrInvalidInput) {
+		t.Fatalf("error = %v, want ErrInvalidInput", err)
+	}
+}
+
+func TestSubmitMessageAcceptsAllowedCategories(t *testing.T) {
+	t.Parallel()
+
+	allowed := []string{"grape", "price", "access", "reservation", "other", "general"}
+	for _, category := range allowed {
+		category := category
+		t.Run(category, func(t *testing.T) {
+			t.Parallel()
+
+			repo := &fakeContactRepository{}
+			service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+			_, err := service.SubmitMessage(context.Background(), domaincontact.Message{
+				Name:     "山田 太郎",
+				Email:    "taro@example.com",
+				Category: category,
+				Subject:  "お問い合わせ",
+				Body:     "内容です",
+			})
+			if err != nil {
+				t.Fatalf("SubmitMessage returned error: %v", err)
+			}
+		})
+	}
+}
+
 func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	t.Parallel()
 
