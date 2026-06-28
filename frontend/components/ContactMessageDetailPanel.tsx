@@ -13,7 +13,7 @@ import {
 } from "@/lib/contact";
 import { ArrowLeft, Loader2, LogOut, RefreshCcw } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
   | { kind: "loading" }
@@ -49,6 +49,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   const [replyMessage, setReplyMessage] = useState("");
   const [replyError, setReplyError] = useState<string | null>(null);
   const [replyLoading, setReplyLoading] = useState(false);
+  const replyLoadingRef = useRef(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -94,7 +95,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
     if (!detail) {
       return;
     }
-    if (replyLoading) {
+    if (replyLoadingRef.current) {
       return;
     }
 
@@ -104,6 +105,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       return;
     }
 
+    replyLoadingRef.current = true;
     setReplyLoading(true);
     setReplyError(null);
 
@@ -121,6 +123,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       setReplyError(error instanceof Error ? error.message : "返信の送信に失敗しました。");
       setToast({ kind: "error", message: "返信の送信に失敗しました。" });
     } finally {
+      replyLoadingRef.current = false;
       setReplyLoading(false);
     }
   }, [detail, id, loadMessage, onSignOut, replyLoading, replyMessage, token]);

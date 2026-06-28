@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { submitContactMessage } from "@/lib/contact";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
@@ -31,13 +31,14 @@ export default function ContactForm() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmitting) {
+    if (isSubmittingRef.current) {
       return;
     }
     setSuccessMessage(null);
@@ -55,6 +56,7 @@ export default function ContactForm() {
     }
 
     try {
+      isSubmittingRef.current = true;
       setIsSubmitting(true);
       const response = await submitContactMessage({
         name: name.trim(),
@@ -75,6 +77,7 @@ export default function ContactForm() {
       console.error("failed to submit contact message", error);
       setErrorMessage("送信に失敗しました。時間をおいて再度お試しください。");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };

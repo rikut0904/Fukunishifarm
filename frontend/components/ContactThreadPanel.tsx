@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { createPublicContactReply, fetchPublicContactThread, getCategoryLabel, type PublicContactThread } from "@/lib/contact";
 import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
   | { kind: "loading" }
@@ -38,6 +38,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   const [detail, setDetail] = useState<PublicContactThread | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
+  const replyLoadingRef = useRef(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -62,7 +63,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   }, [threadId]);
 
   const handleReply = useCallback(async () => {
-    if (replyLoading) {
+    if (replyLoadingRef.current) {
       return;
     }
 
@@ -72,6 +73,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
       return;
     }
 
+    replyLoadingRef.current = true;
     setReplyLoading(true);
     setReplyError(null);
 
@@ -84,6 +86,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
       setReplyError(error instanceof Error ? error.message : "返信の送信に失敗しました。");
       setToast({ kind: "error", message: "返信の送信に失敗しました。" });
     } finally {
+      replyLoadingRef.current = false;
       setReplyLoading(false);
     }
   }, [loadThread, replyLoading, replyMessage, threadId]);
