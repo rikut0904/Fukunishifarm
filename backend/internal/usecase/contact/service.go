@@ -416,10 +416,10 @@ func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notif
 					}
 				}()
 				ctx, cancel := context.WithTimeout(context.Background(), adminNotificationTimeout)
+				defer cancel()
 				if err := s.mailer.SendReplyEmail(ctx, email, subject, bodyText); err != nil {
 					slog.Error("failed to send contact notification email to admin", "email", email, "error", err)
 				}
-				cancel()
 			}(admin.Email)
 		}
 		wg.Wait()
