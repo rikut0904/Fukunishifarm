@@ -97,9 +97,6 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 				if err := replyResult.Error; err != nil {
 					return err
 				}
-				if replyResult.RowsAffected == 0 {
-					return domaincontact.ErrMessageNotFound
-				}
 			}
 
 			lastID = messages[len(messages)-1].ID
