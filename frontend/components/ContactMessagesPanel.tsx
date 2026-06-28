@@ -60,10 +60,10 @@ function getCategoryLabel(category: string) {
   return mapping[category] ?? category;
 }
 
-function getSummary(messages: AdminContactMessage[]) {
+function getSummary(messages: AdminContactMessage[], page: number) {
   return {
     total: messages.length,
-    latest: messages[0]?.createdAt ?? null,
+    latest: page === 1 ? messages[0]?.createdAt ?? null : null,
   };
 }
 
@@ -123,7 +123,7 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
 
   const totalPages = useMemo(() => Math.ceil(totalCount / limit), [totalCount, limit]);
 
-  const summary = useMemo(() => getSummary(messages), [messages]);
+  const summary = useMemo(() => getSummary(messages, page), [messages, page]);
 
   useEffect(() => {
     if (!toast) {
