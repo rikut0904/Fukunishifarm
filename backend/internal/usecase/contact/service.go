@@ -20,6 +20,8 @@ type Service struct {
 	siteBaseURL string
 }
 
+const contactMailPrefix = "【ふくにしファーム】"
+
 type ReplyAuthor struct {
 	UserID uint
 	Name   string
@@ -176,10 +178,7 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
 	}
 
-	subject := "【ふくにしファーム】お問い合わせへのご返信"
-	if strings.TrimSpace(message.Subject) != "" {
-		subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " へのご返信"
-	}
+	subject := subjectWithPrefix(message.Subject, "へのご返信")
 
 	replyURL := ""
 	if s.siteBaseURL != "" {
@@ -301,6 +300,31 @@ func isAllowedContactCategory(category string) bool {
 	}
 }
 
+func subjectWithPrefix(subject, suffix string) string {
+	subject = strings.TrimSpace(subject)
+	suffix = strings.TrimSpace(suffix)
+
+	if subject == "" {
+		if suffix == "" {
+			return contactMailPrefix + "お問い合わせ"
+		}
+		return contactMailPrefix + "お問い合わせ" + suffix
+	}
+
+	if strings.HasPrefix(subject, contactMailPrefix) {
+		if suffix == "" {
+			return subject
+		}
+		return subject + " " + suffix
+	}
+
+	if suffix == "" {
+		return contactMailPrefix + subject
+	}
+
+	return contactMailPrefix + subject + " " + suffix
+}
+
 type adminNotification struct {
 	subject string
 	body    string
@@ -365,10 +389,7 @@ func buildCustomerReplyNotification(message domaincontact.Message, body, siteBas
 
 	replyTime := time.Now().In(time.FixedZone("JST", 9*60*60)).Format("2006/01/02 15:04:05")
 
-	subject := "【ふくにしファーム】お問い合わせに新しい返信がありました"
-	if strings.TrimSpace(message.Subject) != "" {
-		subject = "【ふくにしファーム】" + strings.TrimSpace(message.Subject) + " への新しい返信がありました"
-	}
+	subject := subjectWithPrefix(message.Subject, "への新しい返信がありました")
 
 	lines := []string{
 		"ふくにしファームの管理者様",

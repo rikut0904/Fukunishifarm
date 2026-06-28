@@ -430,3 +430,67 @@ func TestReplyThreadSendsNotificationToAdmins(t *testing.T) {
 		t.Fatalf("body does not contain thread URL: %s", call.body)
 	}
 }
+
+func TestReplyMessageDoesNotDuplicateSubjectPrefix(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "【ふくにしファーム】お問い合わせ",
+		},
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	_, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err != nil {
+		t.Fatalf("ReplyMessage returned error: %v", err)
+	}
+
+	waitForMailCalls(t, mailer, 1)
+
+	call := mailer.snapshot()[0]
+	if strings.Count(call.subject, "【ふくにしファーム】") != 1 {
+		t.Fatalf("subject = %q, want prefix only once", call.subject)
+	}
+}
+
+func TestReplyThreadDoesNotDuplicateSubjectPrefix(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "【ふくにしファーム】お問い合わせ",
+			Category: "general",
+		},
+	}
+	adminRepo := &fakeAdminRepository{
+		users: []domainauth.AdminUser{{Email: "admin@example.com"}},
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, adminRepo, mailer, "https://example.com")
+
+	_, err := service.ReplyThread(context.Background(), "thread-42", "新しい返信です")
+	if err != nil {
+		t.Fatalf("ReplyThread returned error: %v", err)
+	}
+
+	waitForMailCalls(t, mailer, 1)
+
+	call := mailer.snapshot()[0]
+	if strings.Count(call.subject, "【ふくにしファーム】") != 1 {
+		t.Fatalf("subject = %q, want prefix only once", call.subject)
+	}
+}
