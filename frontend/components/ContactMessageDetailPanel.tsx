@@ -44,6 +44,7 @@ function getSenderLabel(reply: AdminContactReply) {
 }
 
 export default function ContactMessageDetailPanel({ token, id, onSignOut }: ContactMessageDetailPanelProps) {
+  const requestIdRef = useRef(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [detail, setDetail] = useState<AdminContactMessageDetail | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
@@ -55,13 +56,20 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
 
   const loadMessage = useCallback(async () => {
     await Promise.resolve();
+    const requestId = ++requestIdRef.current;
     setStatus({ kind: "loading" });
 
     try {
       const response = await fetchAdminContactMessage(token, id);
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setDetail(response);
       setStatus({ kind: "ready" });
     } catch (error) {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       if (isAuthExpired(error)) {
         onSignOut();
         return;
@@ -131,6 +139,9 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadMessage();
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, [loadMessage]);
 
   useEffect(() => {

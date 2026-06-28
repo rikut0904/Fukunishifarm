@@ -7,7 +7,7 @@ import { fetchAdminContactCatalog, getCategoryLabel, type AdminContactMessage } 
 import { Loader2, LogOut, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Status =
   | { kind: "loading" }
@@ -49,6 +49,7 @@ function getStatusBadge(status: string) {
 
 export default function ContactMessagesPanel({ token, onSignOut }: ContactMessagesPanelProps) {
   const router = useRouter();
+  const requestIdRef = useRef(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [messages, setMessages] = useState<AdminContactMessage[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("unresolved");
@@ -59,14 +60,21 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
 
   const loadMessages = useCallback(async () => {
     await Promise.resolve();
+    const requestId = ++requestIdRef.current;
     setStatus({ kind: "loading" });
 
     try {
       const response = await fetchAdminContactCatalog(token, filterStatus, page, limit);
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setMessages(response.messages);
       setTotalCount(response.total);
       setStatus({ kind: "ready" });
     } catch (error) {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       if (isAuthExpired(error)) {
         onSignOut();
         return;

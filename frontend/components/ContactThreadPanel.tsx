@@ -34,6 +34,7 @@ function getSenderLabel(reply: PublicContactThread["replies"][number]) {
 }
 
 export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps) {
+  const requestIdRef = useRef(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [detail, setDetail] = useState<PublicContactThread | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
@@ -44,13 +45,20 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
 
   const loadThread = useCallback(async () => {
     await Promise.resolve();
+    const requestId = ++requestIdRef.current;
     setStatus({ kind: "loading" });
 
     try {
       const response = await fetchPublicContactThread(threadId);
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setDetail(response);
       setStatus({ kind: "ready" });
     } catch (error) {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setStatus({
         kind: "error",
         message: isThreadNotFound(error)
@@ -94,6 +102,9 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadThread();
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, [loadThread]);
 
   useEffect(() => {
