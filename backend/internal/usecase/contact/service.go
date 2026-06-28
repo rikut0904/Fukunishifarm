@@ -306,10 +306,10 @@ func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notif
 				continue
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), adminNotificationTimeout)
-			defer cancel()
 			if err := s.mailer.SendReplyEmail(ctx, admin.Email, subject, bodyText); err != nil {
 				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
 			}
+			cancel()
 		}
 	}(append([]domainauth.AdminUser(nil), adminUsers...), notification.subject, notification.body)
 }
