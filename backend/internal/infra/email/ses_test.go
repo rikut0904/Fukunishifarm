@@ -1,14 +1,23 @@
 package email
 
-import "testing"
+import (
+	"net/mail"
+	"testing"
+)
 
 func TestFormatFromAddress(t *testing.T) {
 	t.Parallel()
 
 	got := formatFromAddress("ふくにしファーム", "noreply@example.com")
-	want := "=?utf-8?q?=E3=81=B5=E3=81=8F=E3=81=AB=E3=81=97=E3=83=95=E3=82=A1=E3=83=BC?= =?utf-8?q?=E3=83=A0?= <noreply@example.com>"
-	if got != want {
-		t.Fatalf("formatFromAddress() = %q, want %q", got, want)
+	addr, err := mail.ParseAddress(got)
+	if err != nil {
+		t.Fatalf("ParseAddress(%q) returned error: %v", got, err)
+	}
+	if addr.Name != "ふくにしファーム" {
+		t.Fatalf("ParseAddress(%q).Name = %q, want %q", got, addr.Name, "ふくにしファーム")
+	}
+	if addr.Address != "noreply@example.com" {
+		t.Fatalf("ParseAddress(%q).Address = %q, want %q", got, addr.Address, "noreply@example.com")
 	}
 }
 
@@ -16,8 +25,14 @@ func TestFormatFromAddressWithoutName(t *testing.T) {
 	t.Parallel()
 
 	got := formatFromAddress("", "noreply@example.com")
-	want := "noreply@example.com"
-	if got != want {
-		t.Fatalf("formatFromAddress() = %q, want %q", got, want)
+	addr, err := mail.ParseAddress(got)
+	if err != nil {
+		t.Fatalf("ParseAddress(%q) returned error: %v", got, err)
+	}
+	if addr.Name != "" {
+		t.Fatalf("ParseAddress(%q).Name = %q, want empty", got, addr.Name)
+	}
+	if addr.Address != "noreply@example.com" {
+		t.Fatalf("ParseAddress(%q).Address = %q, want %q", got, addr.Address, "noreply@example.com")
 	}
 }
