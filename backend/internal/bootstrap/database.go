@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
@@ -21,7 +20,7 @@ var ErrDatabaseNotMigrated = errors.New("database not migrated")
 const contactThreadBackfillBatchSize = 100
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &contactMessageSchemaV2{}, &contactReplySchemaV3{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
@@ -105,38 +104,4 @@ func ensureContactThreadIDIndex(ctx context.Context, db *gorm.DB) error {
 		ON contact_messages (thread_id)
 		WHERE thread_id IS NOT NULL AND thread_id <> ''
 	`).Error
-}
-
-type contactMessageSchemaV2 struct {
-	ID        uint   `gorm:"primaryKey"`
-	ThreadID  string `gorm:"size:36"`
-	Name      string `gorm:"size:80;not null"`
-	Email     string `gorm:"size:320;not null"`
-	Category  string `gorm:"size:64;not null"`
-	Subject   string `gorm:"size:160;not null"`
-	Body      string `gorm:"type:text;not null"`
-	Status    string `gorm:"size:32;not null;default:'pending'"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (contactMessageSchemaV2) TableName() string {
-	return "contact_messages"
-}
-
-type contactReplySchemaV3 struct {
-	ID           uint   `gorm:"primaryKey"`
-	MessageID    uint   `gorm:"not null;index"`
-	ThreadID     string `gorm:"size:36;index"`
-	SenderType   string `gorm:"size:32;not null"`
-	SenderUserID uint   `gorm:"not null"`
-	SenderName   string `gorm:"size:255;not null"`
-	SenderEmail  string `gorm:"size:320;not null"`
-	Message      string `gorm:"type:text;not null"`
-	Status       string `gorm:"size:32;not null;default:'sent'"`
-	CreatedAt    time.Time
-}
-
-func (contactReplySchemaV3) TableName() string {
-	return "contact_replies"
 }
