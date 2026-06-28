@@ -2,7 +2,7 @@
 
 import { ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
-import { createPublicContactReply, fetchPublicContactThread, type PublicContactThread } from "@/lib/contact";
+import { createPublicContactReply, fetchPublicContactThread, getCategoryLabel, type PublicContactThread } from "@/lib/contact";
 import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -23,24 +23,6 @@ type ContactThreadPanelProps = {
 
 function isThreadNotFound(error: unknown) {
   return error instanceof ApiError && error.status === 404;
-}
-
-function getCategoryLabel(category: string) {
-  const mapping: Record<string, string> = {
-    grape: "ぶどう狩りについて",
-    reservation: "予約について",
-    price: "料金について",
-    access: "アクセスについて",
-    other: "その他",
-    general: "一般",
-    "ぶどう狩りについて": "ぶどう狩りについて",
-    "予約について": "予約について",
-    "料金について": "料金について",
-    "アクセスについて": "アクセスについて",
-    "その他": "その他",
-  };
-
-  return mapping[category] ?? category;
 }
 
 function getSenderLabel(reply: PublicContactThread["replies"][number]) {

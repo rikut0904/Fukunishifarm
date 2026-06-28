@@ -3,7 +3,7 @@
 import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
-import { fetchAdminContactCatalog, type AdminContactMessage } from "@/lib/contact";
+import { fetchAdminContactCatalog, getCategoryLabel, type AdminContactMessage } from "@/lib/contact";
 import { Loader2, LogOut, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,24 +25,6 @@ type ContactMessagesPanelProps = {
 
 function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
-}
-
-function getCategoryLabel(category: string) {
-  const mapping: Record<string, string> = {
-    grape: "ぶどう狩りについて",
-    reservation: "予約について",
-    price: "料金について",
-    access: "アクセスについて",
-    other: "その他",
-    general: "一般",
-    "ぶどう狩りについて": "ぶどう狩りについて",
-    "予約について": "予約について",
-    "料金について": "料金について",
-    "アクセスについて": "アクセスについて",
-    "その他": "その他",
-  };
-
-  return mapping[category] ?? category;
 }
 
 function getSummary(messages: AdminContactMessage[], page: number) {

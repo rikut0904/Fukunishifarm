@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/datetime";
 import {
   createAdminContactReply,
   fetchAdminContactMessage,
+  getCategoryLabel,
   updateAdminContactStatus,
   type AdminContactMessageDetail,
   type AdminContactReply,
@@ -32,24 +33,6 @@ type ContactMessageDetailPanelProps = {
 
 function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
-}
-
-function getCategoryLabel(category: string) {
-  const mapping: Record<string, string> = {
-    grape: "ぶどう狩りについて",
-    reservation: "予約について",
-    price: "料金について",
-    access: "アクセスについて",
-    other: "その他",
-    general: "一般",
-    "ぶどう狩りについて": "ぶどう狩りについて",
-    "予約について": "予約について",
-    "料金について": "料金について",
-    "アクセスについて": "アクセスについて",
-    "その他": "その他",
-  };
-
-  return mapping[category] ?? category;
 }
 
 function getSenderLabel(reply: AdminContactReply) {

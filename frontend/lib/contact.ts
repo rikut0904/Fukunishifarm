@@ -55,6 +55,24 @@ export type AdminContactReplyInput = {
   message: string;
 };
 
+const contactCategoryLabels: Record<string, string> = {
+  grape: "ぶどう狩りについて",
+  reservation: "予約について",
+  price: "料金について",
+  access: "アクセスについて",
+  other: "その他",
+  general: "一般",
+  "ぶどう狩りについて": "ぶどう狩りについて",
+  "予約について": "予約について",
+  "料金について": "料金について",
+  "アクセスについて": "アクセスについて",
+  "その他": "その他",
+};
+
+export function getCategoryLabel(category: string) {
+  return contactCategoryLabels[category] ?? category;
+}
+
 export async function submitContactMessage(input: ContactMessageInput) {
   return apiFetch<ContactMessageResponse>("/v1/contact", {
     method: "POST",
