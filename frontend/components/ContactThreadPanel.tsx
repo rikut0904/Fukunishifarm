@@ -4,7 +4,7 @@ import { ApiError } from "@/lib/api";
 import { createPublicContactReply, fetchPublicContactThread, type PublicContactThread } from "@/lib/contact";
 import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Status =
   | { kind: "loading" }
@@ -93,8 +93,6 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
       });
     }
   }, [threadId]);
-
-  const threadUrl = useMemo(() => `/contact/${threadId}`, [threadId]);
 
   const handleReply = useCallback(async () => {
     if (replyLoading) {
