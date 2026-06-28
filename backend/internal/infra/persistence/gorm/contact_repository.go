@@ -121,6 +121,9 @@ func (r *ContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Contex
 		if err := tx.Model(&domaincontact.Message{}).Where("id = ?", reply.MessageID).Update("status", status).Error; err != nil {
 			return err
 		}
+		if tx.RowsAffected == 0 {
+			return domaincontact.ErrMessageNotFound
+		}
 
 		saved = reply
 		return nil
