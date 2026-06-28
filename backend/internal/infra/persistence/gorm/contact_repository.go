@@ -41,6 +41,9 @@ func (r *ContactRepository) ListMessages(ctx context.Context, status string, off
 	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
+	if total == 0 {
+		return nil, 0, nil
+	}
 
 	tx := query.Order("created_at DESC")
 	if limit > 0 {
