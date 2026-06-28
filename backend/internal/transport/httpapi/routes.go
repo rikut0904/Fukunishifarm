@@ -131,7 +131,7 @@ type adminContactListInput struct {
 	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 	Status        string `query:"status" doc:"Filter by status (pending, in_progress, resolved, unresolved, all)"`
 	Page          int    `query:"page" doc:"Page number (1-based)"`
-	Limit         int    `query:"limit" doc:"Number of items per page" minimum:"1" maximum:"100"`
+	Limit         int    `query:"limit" doc:"Number of items per page" minimum:"1" maximum:"100" default:"25"`
 }
 
 type contactMessageCatalogResponse struct {
