@@ -237,6 +237,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
               value={replyMessage}
               onChange={(event) => setReplyMessage(event.target.value)}
               placeholder="返信内容を入力してください"
+              maxLength={65535}
               rows={6}
             />
             {replyError ? <p className="admin-error">{replyError}</p> : null}

@@ -91,6 +91,7 @@ export default function ContactForm() {
             onChange={(event) => setName(event.target.value)}
             placeholder="例: 福西 太郎"
             autoComplete="name"
+            maxLength={80}
             required
           />
         </label>
@@ -105,6 +106,7 @@ export default function ContactForm() {
             onChange={(event) => setEmail(event.target.value)}
             placeholder="example@email.com"
             autoComplete="email"
+            maxLength={320}
             aria-invalid={errorMessage === "メールアドレスの形式が正しくありません。"}
             required
           />
@@ -131,6 +133,7 @@ export default function ContactForm() {
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
             placeholder="例: アクセス方法について"
+            maxLength={160}
             required
           />
         </label>
@@ -144,6 +147,7 @@ export default function ContactForm() {
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           placeholder="できるだけ具体的にご記載ください"
+          maxLength={65535}
           required
         />
       </label>
