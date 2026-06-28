@@ -17,6 +17,8 @@ type fakeContactRepository struct {
 	message      domaincontact.Message
 	messageErr   error
 	statuses     []string
+	listOffset   int
+	listLimit    int
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -26,6 +28,8 @@ func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domai
 }
 
 func (r *fakeContactRepository) ListMessages(ctx context.Context, status string, offset, limit int) ([]domaincontact.Message, int64, error) {
+	r.listOffset = offset
+	r.listLimit = limit
 	return nil, 0, nil
 }
 
@@ -291,6 +295,22 @@ func TestSubmitMessageRejectsInvalidCategory(t *testing.T) {
 	})
 	if !errors.Is(err, domaincontact.ErrInvalidInput) {
 		t.Fatalf("error = %v, want ErrInvalidInput", err)
+	}
+}
+
+func TestListMessagesClampsLimitToMaximum(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{}
+	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+
+	_, _, err := service.ListMessages(context.Background(), "all", 1, 1000)
+	if err != nil {
+		t.Fatalf("ListMessages returned error: %v", err)
+	}
+
+	if got := repo.listLimit; got != 100 {
+		t.Fatalf("list limit = %d, want 100", got)
 	}
 }
 

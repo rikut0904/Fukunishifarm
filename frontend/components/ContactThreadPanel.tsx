@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiError } from "@/lib/api";
+import { formatDateTime } from "@/lib/datetime";
 import { createPublicContactReply, fetchPublicContactThread, type PublicContactThread } from "@/lib/contact";
 import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
 import Link from "next/link";
@@ -22,22 +23,6 @@ type ContactThreadPanelProps = {
 
 function isThreadNotFound(error: unknown) {
   return error instanceof ApiError && error.status === 404;
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function getCategoryLabel(category: string) {

@@ -21,6 +21,7 @@ type Service struct {
 }
 
 const contactMailPrefix = "【ふくにしファーム】"
+const maxContactListLimit = 100
 
 type ReplyAuthor struct {
 	UserID uint
@@ -70,6 +71,9 @@ func (s *Service) ListMessages(ctx context.Context, status string, page, limit i
 	}
 	if limit <= 0 {
 		limit = 25
+	}
+	if limit > maxContactListLimit {
+		limit = maxContactListLimit
 	}
 	offset := (page - 1) * limit
 

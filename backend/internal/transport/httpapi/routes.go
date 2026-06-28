@@ -79,11 +79,11 @@ type createUserOutput struct {
 }
 
 type contactMessagePayload struct {
-	Name     string `json:"name" required:"true"`
-	Email    string `json:"email" required:"true"`
-	Category string `json:"category" required:"true"`
-	Subject  string `json:"subject" required:"true"`
-	Message  string `json:"message" required:"true"`
+	Name     string `json:"name" required:"true" maxLength:"80"`
+	Email    string `json:"email" required:"true" maxLength:"320"`
+	Category string `json:"category" required:"true" maxLength:"64"`
+	Subject  string `json:"subject" required:"true" maxLength:"160"`
+	Message  string `json:"message" required:"true" maxLength:"65535"`
 }
 
 type contactMessageInput struct {
@@ -130,7 +130,7 @@ type adminContactListInput struct {
 	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 	Status        string `query:"status" doc:"Filter by status (pending, in_progress, resolved, unresolved, all)"`
 	Page          int    `query:"page" doc:"Page number (1-based)"`
-	Limit         int    `query:"limit" doc:"Number of items per page"`
+	Limit         int    `query:"limit" doc:"Number of items per page" minimum:"1" maximum:"100"`
 }
 
 type contactMessageCatalogResponse struct {

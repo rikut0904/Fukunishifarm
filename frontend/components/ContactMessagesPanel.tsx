@@ -2,6 +2,7 @@
 
 import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
+import { formatDateTime } from "@/lib/datetime";
 import { fetchAdminContactCatalog, type AdminContactMessage } from "@/lib/contact";
 import { Loader2, LogOut, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,22 +25,6 @@ type ContactMessagesPanelProps = {
 
 function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function getCategoryLabel(category: string) {
