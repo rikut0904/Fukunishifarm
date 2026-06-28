@@ -13,17 +13,18 @@ import (
 )
 
 type fakeContactRepository struct {
-	savedMessage    domaincontact.Message
-	savedReply      domaincontact.Reply
-	message         domaincontact.Message
-	messageErr      error
-	getMessageCalls int
-	createReplyErr  error
-	statuses        []string
-	messageStatuses []string
-	replyStatuses   []string
-	listOffset      int
-	listLimit       int
+	savedMessage     domaincontact.Message
+	savedReply       domaincontact.Reply
+	message          domaincontact.Message
+	messageErr       error
+	getMessageCalls  int
+	createReplyErr   error
+	messageStatusErr error
+	statuses         []string
+	messageStatuses  []string
+	replyStatuses    []string
+	listOffset       int
+	listLimit        int
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -55,6 +56,9 @@ func (r *fakeContactRepository) GetMessageByThreadID(ctx context.Context, thread
 
 func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
 	r.messageStatuses = append(r.messageStatuses, status)
+	if r.messageStatusErr != nil {
+		return r.messageStatusErr
+	}
 	return nil
 }
 
@@ -436,6 +440,43 @@ func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
 	}
 	if len(repo.replyStatuses) != 1 || repo.replyStatuses[0] != "sent" {
 		t.Fatalf("reply status updates = %v, want [sent]", repo.replyStatuses)
+	}
+	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
+		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)
+	}
+}
+
+func TestReplyMessageIgnoresMessageStatusUpdateFailureAfterMailSend(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+			Status:   "pending",
+		},
+		messageStatusErr: errors.New("db update failed"),
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	saved, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err != nil {
+		t.Fatalf("ReplyMessage returned error: %v", err)
+	}
+	waitForMailCalls(t, mailer, 1)
+	if saved.ID == 0 {
+		t.Fatalf("saved reply ID = %d, want non-zero", saved.ID)
+	}
+	if repo.savedReply.Status != "sent" {
+		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "sent")
 	}
 	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
 		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)

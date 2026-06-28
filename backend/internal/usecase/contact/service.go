@@ -226,7 +226,6 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 	if message.Status == "pending" {
 		if err := s.repository.UpdateMessageStatus(ctx, messageID, "in_progress"); err != nil {
 			slog.Error("failed to update contact message status after reply", "message_id", messageID, "error", err)
-			return saved, fmt.Errorf("update contact message status: %w", err)
 		}
 	}
 
