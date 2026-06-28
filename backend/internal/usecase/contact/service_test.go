@@ -13,18 +13,20 @@ import (
 )
 
 type fakeContactRepository struct {
-	savedMessage     domaincontact.Message
-	savedReply       domaincontact.Reply
-	message          domaincontact.Message
-	messageErr       error
-	getMessageCalls  int
-	createReplyErr   error
-	messageStatusErr error
-	statuses         []string
-	messageStatuses  []string
-	replyStatuses    []string
-	listOffset       int
-	listLimit        int
+	savedMessage             domaincontact.Message
+	savedReply               domaincontact.Reply
+	message                  domaincontact.Message
+	messageErr               error
+	getMessageCalls          int
+	createReplyErr           error
+	messageStatusErr         error
+	statuses                 []string
+	messageStatuses          []string
+	replyStatusCtxCanceled   []bool
+	messageStatusCtxCanceled []bool
+	replyStatuses            []string
+	listOffset               int
+	listLimit                int
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -56,6 +58,7 @@ func (r *fakeContactRepository) GetMessageByThreadID(ctx context.Context, thread
 
 func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
 	r.messageStatuses = append(r.messageStatuses, status)
+	r.messageStatusCtxCanceled = append(r.messageStatusCtxCanceled, ctx.Err() != nil)
 	if r.messageStatusErr != nil {
 		return r.messageStatusErr
 	}
@@ -73,6 +76,7 @@ func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincon
 
 func (r *fakeContactRepository) UpdateReplyStatus(ctx context.Context, id uint, status string) error {
 	r.replyStatuses = append(r.replyStatuses, status)
+	r.replyStatusCtxCanceled = append(r.replyStatusCtxCanceled, ctx.Err() != nil)
 	if r.savedReply.ID == id {
 		r.savedReply.Status = status
 	}
@@ -117,6 +121,10 @@ type fakeMailSender struct {
 
 type panicMailSender struct{}
 
+type cancelingMailSender struct {
+	cancel func()
+}
+
 type mailCall struct {
 	toEmail string
 	subject string
@@ -148,6 +156,13 @@ func (s *fakeMailSender) snapshot() []mailCall {
 
 func (s *panicMailSender) SendReplyEmail(ctx context.Context, toEmail, subject, body string) error {
 	panic("boom")
+}
+
+func (s *cancelingMailSender) SendReplyEmail(ctx context.Context, toEmail, subject, body string) error {
+	if s.cancel != nil {
+		s.cancel()
+	}
+	return nil
 }
 
 func waitForMailCalls(t *testing.T, sender *fakeMailSender, want int) {
@@ -509,6 +524,42 @@ func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
 	}
 	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
 		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)
+	}
+}
+
+func TestReplyMessageUsesIndependentContextForDbUpdatesAfterMailSend(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+			Status:   "pending",
+		},
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	mailer := &cancelingMailSender{cancel: cancel}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	saved, err := service.ReplyMessage(ctx, 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err != nil {
+		t.Fatalf("ReplyMessage returned error: %v", err)
+	}
+	if saved.Status != "sent" {
+		t.Fatalf("saved reply status = %q, want %q", saved.Status, "sent")
+	}
+	if len(repo.replyStatusCtxCanceled) != 1 || repo.replyStatusCtxCanceled[0] {
+		t.Fatalf("reply status ctx canceled = %v, want [false]", repo.replyStatusCtxCanceled)
+	}
+	if len(repo.messageStatusCtxCanceled) != 1 || repo.messageStatusCtxCanceled[0] {
+		t.Fatalf("message status ctx canceled = %v, want [false]", repo.messageStatusCtxCanceled)
 	}
 }
 

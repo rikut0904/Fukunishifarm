@@ -218,7 +218,7 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 
 	if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
 		slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
-		if updateErr := s.repository.UpdateReplyStatus(ctx, saved.ID, "failed"); updateErr != nil {
+		if updateErr := s.repository.UpdateReplyStatus(context.Background(), saved.ID, "failed"); updateErr != nil {
 			slog.Error("failed to update contact reply status", "reply_id", saved.ID, "status", "failed", "error", updateErr)
 		} else {
 			saved.Status = "failed"
@@ -226,14 +226,14 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return saved, fmt.Errorf("send contact reply email: %w", err)
 	}
 
-	if err := s.repository.UpdateReplyStatus(ctx, saved.ID, "sent"); err != nil {
+	if err := s.repository.UpdateReplyStatus(context.Background(), saved.ID, "sent"); err != nil {
 		slog.Error("failed to update contact reply status", "reply_id", saved.ID, "error", err)
 		return saved, fmt.Errorf("update contact reply status: %w", err)
 	}
 	saved.Status = "sent"
 
 	if message.Status == "pending" {
-		if err := s.repository.UpdateMessageStatus(ctx, messageID, "in_progress"); err != nil {
+		if err := s.repository.UpdateMessageStatus(context.Background(), messageID, "in_progress"); err != nil {
 			slog.Error("failed to update contact message status after reply", "message_id", messageID, "error", err)
 		}
 	}
