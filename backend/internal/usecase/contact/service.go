@@ -338,6 +338,12 @@ func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notif
 	}
 
 	go func(adminUsers []domainauth.AdminUser, subject, bodyText string) {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				slog.Error("panic while sending contact notification email", "panic", recovered)
+			}
+		}()
+
 		for _, admin := range adminUsers {
 			if strings.TrimSpace(admin.Email) == "" {
 				continue

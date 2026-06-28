@@ -91,6 +91,8 @@ type fakeMailSender struct {
 	err   error
 }
 
+type panicMailSender struct{}
+
 type mailCall struct {
 	toEmail string
 	subject string
@@ -118,6 +120,10 @@ func (s *fakeMailSender) snapshot() []mailCall {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return append([]mailCall(nil), s.calls...)
+}
+
+func (s *panicMailSender) SendReplyEmail(ctx context.Context, toEmail, subject, body string) error {
+	panic("boom")
 }
 
 func waitForMailCalls(t *testing.T, sender *fakeMailSender, want int) {
@@ -193,6 +199,32 @@ func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
 		if !strings.Contains(call.body, "https://example.com/admin/contact/42") {
 			t.Fatalf("body does not contain admin URL: %s", call.body)
 		}
+	}
+}
+
+func TestSubmitMessageRecoversFromNotificationPanic(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{}
+	adminRepo := &fakeAdminRepository{
+		users: []domainauth.AdminUser{
+			{Email: "admin@example.com"},
+		},
+	}
+	service := NewService(repo, adminRepo, &panicMailSender{}, "https://example.com")
+
+	saved, err := service.SubmitMessage(context.Background(), domaincontact.Message{
+		Name:     "山田 太郎",
+		Email:    "taro@example.com",
+		Category: "general",
+		Subject:  "お問い合わせ",
+		Body:     "内容です",
+	})
+	if err != nil {
+		t.Fatalf("SubmitMessage returned error: %v", err)
+	}
+	if saved.ID != 42 {
+		t.Fatalf("saved ID = %d, want 42", saved.ID)
 	}
 }
 
