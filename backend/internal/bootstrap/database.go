@@ -18,6 +18,8 @@ import (
 
 var ErrDatabaseNotMigrated = errors.New("database not migrated")
 
+const contactThreadBackfillBatchSize = 100
+
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &contactMessageSchemaV2{}, &contactReplySchemaV2{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
@@ -58,32 +60,43 @@ func RequireMigrated(ctx context.Context, db *gorm.DB) error {
 }
 
 func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
-	var messages []domaincontact.Message
-	if err := db.WithContext(ctx).
-		Where("thread_id IS NULL OR thread_id = ''").
-		Order("id ASC").
-		Find(&messages).Error; err != nil {
-		return err
-	}
-
-	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		for _, message := range messages {
-			threadID := uuid.NewString()
-			if err := tx.Model(&domaincontact.Message{}).
-				Where("id = ?", message.ID).
-				UpdateColumn("thread_id", threadID).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Model(&domaincontact.Reply{}).
-				Where("message_id = ?", message.ID).
-				UpdateColumn("thread_id", threadID).Error; err != nil {
-				return err
-			}
+	for {
+		messages := make([]domaincontact.Message, 0, contactThreadBackfillBatchSize)
+		if err := db.WithContext(ctx).
+			Model(&domaincontact.Message{}).
+			Select("id").
+			Where("thread_id IS NULL OR thread_id = ''").
+			Order("id ASC").
+			Limit(contactThreadBackfillBatchSize).
+			Find(&messages).Error; err != nil {
+			return err
 		}
 
-		return nil
-	})
+		if len(messages) == 0 {
+			return nil
+		}
+
+		if err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			for _, message := range messages {
+				threadID := uuid.NewString()
+				if err := tx.Model(&domaincontact.Message{}).
+					Where("id = ?", message.ID).
+					UpdateColumn("thread_id", threadID).Error; err != nil {
+					return err
+				}
+
+				if err := tx.Model(&domaincontact.Reply{}).
+					Where("message_id = ?", message.ID).
+					UpdateColumn("thread_id", threadID).Error; err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
 }
 
 func ensureContactThreadIDIndex(ctx context.Context, db *gorm.DB) error {
