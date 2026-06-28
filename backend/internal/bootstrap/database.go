@@ -66,13 +66,13 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 			threadID := uuid.NewString()
 			if err := tx.Model(&domaincontact.Message{}).
 				Where("id = ?", message.ID).
-				Update("thread_id", threadID).Error; err != nil {
+				UpdateColumn("thread_id", threadID).Error; err != nil {
 				return err
 			}
 
 			if err := tx.Model(&domaincontact.Reply{}).
 				Where("message_id = ?", message.ID).
-				Update("thread_id", threadID).Error; err != nil {
+				UpdateColumn("thread_id", threadID).Error; err != nil {
 				return err
 			}
 		}
