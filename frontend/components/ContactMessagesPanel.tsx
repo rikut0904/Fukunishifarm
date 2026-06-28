@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
 import { fetchAdminContactCatalog, getCategoryLabel, type AdminContactMessage } from "@/lib/contact";
 import { Loader2, LogOut, RefreshCcw } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -197,7 +198,13 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
                       <td>{getCategoryLabel(item.category)}</td>
                       <td>{getStatusBadge(item.status)}</td>
                       <td>
-                        <span className="admin-contact-table__action">詳細</span>
+                        <Link
+                          href={`/admin/contact/${item.id}`}
+                          className="admin-contact-table__action"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          詳細
+                        </Link>
                       </td>
                     </tr>
                   ))

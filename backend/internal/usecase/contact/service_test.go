@@ -20,6 +20,7 @@ type fakeContactRepository struct {
 	getMessageCalls int
 	createReplyErr  error
 	statuses        []string
+	messageStatuses []string
 	replyStatuses   []string
 	listOffset      int
 	listLimit       int
@@ -53,6 +54,7 @@ func (r *fakeContactRepository) GetMessageByThreadID(ctx context.Context, thread
 }
 
 func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
+	r.messageStatuses = append(r.messageStatuses, status)
 	return nil
 }
 
@@ -366,6 +368,7 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 			Name:     "問い合わせ者",
 			Email:    "customer@example.com",
 			Subject:  "お問い合わせ",
+			Status:   "pending",
 		},
 	}
 	mailer := &fakeMailSender{err: errors.New("ses send failed")}
@@ -407,6 +410,7 @@ func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
 			Name:     "問い合わせ者",
 			Email:    "customer@example.com",
 			Subject:  "お問い合わせ",
+			Status:   "pending",
 		},
 	}
 	mailer := &fakeMailSender{}
@@ -432,6 +436,9 @@ func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
 	}
 	if len(repo.replyStatuses) != 1 || repo.replyStatuses[0] != "sent" {
 		t.Fatalf("reply status updates = %v, want [sent]", repo.replyStatuses)
+	}
+	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
+		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)
 	}
 }
 
