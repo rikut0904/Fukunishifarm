@@ -148,6 +148,10 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
 	}
 
+	if s.mailer == nil {
+		return domaincontact.Reply{}, domaincontact.ErrMailNotConfigured
+	}
+
 	message, err := s.GetMessage(ctx, messageID)
 	if err != nil {
 		return domaincontact.Reply{}, err
@@ -163,10 +167,6 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 	}
 	if author.Email == "" {
 		author.Email = "unknown@example.com"
-	}
-
-	if s.mailer == nil {
-		return domaincontact.Reply{}, domaincontact.ErrMailNotConfigured
 	}
 
 	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{

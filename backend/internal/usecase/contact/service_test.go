@@ -13,15 +13,16 @@ import (
 )
 
 type fakeContactRepository struct {
-	savedMessage   domaincontact.Message
-	savedReply     domaincontact.Reply
-	message        domaincontact.Message
-	messageErr     error
-	createReplyErr error
-	statuses       []string
-	replyStatuses  []string
-	listOffset     int
-	listLimit      int
+	savedMessage    domaincontact.Message
+	savedReply      domaincontact.Reply
+	message         domaincontact.Message
+	messageErr      error
+	getMessageCalls int
+	createReplyErr  error
+	statuses        []string
+	replyStatuses   []string
+	listOffset      int
+	listLimit       int
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -37,6 +38,7 @@ func (r *fakeContactRepository) ListMessages(ctx context.Context, status string,
 }
 
 func (r *fakeContactRepository) GetMessage(ctx context.Context, id uint) (domaincontact.Message, error) {
+	r.getMessageCalls++
 	if r.messageErr != nil {
 		return domaincontact.Message{}, r.messageErr
 	}
@@ -489,6 +491,9 @@ func TestReplyMessageReturnsErrorWhenMailerIsNotConfigured(t *testing.T) {
 	}, "返信内容")
 	if !errors.Is(err, domaincontact.ErrMailNotConfigured) {
 		t.Fatalf("error = %v, want ErrMailNotConfigured", err)
+	}
+	if repo.getMessageCalls != 0 {
+		t.Fatalf("get message calls = %d, want 0", repo.getMessageCalls)
 	}
 	if repo.savedReply.ID != 0 {
 		t.Fatalf("reply should not be saved when mailer is nil")
