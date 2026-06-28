@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/mail"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -400,16 +401,27 @@ func (s *Service) notifyAdminUsersAsync(adminUsers []domainauth.AdminUser, notif
 			}
 		}()
 
+		var wg sync.WaitGroup
 		for _, admin := range adminUsers {
 			if strings.TrimSpace(admin.Email) == "" {
 				continue
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), adminNotificationTimeout)
-			if err := s.mailer.SendReplyEmail(ctx, admin.Email, subject, bodyText); err != nil {
-				slog.Error("failed to send contact notification email to admin", "email", admin.Email, "error", err)
-			}
-			cancel()
+			wg.Add(1)
+			go func(email string) {
+				defer wg.Done()
+				defer func() {
+					if recovered := recover(); recovered != nil {
+						slog.Error("panic while sending contact notification email", "email", email, "panic", recovered)
+					}
+				}()
+				ctx, cancel := context.WithTimeout(context.Background(), adminNotificationTimeout)
+				if err := s.mailer.SendReplyEmail(ctx, email, subject, bodyText); err != nil {
+					slog.Error("failed to send contact notification email to admin", "email", email, "error", err)
+				}
+				cancel()
+			}(admin.Email)
 		}
+		wg.Wait()
 	}(append([]domainauth.AdminUser(nil), adminUsers...), notification.subject, notification.body)
 }
 
