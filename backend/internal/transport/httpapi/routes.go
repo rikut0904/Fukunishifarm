@@ -149,7 +149,7 @@ type contactThreadInput struct {
 type contactThreadReplyInput struct {
 	ThreadID string `path:"threadId"`
 	Body     struct {
-		Message string `json:"message" required:"true"`
+		Message string `json:"message" required:"true" maxLength:"65535"`
 	}
 }
 
@@ -163,7 +163,7 @@ type contactReplyInput struct {
 	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 	ID            uint   `path:"id"`
 	Body          struct {
-		Message string `json:"message" required:"true"`
+		Message string `json:"message" required:"true" maxLength:"65535"`
 	}
 }
 
