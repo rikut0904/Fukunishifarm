@@ -498,6 +498,9 @@ func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
 	if saved.ID == 0 {
 		t.Fatalf("saved reply ID = %d, want non-zero", saved.ID)
 	}
+	if saved.Status != "sent" {
+		t.Fatalf("saved reply status = %q, want %q", saved.Status, "sent")
+	}
 	if repo.savedReply.Status != "sent" {
 		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "sent")
 	}
