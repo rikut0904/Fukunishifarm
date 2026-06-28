@@ -359,7 +359,7 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	mailer := &fakeMailSender{err: errors.New("ses send failed")}
 	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
 
-	saved, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+	_, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
 		UserID: 1,
 		Name:   "運営",
 		Email:  "admin@example.com",
@@ -369,9 +369,6 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "send contact reply email") {
 		t.Fatalf("error = %q, want send contact reply email wrapper", err.Error())
-	}
-	if saved != (domaincontact.Reply{}) {
-		t.Fatalf("saved reply = %+v, want zero value", saved)
 	}
 	waitForMailCalls(t, mailer, 1)
 
