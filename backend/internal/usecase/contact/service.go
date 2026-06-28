@@ -177,6 +177,11 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		author.Email = "unknown@example.com"
 	}
 
+	const senderNameMaxRunes = 255
+	if runes := []rune(author.Name); len(runes) > senderNameMaxRunes {
+		author.Name = string(runes[:senderNameMaxRunes])
+	}
+
 	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
 		MessageID:    messageID,
 		ThreadID:     message.ThreadID,
