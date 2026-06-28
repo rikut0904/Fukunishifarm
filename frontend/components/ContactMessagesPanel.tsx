@@ -140,11 +140,11 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
             <div className="admin-shell__summary m-0 flex flex-wrap gap-x-4">
               <span>総件数: {totalCount}件</span>
-              <span>
-                {summary.latest
-                  ? `最新: ${formatDateTime(summary.latest)}`
-                  : "まだお問い合わせはありません"}
-              </span>
+              {summary.latest ? (
+                <span>最新: {formatDateTime(summary.latest)}</span>
+              ) : page === 1 ? (
+                <span>まだお問い合わせはありません</span>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[var(--text-main)]">ステータス:</span>
