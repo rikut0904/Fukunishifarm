@@ -134,7 +134,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
       replyLoadingRef.current = false;
       setReplyLoading(false);
     }
-  }, [detail, id, loadMessage, onSignOut, replyLoading, replyMessage, token]);
+  }, [detail, id, loadMessage, onSignOut, replyMessage, token]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

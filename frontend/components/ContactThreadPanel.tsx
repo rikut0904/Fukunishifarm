@@ -97,7 +97,7 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
       replyLoadingRef.current = false;
       setReplyLoading(false);
     }
-  }, [loadThread, replyLoading, replyMessage, threadId]);
+  }, [loadThread, replyMessage, threadId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
