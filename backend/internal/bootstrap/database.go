@@ -59,12 +59,14 @@ func RequireMigrated(ctx context.Context, db *gorm.DB) error {
 }
 
 func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
+	var lastID uint
 	for {
 		messages := make([]domaincontact.Message, 0, contactThreadBackfillBatchSize)
 		if err := db.WithContext(ctx).
 			Model(&domaincontact.Message{}).
 			Select("id").
 			Where("thread_id IS NULL OR thread_id = ''").
+			Where("id > ?", lastID).
 			Order("id ASC").
 			Limit(contactThreadBackfillBatchSize).
 			Find(&messages).Error; err != nil {
@@ -78,19 +80,29 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 		if err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			for _, message := range messages {
 				threadID := uuid.NewString()
-				if err := tx.Model(&domaincontact.Message{}).
+
+				messageResult := tx.Model(&domaincontact.Message{}).
 					Where("id = ?", message.ID).
-					UpdateColumn("thread_id", threadID).Error; err != nil {
+					UpdateColumn("thread_id", threadID)
+				if err := messageResult.Error; err != nil {
 					return err
 				}
+				if messageResult.RowsAffected == 0 {
+					return domaincontact.ErrMessageNotFound
+				}
 
-				if err := tx.Model(&domaincontact.Reply{}).
+				replyResult := tx.Model(&domaincontact.Reply{}).
 					Where("message_id = ?", message.ID).
-					UpdateColumn("thread_id", threadID).Error; err != nil {
+					UpdateColumn("thread_id", threadID)
+				if err := replyResult.Error; err != nil {
 					return err
+				}
+				if replyResult.RowsAffected == 0 {
+					return domaincontact.ErrMessageNotFound
 				}
 			}
 
+			lastID = messages[len(messages)-1].ID
 			return nil
 		}); err != nil {
 			return err
