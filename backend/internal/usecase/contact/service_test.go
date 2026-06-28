@@ -16,6 +16,7 @@ type fakeContactRepository struct {
 	savedMessage domaincontact.Message
 	message      domaincontact.Message
 	messageErr   error
+	createReplyErr error
 	statuses     []string
 	listOffset   int
 	listLimit    int
@@ -52,6 +53,9 @@ func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint
 }
 
 func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincontact.Reply) (domaincontact.Reply, error) {
+	if r.createReplyErr != nil {
+		return domaincontact.Reply{}, r.createReplyErr
+	}
 	reply.ID = 99
 	r.savedMessage = domaincontact.Message{
 		ID:       reply.MessageID,
@@ -366,13 +370,52 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	if !strings.Contains(err.Error(), "send contact reply email") {
 		t.Fatalf("error = %q, want send contact reply email wrapper", err.Error())
 	}
-	if saved.Message != "返信内容" {
-		t.Fatalf("saved reply body = %q, want %q", saved.Message, "返信内容")
+	if saved != (domaincontact.Reply{}) {
+		t.Fatalf("saved reply = %+v, want zero value", saved)
 	}
 	waitForMailCalls(t, mailer, 1)
 
 	if got := mailer.callCount(); got != 1 {
 		t.Fatalf("mail call count = %d, want 1", got)
+	}
+	if repo.savedMessage.ID != 0 {
+		t.Fatalf("reply should not be saved when mail send fails")
+	}
+}
+
+func TestReplyMessageSendsMailBeforeSavingReply(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+		},
+		createReplyErr: errors.New("db insert failed"),
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	_, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err == nil {
+		t.Fatal("ReplyMessage returned nil error, want error")
+	}
+	if !strings.Contains(err.Error(), "create contact reply") {
+		t.Fatalf("error = %q, want create contact reply wrapper", err.Error())
+	}
+	waitForMailCalls(t, mailer, 1)
+	if got := mailer.callCount(); got != 1 {
+		t.Fatalf("mail call count = %d, want 1", got)
+	}
+	if repo.savedMessage.ID != 0 {
+		t.Fatalf("reply should not be saved when create fails")
 	}
 }
 
