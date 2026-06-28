@@ -7,6 +7,7 @@ import (
 	"net/mail"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
@@ -22,6 +23,12 @@ type Service struct {
 
 const contactMailPrefix = "【ふくにしファーム】"
 const maxContactListLimit = 100
+const (
+	maxContactNameLength    = 80
+	maxContactEmailLength   = 320
+	maxContactSubjectLength = 160
+	maxContactBodyLength    = 65535
+)
 
 type ReplyAuthor struct {
 	UserID uint
@@ -297,6 +304,10 @@ func normalizeMessage(message domaincontact.Message) (domaincontact.Message, err
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
 	}
 
+	if exceedsContactMaxLength(message.Name, maxContactNameLength) || exceedsContactMaxLength(message.Email, maxContactEmailLength) || exceedsContactMaxLength(message.Subject, maxContactSubjectLength) || exceedsContactMaxLength(message.Body, maxContactBodyLength) {
+		return domaincontact.Message{}, domaincontact.ErrInvalidInput
+	}
+
 	if !isAllowedContactCategory(message.Category) {
 		return domaincontact.Message{}, domaincontact.ErrInvalidInput
 	}
@@ -339,6 +350,10 @@ func contactCategoryLabel(category string) string {
 	default:
 		return category
 	}
+}
+
+func exceedsContactMaxLength(value string, max int) bool {
+	return utf8.RuneCountInString(value) > max
 }
 
 func subjectWithPrefix(subject, suffix string) string {

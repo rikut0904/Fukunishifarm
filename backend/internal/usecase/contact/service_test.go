@@ -362,6 +362,69 @@ func TestSubmitMessageAcceptsAllowedCategories(t *testing.T) {
 	}
 }
 
+func TestSubmitMessageRejectsOverlyLongFields(t *testing.T) {
+	tests := []struct {
+		name  string
+		input domaincontact.Message
+	}{
+		{
+			name: "name",
+			input: domaincontact.Message{
+				Name:     strings.Repeat("あ", 81),
+				Email:    "taro@example.com",
+				Category: "general",
+				Subject:  "お問い合わせ",
+				Body:     "内容です",
+			},
+		},
+		{
+			name: "email",
+			input: domaincontact.Message{
+				Name:     "山田 太郎",
+				Email:    strings.Repeat("a", 321) + "@example.com",
+				Category: "general",
+				Subject:  "お問い合わせ",
+				Body:     "内容です",
+			},
+		},
+		{
+			name: "subject",
+			input: domaincontact.Message{
+				Name:     "山田 太郎",
+				Email:    "taro@example.com",
+				Category: "general",
+				Subject:  strings.Repeat("件", 161),
+				Body:     "内容です",
+			},
+		},
+		{
+			name: "body",
+			input: domaincontact.Message{
+				Name:     "山田 太郎",
+				Email:    "taro@example.com",
+				Category: "general",
+				Subject:  "お問い合わせ",
+				Body:     strings.Repeat("内", 65536),
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &fakeContactRepository{}
+			service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
+			_, err := service.SubmitMessage(context.Background(), tc.input)
+			if !errors.Is(err, domaincontact.ErrInvalidInput) {
+				t.Fatalf("error = %v, want ErrInvalidInput", err)
+			}
+			if repo.savedMessage.ID != 0 {
+				t.Fatalf("message should not be saved for %s", tc.name)
+			}
+		})
+	}
+}
+
 func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	t.Parallel()
 
