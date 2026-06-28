@@ -21,7 +21,7 @@ var ErrDatabaseNotMigrated = errors.New("database not migrated")
 const contactThreadBackfillBatchSize = 100
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &contactMessageSchemaV2{}, &contactReplySchemaV2{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &contactMessageSchemaV2{}, &contactReplySchemaV3{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
@@ -52,7 +52,7 @@ func RequireMigrated(ctx context.Context, db *gorm.DB) error {
 		return ErrDatabaseNotMigrated
 	}
 
-	if !db.Migrator().HasColumn(&domaincontact.Message{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Message{}, "status") {
+	if !db.Migrator().HasColumn(&domaincontact.Message{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Message{}, "status") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "status") {
 		return ErrDatabaseNotMigrated
 	}
 
@@ -108,14 +108,14 @@ func ensureContactThreadIDIndex(ctx context.Context, db *gorm.DB) error {
 }
 
 type contactMessageSchemaV2 struct {
-	ID        uint      `gorm:"primaryKey"`
-	ThreadID  string    `gorm:"size:36"`
-	Name      string    `gorm:"size:80;not null"`
-	Email     string    `gorm:"size:320;not null"`
-	Category  string    `gorm:"size:64;not null"`
-	Subject   string    `gorm:"size:160;not null"`
-	Body      string    `gorm:"type:text;not null"`
-	Status    string    `gorm:"size:32;not null;default:'pending'"`
+	ID        uint   `gorm:"primaryKey"`
+	ThreadID  string `gorm:"size:36"`
+	Name      string `gorm:"size:80;not null"`
+	Email     string `gorm:"size:320;not null"`
+	Category  string `gorm:"size:64;not null"`
+	Subject   string `gorm:"size:160;not null"`
+	Body      string `gorm:"type:text;not null"`
+	Status    string `gorm:"size:32;not null;default:'pending'"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -124,18 +124,19 @@ func (contactMessageSchemaV2) TableName() string {
 	return "contact_messages"
 }
 
-type contactReplySchemaV2 struct {
-	ID           uint      `gorm:"primaryKey"`
-	MessageID    uint      `gorm:"not null;index"`
-	ThreadID     string    `gorm:"size:36;index"`
-	SenderType   string    `gorm:"size:32;not null"`
-	SenderUserID uint      `gorm:"not null"`
-	SenderName   string    `gorm:"size:255;not null"`
-	SenderEmail  string    `gorm:"size:320;not null"`
-	Message      string    `gorm:"type:text;not null"`
+type contactReplySchemaV3 struct {
+	ID           uint   `gorm:"primaryKey"`
+	MessageID    uint   `gorm:"not null;index"`
+	ThreadID     string `gorm:"size:36;index"`
+	SenderType   string `gorm:"size:32;not null"`
+	SenderUserID uint   `gorm:"not null"`
+	SenderName   string `gorm:"size:255;not null"`
+	SenderEmail  string `gorm:"size:320;not null"`
+	Message      string `gorm:"type:text;not null"`
+	Status       string `gorm:"size:32;not null;default:'sent'"`
 	CreatedAt    time.Time
 }
 
-func (contactReplySchemaV2) TableName() string {
+func (contactReplySchemaV3) TableName() string {
 	return "contact_replies"
 }

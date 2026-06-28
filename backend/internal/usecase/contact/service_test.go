@@ -13,13 +13,15 @@ import (
 )
 
 type fakeContactRepository struct {
-	savedMessage domaincontact.Message
-	message      domaincontact.Message
-	messageErr   error
+	savedMessage   domaincontact.Message
+	savedReply     domaincontact.Reply
+	message        domaincontact.Message
+	messageErr     error
 	createReplyErr error
-	statuses     []string
-	listOffset   int
-	listLimit    int
+	statuses       []string
+	replyStatuses  []string
+	listOffset     int
+	listLimit      int
 }
 
 func (r *fakeContactRepository) CreateMessage(ctx context.Context, message domaincontact.Message) (domaincontact.Message, error) {
@@ -57,15 +59,21 @@ func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincon
 		return domaincontact.Reply{}, r.createReplyErr
 	}
 	reply.ID = 99
-	r.savedMessage = domaincontact.Message{
-		ID:       reply.MessageID,
-		ThreadID: reply.ThreadID,
-	}
+	r.savedReply = reply
 	return reply, nil
+}
+
+func (r *fakeContactRepository) UpdateReplyStatus(ctx context.Context, id uint, status string) error {
+	r.replyStatuses = append(r.replyStatuses, status)
+	if r.savedReply.ID == id {
+		r.savedReply.Status = status
+	}
+	return nil
 }
 
 func (r *fakeContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Context, reply domaincontact.Reply, status string) (domaincontact.Reply, error) {
 	r.statuses = append(r.statuses, status)
+	reply.Status = "sent"
 	return r.CreateReply(ctx, reply)
 }
 
@@ -236,7 +244,6 @@ func TestSubmitMessageRecoversFromNotificationPanic(t *testing.T) {
 	}
 }
 
-
 func TestSubmitMessageContinuesWhenAdminListFails(t *testing.T) {
 	t.Parallel()
 
@@ -291,11 +298,11 @@ func TestSubmitMessageRejectsInvalidCategory(t *testing.T) {
 	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
 
 	_, err := service.SubmitMessage(context.Background(), domaincontact.Message{
-		Name:    "山田 太郎",
-		Email:   "taro@example.com",
+		Name:     "山田 太郎",
+		Email:    "taro@example.com",
 		Category: "invalid-category",
-		Subject: "お問い合わせ",
-		Body:    "内容です",
+		Subject:  "お問い合わせ",
+		Body:     "内容です",
 	})
 	if !errors.Is(err, domaincontact.ErrInvalidInput) {
 		t.Fatalf("error = %v, want ErrInvalidInput", err)
@@ -349,11 +356,11 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 
 	repo := &fakeContactRepository{
 		message: domaincontact.Message{
-			ID:      42,
+			ID:       42,
 			ThreadID: "thread-42",
-			Name:    "問い合わせ者",
-			Email:   "customer@example.com",
-			Subject: "お問い合わせ",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
 		},
 	}
 	mailer := &fakeMailSender{err: errors.New("ses send failed")}
@@ -371,16 +378,59 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 		t.Fatalf("error = %q, want send contact reply email wrapper", err.Error())
 	}
 	waitForMailCalls(t, mailer, 1)
-
 	if got := mailer.callCount(); got != 1 {
 		t.Fatalf("mail call count = %d, want 1", got)
 	}
-	if repo.savedMessage.ID != 0 {
-		t.Fatalf("reply should not be saved when mail send fails")
+	if repo.savedReply.ID == 0 {
+		t.Fatalf("reply should be saved before mail send")
+	}
+	if repo.savedReply.Status != "pending" {
+		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "pending")
+	}
+	if len(repo.replyStatuses) != 0 {
+		t.Fatalf("reply status updates = %v, want none", repo.replyStatuses)
 	}
 }
 
-func TestReplyMessageSendsMailBeforeSavingReply(t *testing.T) {
+func TestReplyMessageMarksReplySentAfterMailSend(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+		},
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	saved, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err != nil {
+		t.Fatalf("ReplyMessage returned error: %v", err)
+	}
+	waitForMailCalls(t, mailer, 1)
+	if got := mailer.callCount(); got != 1 {
+		t.Fatalf("mail call count = %d, want 1", got)
+	}
+	if saved.ID == 0 {
+		t.Fatalf("saved reply ID = %d, want non-zero", saved.ID)
+	}
+	if repo.savedReply.Status != "sent" {
+		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "sent")
+	}
+	if len(repo.replyStatuses) != 1 || repo.replyStatuses[0] != "sent" {
+		t.Fatalf("reply status updates = %v, want [sent]", repo.replyStatuses)
+	}
+}
+
+func TestReplyMessageReturnsErrorWhenReplyCreateFails(t *testing.T) {
 	t.Parallel()
 
 	repo := &fakeContactRepository{
@@ -407,11 +457,10 @@ func TestReplyMessageSendsMailBeforeSavingReply(t *testing.T) {
 	if !strings.Contains(err.Error(), "create contact reply") {
 		t.Fatalf("error = %q, want create contact reply wrapper", err.Error())
 	}
-	waitForMailCalls(t, mailer, 1)
-	if got := mailer.callCount(); got != 1 {
-		t.Fatalf("mail call count = %d, want 1", got)
+	if got := mailer.callCount(); got != 0 {
+		t.Fatalf("mail call count = %d, want 0", got)
 	}
-	if repo.savedMessage.ID != 0 {
+	if repo.savedReply.ID != 0 {
 		t.Fatalf("reply should not be saved when create fails")
 	}
 }
@@ -438,7 +487,7 @@ func TestReplyMessageReturnsErrorWhenMailerIsNotConfigured(t *testing.T) {
 	if !errors.Is(err, domaincontact.ErrMailNotConfigured) {
 		t.Fatalf("error = %v, want ErrMailNotConfigured", err)
 	}
-	if repo.savedMessage.ID != 0 {
+	if repo.savedReply.ID != 0 {
 		t.Fatalf("reply should not be saved when mailer is nil")
 	}
 }

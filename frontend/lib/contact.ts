@@ -36,6 +36,7 @@ export type AdminContactReply = {
   senderName: string;
   senderEmail: string;
   message: string;
+  status: string;
   createdAt: string;
 };
 

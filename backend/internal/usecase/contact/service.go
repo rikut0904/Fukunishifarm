@@ -169,6 +169,20 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return domaincontact.Reply{}, domaincontact.ErrMailNotConfigured
 	}
 
+	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
+		MessageID:    messageID,
+		ThreadID:     message.ThreadID,
+		SenderType:   "admin",
+		SenderUserID: author.UserID,
+		SenderName:   author.Name,
+		SenderEmail:  author.Email,
+		Message:      body,
+		Status:       "pending",
+	})
+	if err != nil {
+		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
+	}
+
 	subject := subjectWithPrefix(message.Subject, "へのご返信")
 
 	replyURL := ""
@@ -196,20 +210,12 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 
 	if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
 		slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
-		return domaincontact.Reply{}, fmt.Errorf("send contact reply email: %w", err)
+		return saved, fmt.Errorf("send contact reply email: %w", err)
 	}
 
-	saved, err := s.repository.CreateReply(ctx, domaincontact.Reply{
-		MessageID:    messageID,
-		ThreadID:     message.ThreadID,
-		SenderType:   "admin",
-		SenderUserID: author.UserID,
-		SenderName:   author.Name,
-		SenderEmail:  author.Email,
-		Message:      body,
-	})
-	if err != nil {
-		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)
+	if err := s.repository.UpdateReplyStatus(ctx, saved.ID, "sent"); err != nil {
+		slog.Error("failed to update contact reply status", "reply_id", saved.ID, "error", err)
+		return saved, fmt.Errorf("update contact reply status: %w", err)
 	}
 
 	return saved, nil
@@ -234,6 +240,7 @@ func (s *Service) ReplyThread(ctx context.Context, threadID string, body string)
 		SenderName:   message.Name,
 		SenderEmail:  message.Email,
 		Message:      body,
+		Status:       "sent",
 	}, "in_progress")
 	if err != nil {
 		return domaincontact.Reply{}, fmt.Errorf("create contact reply: %w", err)

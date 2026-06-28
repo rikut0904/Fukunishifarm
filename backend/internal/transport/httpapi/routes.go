@@ -110,6 +110,7 @@ type contactReplyResponse struct {
 	SenderName  string    `json:"senderName"`
 	SenderEmail string    `json:"senderEmail"`
 	Message     string    `json:"message"`
+	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
@@ -929,6 +930,7 @@ func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
 		SenderName:  reply.SenderName,
 		SenderEmail: reply.SenderEmail,
 		Message:     reply.Message,
+		Status:      reply.Status,
 		CreatedAt:   reply.CreatedAt,
 	}
 }

@@ -11,6 +11,7 @@ type Reply struct {
 	SenderName   string    `gorm:"size:255;not null" json:"senderName"`
 	SenderEmail  string    `gorm:"size:320;not null" json:"senderEmail"`
 	Message      string    `gorm:"type:text;not null" json:"message"`
+	Status       string    `gorm:"size:32;not null;default:'sent'" json:"status"`
 	CreatedAt    time.Time `json:"createdAt"`
 }
 

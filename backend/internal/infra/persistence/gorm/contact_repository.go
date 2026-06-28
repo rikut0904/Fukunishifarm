@@ -86,6 +86,9 @@ func (r *ContactRepository) GetMessageByThreadID(ctx context.Context, threadID s
 }
 
 func (r *ContactRepository) CreateReply(ctx context.Context, reply domaincontact.Reply) (domaincontact.Reply, error) {
+	if reply.Status == "" {
+		reply.Status = "sent"
+	}
 	tx := r.db.WithContext(ctx).Create(&reply)
 	if tx.Error != nil {
 		return domaincontact.Reply{}, tx.Error
@@ -94,9 +97,23 @@ func (r *ContactRepository) CreateReply(ctx context.Context, reply domaincontact
 	return reply, nil
 }
 
+func (r *ContactRepository) UpdateReplyStatus(ctx context.Context, id uint, status string) error {
+	tx := r.db.WithContext(ctx).Model(&domaincontact.Reply{}).Where("id = ?", id).Update("status", status)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return domaincontact.ErrReplyNotFound
+	}
+	return nil
+}
+
 func (r *ContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Context, reply domaincontact.Reply, status string) (domaincontact.Reply, error) {
 	var saved domaincontact.Reply
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if reply.Status == "" {
+			reply.Status = "sent"
+		}
 		if err := tx.Create(&reply).Error; err != nil {
 			return err
 		}
