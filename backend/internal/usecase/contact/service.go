@@ -311,6 +311,25 @@ func isAllowedContactCategory(category string) bool {
 	}
 }
 
+func contactCategoryLabel(category string) string {
+	switch category {
+	case "grape":
+		return "ぶどう狩りについて"
+	case "reservation":
+		return "予約について"
+	case "price":
+		return "料金について"
+	case "access":
+		return "アクセスについて"
+	case "other":
+		return "その他"
+	case "general":
+		return "一般"
+	default:
+		return category
+	}
+}
+
 func subjectWithPrefix(subject, suffix string) string {
 	subject = strings.TrimSpace(subject)
 	suffix = strings.TrimSpace(suffix)
@@ -382,7 +401,7 @@ func buildNewInquiryNotification(message domaincontact.Message, siteBaseURL stri
 		"■ お問い合わせ内容",
 		"お名前: " + message.Name,
 		"メールアドレス: " + message.Email,
-		"カテゴリ: " + message.Category,
+		"カテゴリ: " + contactCategoryLabel(message.Category),
 		"件名: " + message.Subject,
 		"",
 		"内容:",
@@ -420,7 +439,7 @@ func buildCustomerReplyNotification(message domaincontact.Message, body, siteBas
 		"お名前: " + message.Name,
 		"メールアドレス: " + message.Email,
 		"件名: " + message.Subject,
-		"カテゴリ: " + message.Category,
+		"カテゴリ: " + contactCategoryLabel(message.Category),
 		"",
 		"■ 返信内容",
 		body,

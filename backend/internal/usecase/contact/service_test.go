@@ -212,6 +212,9 @@ func TestSubmitMessageSendsNotificationToAllAdmins(t *testing.T) {
 		if !strings.Contains(call.body, "メールアドレス: taro@example.com") {
 			t.Fatalf("body does not contain sender email: %s", call.body)
 		}
+		if !strings.Contains(call.body, "カテゴリ: 一般") {
+			t.Fatalf("body does not contain localized category label: %s", call.body)
+		}
 		if !strings.Contains(call.body, "https://example.com/admin/contact/42") {
 			t.Fatalf("body does not contain admin URL: %s", call.body)
 		}
@@ -566,6 +569,9 @@ func TestReplyThreadSendsNotificationToAdmins(t *testing.T) {
 	}
 	if !strings.Contains(call.body, "新しい返信です") {
 		t.Fatalf("body does not contain reply content: %s", call.body)
+	}
+	if !strings.Contains(call.body, "カテゴリ: 一般") {
+		t.Fatalf("body does not contain localized category label: %s", call.body)
 	}
 	if !strings.Contains(call.body, "https://example.com/contact/thread-42") {
 		t.Fatalf("body does not contain thread URL: %s", call.body)
