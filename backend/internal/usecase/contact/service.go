@@ -210,6 +210,11 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 
 	if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
 		slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
+		if updateErr := s.repository.UpdateReplyStatus(ctx, saved.ID, "failed"); updateErr != nil {
+			slog.Error("failed to update contact reply status", "reply_id", saved.ID, "status", "failed", "error", updateErr)
+		} else {
+			saved.Status = "failed"
+		}
 		return saved, fmt.Errorf("send contact reply email: %w", err)
 	}
 

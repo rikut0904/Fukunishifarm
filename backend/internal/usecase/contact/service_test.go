@@ -387,11 +387,11 @@ func TestReplyMessageReturnsErrorWhenMailSendFails(t *testing.T) {
 	if repo.savedReply.ID == 0 {
 		t.Fatalf("reply should be saved before mail send")
 	}
-	if repo.savedReply.Status != "pending" {
-		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "pending")
+	if repo.savedReply.Status != "failed" {
+		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "failed")
 	}
-	if len(repo.replyStatuses) != 0 {
-		t.Fatalf("reply status updates = %v, want none", repo.replyStatuses)
+	if len(repo.replyStatuses) != 1 || repo.replyStatuses[0] != "failed" {
+		t.Fatalf("reply status updates = %v, want [failed]", repo.replyStatuses)
 	}
 }
 
