@@ -127,9 +127,17 @@ func (s *Service) GetMessageDetailByThreadID(ctx context.Context, threadID strin
 		return MessageDetail{}, fmt.Errorf("list contact replies: %w", err)
 	}
 
+	// 一般ユーザー向けには送信済みの返信のみを公開する。
+	sentReplies := make([]domaincontact.Reply, 0, len(replies))
+	for _, r := range replies {
+		if r.Status == "sent" {
+			sentReplies = append(sentReplies, r)
+		}
+	}
+
 	return MessageDetail{
 		Message: message,
-		Replies: replies,
+		Replies: sentReplies,
 	}, nil
 }
 

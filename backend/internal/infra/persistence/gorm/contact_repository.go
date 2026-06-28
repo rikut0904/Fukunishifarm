@@ -141,7 +141,7 @@ func (r *ContactRepository) CreateReplyAndUpdateMessageStatus(ctx context.Contex
 
 func (r *ContactRepository) ListReplies(ctx context.Context, messageID uint) ([]domaincontact.Reply, error) {
 	var replies []domaincontact.Reply
-	tx := r.db.WithContext(ctx).Where("message_id = ? AND status = ?", messageID, "sent").Order("created_at ASC").Find(&replies)
+	tx := r.db.WithContext(ctx).Where("message_id = ?", messageID).Order("created_at ASC").Find(&replies)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
