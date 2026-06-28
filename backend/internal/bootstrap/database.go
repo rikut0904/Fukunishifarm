@@ -82,13 +82,13 @@ func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {
 				threadID := uuid.NewString()
 
 				messageResult := tx.Model(&domaincontact.Message{}).
-					Where("id = ?", message.ID).
+					Where("id = ? AND (thread_id IS NULL OR thread_id = '')", message.ID).
 					UpdateColumn("thread_id", threadID)
 				if err := messageResult.Error; err != nil {
 					return err
 				}
 				if messageResult.RowsAffected == 0 {
-					return domaincontact.ErrMessageNotFound
+					continue
 				}
 
 				replyResult := tx.Model(&domaincontact.Reply{}).
