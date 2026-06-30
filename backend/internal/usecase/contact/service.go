@@ -24,6 +24,7 @@ type Service struct {
 
 const contactMailPrefix = "【ふくにしファーム】"
 const maxContactListLimit = 100
+const contactStatusUpdateTimeout = 10 * time.Second
 const (
 	maxContactNameLength    = 80
 	maxContactEmailLength   = 320
@@ -35,6 +36,10 @@ type ReplyAuthor struct {
 	UserID uint
 	Name   string
 	Email  string
+}
+
+func newContactStatusUpdateContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), contactStatusUpdateTimeout)
 }
 
 func NewService(repository domaincontact.Repository, adminRepo domainauth.Repository, mailer domaincontact.ReplyEmailSender, siteBaseURL string) *Service {
@@ -231,23 +236,32 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 
 	if err := s.mailer.SendReplyEmail(ctx, message.Email, subject, bodyText); err != nil {
 		slog.Error("failed to send contact reply email", "message_id", message.ID, "email", message.Email, "error", err)
-		if updateErr := s.repository.UpdateReplyStatus(context.Background(), saved.ID, "failed"); updateErr != nil {
+		updateCtx, cancel := newContactStatusUpdateContext()
+		if updateErr := s.repository.UpdateReplyStatus(updateCtx, saved.ID, "failed"); updateErr != nil {
 			slog.Error("failed to update contact reply status", "reply_id", saved.ID, "status", "failed", "error", updateErr)
 		} else {
 			saved.Status = "failed"
 		}
+		cancel()
 		return saved, fmt.Errorf("send contact reply email: %w", err)
 	}
 
-	if err := s.repository.UpdateReplyStatus(context.Background(), saved.ID, "sent"); err != nil {
+	replyUpdateCtx, replyUpdateCancel := newContactStatusUpdateContext()
+	if err := s.repository.UpdateReplyStatus(replyUpdateCtx, saved.ID, "sent"); err != nil {
+		replyUpdateCancel()
 		slog.Error("failed to update contact reply status", "reply_id", saved.ID, "error", err)
 		return saved, fmt.Errorf("update contact reply status: %w", err)
 	}
+	replyUpdateCancel()
 	saved.Status = "sent"
 
 	if message.Status == "pending" {
-		if err := s.repository.UpdateMessageStatus(context.Background(), messageID, "in_progress"); err != nil {
+		messageUpdateCtx, messageUpdateCancel := newContactStatusUpdateContext()
+		if err := s.repository.UpdateMessageStatus(messageUpdateCtx, messageID, "in_progress"); err != nil {
+			messageUpdateCancel()
 			slog.Error("failed to update contact message status after reply", "message_id", messageID, "error", err)
+		} else {
+			messageUpdateCancel()
 		}
 	}
 

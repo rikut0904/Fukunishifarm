@@ -24,6 +24,8 @@ type fakeContactRepository struct {
 	messageStatuses          []string
 	replyStatusCtxCanceled   []bool
 	messageStatusCtxCanceled []bool
+	replyStatusHasDeadline   []bool
+	messageStatusHasDeadline []bool
 	replyStatuses            []string
 	listOffset               int
 	listLimit                int
@@ -59,6 +61,8 @@ func (r *fakeContactRepository) GetMessageByThreadID(ctx context.Context, thread
 func (r *fakeContactRepository) UpdateMessageStatus(ctx context.Context, id uint, status string) error {
 	r.messageStatuses = append(r.messageStatuses, status)
 	r.messageStatusCtxCanceled = append(r.messageStatusCtxCanceled, ctx.Err() != nil)
+	_, hasDeadline := ctx.Deadline()
+	r.messageStatusHasDeadline = append(r.messageStatusHasDeadline, hasDeadline)
 	if r.messageStatusErr != nil {
 		return r.messageStatusErr
 	}
@@ -77,6 +81,8 @@ func (r *fakeContactRepository) CreateReply(ctx context.Context, reply domaincon
 func (r *fakeContactRepository) UpdateReplyStatus(ctx context.Context, id uint, status string) error {
 	r.replyStatuses = append(r.replyStatuses, status)
 	r.replyStatusCtxCanceled = append(r.replyStatusCtxCanceled, ctx.Err() != nil)
+	_, hasDeadline := ctx.Deadline()
+	r.replyStatusHasDeadline = append(r.replyStatusHasDeadline, hasDeadline)
 	if r.savedReply.ID == id {
 		r.savedReply.Status = status
 	}
@@ -558,8 +564,14 @@ func TestReplyMessageUsesIndependentContextForDbUpdatesAfterMailSend(t *testing.
 	if len(repo.replyStatusCtxCanceled) != 1 || repo.replyStatusCtxCanceled[0] {
 		t.Fatalf("reply status ctx canceled = %v, want [false]", repo.replyStatusCtxCanceled)
 	}
+	if len(repo.replyStatusHasDeadline) != 1 || !repo.replyStatusHasDeadline[0] {
+		t.Fatalf("reply status ctx deadline set = %v, want [true]", repo.replyStatusHasDeadline)
+	}
 	if len(repo.messageStatusCtxCanceled) != 1 || repo.messageStatusCtxCanceled[0] {
 		t.Fatalf("message status ctx canceled = %v, want [false]", repo.messageStatusCtxCanceled)
+	}
+	if len(repo.messageStatusHasDeadline) != 1 || !repo.messageStatusHasDeadline[0] {
+		t.Fatalf("message status ctx deadline set = %v, want [true]", repo.messageStatusHasDeadline)
 	}
 }
 
