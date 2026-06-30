@@ -89,6 +89,9 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadMessages();
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, [loadMessages]);
 
   const handleFilterChange = useCallback((newStatus: string) => {
