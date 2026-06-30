@@ -7,7 +7,7 @@ export type AdminMenuItem = {
 
 export const adminMenuItems: AdminMenuItem[] = [
   {
-    title: "ブドウ情報の編集",
+    title: "ぶどう情報",
     description: "品種名、説明文、画像設定、販売中の切り替えを編集します。",
     href: "/admin/grape",
   },
@@ -17,7 +17,12 @@ export const adminMenuItems: AdminMenuItem[] = [
     href: "/admin/contact",
   },
   {
-    title: "お知らせの編集",
+    title: "ブログ管理",
+    description: "ブログの一覧を作成・編集します。",
+    href: `https://${process.env.MICROCMS_SERVICE_DOMAIN}.microcms.io/apis/${process.env.MICROCMS_BLOG_ENDPOINT}`,
+  },
+  {
+    title: "お知らせ管理",
     description: "お知らせの一覧を作成・並び替え・編集します。",
     href: "/admin/news",
   },

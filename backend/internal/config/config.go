@@ -11,6 +11,9 @@ type Config struct {
 	DatabaseURL            string
 	CORSAllowOrigins       []string
 	SiteBaseURL            string
+	MicroCMSServiceDomain  string
+	MicroCMSAPIKey         string
+	MicroCMSBlogEndpoint   string
 	AWSRegion              string
 	AWSAccessKeyID         string
 	AWSSecretAccessKey     string
@@ -36,6 +39,9 @@ func Load() Config {
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
 		SiteBaseURL:            strings.TrimRight(strings.TrimSpace(os.Getenv("SITE_BASE_URL")), "/"),
+		MicroCMSServiceDomain:  strings.TrimSpace(os.Getenv("MICROCMS_SERVICE_DOMAIN")),
+		MicroCMSAPIKey:         strings.TrimSpace(getenvAny("MICROCMS_WRITE_API_KEY", "MICROCMS_API_KEY")),
+		MicroCMSBlogEndpoint:   strings.TrimSpace(os.Getenv("MICROCMS_BLOG_ENDPOINT")),
 		AWSRegion:              strings.TrimSpace(os.Getenv("AWS_REGION")),
 		AWSAccessKeyID:         strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID")),
 		AWSSecretAccessKey:     strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY")),

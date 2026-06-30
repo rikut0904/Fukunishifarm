@@ -7,10 +7,12 @@ import (
 	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
+	domainblog "fukunishifarm/backend/internal/domain/blog"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecaseblog "fukunishifarm/backend/internal/usecase/blog"
 	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
@@ -256,6 +258,51 @@ type newsCatalogInput struct {
 	}
 }
 
+type blogImageResponse struct {
+	URL    string `json:"url"`
+	Height int    `json:"height,omitempty"`
+	Width  int    `json:"width,omitempty"`
+}
+
+type blogCategoryResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type blogPostResponse struct {
+	ID          string                `json:"id"`
+	Title       string                `json:"title"`
+	Slug        string                `json:"slug"`
+	Excerpt     string                `json:"excerpt"`
+	Content     string                `json:"content"`
+	Eyecatch    *blogImageResponse    `json:"eyecatch,omitempty"`
+	Category    *blogCategoryResponse `json:"category,omitempty"`
+	PublishedAt string                `json:"publishedAt"`
+	RevisedAt   string                `json:"revisedAt,omitempty"`
+	CreatedAt   string                `json:"createdAt,omitempty"`
+	UpdatedAt   string                `json:"updatedAt,omitempty"`
+}
+
+type blogCatalogOutput struct {
+	Body struct {
+		Posts []blogPostResponse `json:"posts"`
+	}
+}
+
+type blogPostOutput struct {
+	Body struct {
+		Post blogPostResponse `json:"post"`
+	}
+}
+
+type publicBlogListInput struct {
+	Limit int `query:"limit" minimum:"1" maximum:"100" default:"12"`
+}
+
+type publicBlogPostInput struct {
+	Slug string `path:"slug"`
+}
+
 type newsItemOrderInput struct {
 	ID        uint `json:"id" required:"true"`
 	SortOrder int  `json:"sortOrder"`
@@ -277,7 +324,7 @@ type grapeItemOutput struct {
 	}
 }
 
-func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, contactService *usecasecontact.Service, migrated bool) {
+func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, blogService *usecaseblog.Service, contactService *usecasecontact.Service, migrated bool) {
 	huma.Get(api, "/healthz", func(ctx context.Context, input *struct{}) (*healthOutput, error) {
 		output := &healthOutput{}
 		output.Body.Status = "ok"
@@ -614,6 +661,26 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toNewsCatalogResponse(catalog), nil
 	})
 
+	huma.Get(api, "/v1/blog", func(ctx context.Context, input *publicBlogListInput) (*blogCatalogOutput, error) {
+		catalog, err := blogService.GetPublicCatalog(ctx, input.Limit)
+		if err != nil {
+			return nil, mapBlogError("failed to load blog catalog", err)
+		}
+
+		return toBlogCatalogResponse(catalog), nil
+	})
+
+	huma.Get(api, "/v1/blog/{slug}", func(ctx context.Context, input *publicBlogPostInput) (*blogPostOutput, error) {
+		post, err := blogService.GetPublicPostBySlug(ctx, input.Slug)
+		if err != nil {
+			return nil, mapBlogError("failed to load blog post", err)
+		}
+
+		output := &blogPostOutput{}
+		output.Body.Post = toBlogPostResponse(post)
+		return output, nil
+	})
+
 	huma.Post(api, "/v1/admin/news", func(ctx context.Context, input *struct {
 		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 		Body          newsItemInput
@@ -745,6 +812,17 @@ func mapNewsError(message string, err error) error {
 	case errors.Is(err, domainnews.ErrInvalidInput):
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domainnews.ErrItemNotFound):
+		return huma.Error404NotFound("not found", err)
+	default:
+		return huma.Error500InternalServerError(message, err)
+	}
+}
+
+func mapBlogError(message string, err error) error {
+	switch {
+	case errors.Is(err, domainblog.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
+	case errors.Is(err, domainblog.ErrPostNotFound):
 		return huma.Error404NotFound("not found", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
@@ -961,4 +1039,41 @@ func toNewsCatalogResponse(catalog domainnews.Catalog) *newsCatalogResponse {
 	}
 
 	return output
+}
+
+func toBlogCatalogResponse(catalog domainblog.Catalog) *blogCatalogOutput {
+	output := &blogCatalogOutput{}
+	output.Body.Posts = make([]blogPostResponse, 0, len(catalog.Posts))
+	for _, post := range catalog.Posts {
+		output.Body.Posts = append(output.Body.Posts, toBlogPostResponse(post))
+	}
+	return output
+}
+
+func toBlogPostResponse(post domainblog.Post) blogPostResponse {
+	response := blogPostResponse{
+		ID:          post.ID,
+		Title:       post.Title,
+		Slug:        post.Slug,
+		Excerpt:     post.Excerpt,
+		Content:     post.Content,
+		PublishedAt: post.PublishedAt,
+		RevisedAt:   post.RevisedAt,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
+	}
+	if post.Eyecatch != nil {
+		response.Eyecatch = &blogImageResponse{
+			URL:    post.Eyecatch.URL,
+			Height: post.Eyecatch.Height,
+			Width:  post.Eyecatch.Width,
+		}
+	}
+	if post.Category != nil {
+		response.Category = &blogCategoryResponse{
+			ID:   post.Category.ID,
+			Name: post.Category.Name,
+		}
+	}
+	return response
 }
