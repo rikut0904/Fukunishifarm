@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -15,11 +16,14 @@ import (
 
 	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
+	domaincontact "fukunishifarm/backend/internal/domain/contact"
+	emailses "fukunishifarm/backend/internal/infra/email"
 	firebaseauth "fukunishifarm/backend/internal/infra/firebase"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
 	sessionjwt "fukunishifarm/backend/internal/infra/session"
 	"fukunishifarm/backend/internal/transport/httpapi"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
 
@@ -66,9 +70,22 @@ func main() {
 	}
 
 	adminRepository := gormrepo.NewAdminUserRepository(database)
+	contactRepository := gormrepo.NewContactRepository(database)
 	grapeRepository := gormrepo.NewGrapeRepository(database)
 	newsRepository := gormrepo.NewNewsRepository(database)
+	var contactReplySender domaincontact.ReplyEmailSender
+	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
+		sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
+		if err != nil {
+			slog.Error("initialize SES reply sender", "error", err)
+			os.Exit(1)
+		}
+		contactReplySender = sender
+	} else {
+		slog.Warn("SES reply sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable contact replies by email")
+	}
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
+	contactService := usecasecontact.NewService(contactRepository, adminRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
 	newsService := usecasenews.NewService(newsRepository)
 
@@ -100,7 +117,7 @@ func main() {
 	})
 
 	api := humaecho.New(e, huma.DefaultConfig("Fukunishi Farm API", "1.0.0"))
-	httpapi.Register(api, authService, grapeService, newsService, migrated)
+	httpapi.Register(api, authService, grapeService, newsService, contactService, migrated)
 
 	slog.Info("starting api server", "port", cfg.Port)
 	if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {

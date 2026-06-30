@@ -4,15 +4,15 @@ import SiteFooter from "@/components/SiteFooter";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  description: "ユーザー管理の準備画面です。",
+  description: "お問い合わせ管理の表示画面です。",
 };
 
-export default function AdminUsersPage() {
+export default function AdminContactPage() {
   return (
     <div className="site-shell">
       <AdminHeader />
       <main>
-        <AdminConsole mode="users" />
+        <AdminConsole mode="contact" />
       </main>
       <SiteFooter />
     </div>

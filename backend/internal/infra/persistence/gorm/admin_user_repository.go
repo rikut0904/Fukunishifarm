@@ -59,3 +59,14 @@ func (r *AdminUserRepository) FindAdminUserByFirebaseUID(ctx context.Context, fi
 
 	return &user, nil
 }
+
+func (r *AdminUserRepository) ListAdminUsers(ctx context.Context) ([]domainauth.AdminUser, error) {
+	var users []domainauth.AdminUser
+
+	tx := r.db.WithContext(ctx).Find(&users)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return users, nil
+}

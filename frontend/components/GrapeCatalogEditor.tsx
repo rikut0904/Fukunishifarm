@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiError } from "@/lib/api";
+import AdminPageShell from "@/components/AdminPageShell";
 import {
   createAdminGrapeItem,
   deleteAdminGrapeItem,
@@ -624,25 +625,25 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
   const publishedCount = catalog?.items.filter((item) => item.isOnSale).length ?? 0;
 
   return (
-    <section className="section admin-page">
-      <div className="admin-dashboard">
-        <div className="admin-dashboard__head">
-          <div className="grid gap-1">
-            <p className="eyebrow">Admin</p>
-            <h1 className="section__title">ぶどう情報の編集</h1>
-            {catalog ? (
-              <p className="section__lead admin-dashboard__summary">
-                <span>{catalog.items.length}品種</span>
-                <span>{publishedCount}件が販売中</span>
-              </p>
-            ) : null}
-          </div>
-          <button type="button" className="button-link button-link--primary" onClick={addItem} disabled={!catalog}>
-            <Plus className="h-4 w-4" />
-            品種を追加
-          </button>
-        </div>
-
+    <AdminPageShell
+      title="ぶどう情報の編集"
+      lead={
+        catalog ? (
+          <span className="admin-shell__summary">
+            <span>{catalog.items.length}品種</span>
+            <span>{publishedCount}件が販売中</span>
+          </span>
+        ) : (
+          "品種名、説明文、画像設定、販売中の切り替えを編集します。"
+        )
+      }
+      actions={
+        <button type="button" className="button-link button-link--primary" onClick={addItem} disabled={!catalog}>
+          <Plus className="h-4 w-4" />
+          品種を追加
+        </button>
+      }
+    >
         {status.kind === "loading" ? (
           <div className="admin-login-state">
             <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
@@ -708,7 +709,6 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
         ) : null}
 
         {toast ? <div className={`admin-toast admin-toast--${toast.kind}`}>{toast.message}</div> : null}
-      </div>
-    </section>
+    </AdminPageShell>
   );
 }

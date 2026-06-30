@@ -2,6 +2,8 @@
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { adminMenuItems } from "@/lib/adminMenu";
+import AdminPageShell from "@/components/AdminPageShell";
+import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
 import NewsCatalogEditor from "@/components/NewsCatalogEditor";
 import { Loader2 } from "lucide-react";
@@ -22,7 +24,7 @@ type Status =
   | { kind: "redirecting" };
 
 type AdminConsoleProps = {
-  mode?: "home" | "grape" | "news" | "users";
+  mode?: "home" | "grape" | "news" | "users" | "contact";
 };
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
@@ -110,54 +112,35 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
 
   if (status.kind === "loading" || status.kind === "redirecting") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-state">
-            <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
-            <p className="m-0">読み込み中...</p>
-          </div>
+      <AdminPageShell title="管理画面" lead="読み込み中..." variant="narrow">
+        <div className="admin-login-state">
+          <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
+          <p className="m-0">読み込み中...</p>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (status.kind === "error") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">管理画面</h1>
-            </div>
-          </div>
-
-          <div className="admin-login-state">
-            <p className="admin-error">{status.message}</p>
-            <button type="button" className="button-link button-link--primary" onClick={() => void handleRetry()}>
-              再試行
-            </button>
-            <button type="button" className="button-link button-link--secondary" onClick={handleSignOut}>
-              ログアウト
-            </button>
-          </div>
+      <AdminPageShell title="管理画面" lead="セッションの確認に失敗しました。" variant="narrow">
+        <div className="admin-login-state">
+          <p className="admin-error">{status.message}</p>
+          <button type="button" className="button-link button-link--primary" onClick={() => void handleRetry()}>
+            再試行
+          </button>
+          <button type="button" className="button-link button-link--secondary" onClick={handleSignOut}>
+            ログアウト
+          </button>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (mode === "home") {
     return (
-      <section className="section admin-page">
-        <div className="admin-dashboard">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">管理ページ</h1>
-              <p className="section__lead">編集したい項目を選んでください。</p>
-            </div>
-          </div>
-
+      <AdminPageShell title="管理ページ" lead="編集したい項目を選んでください。">
+        <div className="admin-home-panel">
           <div className="admin-menu">
             {adminMenuItems.map((item) => (
               <Link key={item.href} href={item.href} className="admin-menu-card">
@@ -171,30 +154,22 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
             ))}
           </div>
         </div>
-      </section>
+      </AdminPageShell>
     );
   }
 
   if (mode === "users") {
     return (
-      <section className="section admin-page">
-        <div className="admin-login-shell">
-          <div className="admin-login-head">
-            <div className="grid gap-1">
-              <p className="eyebrow">Admin</p>
-              <h1 className="section__title">ユーザー管理</h1>
-              <p className="section__lead">準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。</p>
-            </div>
-          </div>
-
-          <div className="admin-login-state">
-            <Link href="/admin" className="button-link button-link--primary">
-              管理ページへ戻る
-            </Link>
-          </div>
+      <AdminPageShell title="ユーザー管理" lead="準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。">
+        <div className="admin-login-state">
+          <p className="m-0">現在は閲覧用のプレースホルダです。操作メニューは上部ヘッダーから移動できます。</p>
         </div>
-      </section>
+      </AdminPageShell>
     );
+  }
+
+  if (mode === "contact") {
+    return <ContactMessagesPanel token={status.token} onSignOut={handleSignOut} />;
   }
 
   if (mode === "news") {

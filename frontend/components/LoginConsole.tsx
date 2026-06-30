@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import AdminPageShell from "@/components/AdminPageShell";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -127,16 +128,8 @@ export default function LoginConsole() {
   };
 
   return (
-    <section className="section admin-page">
-      <div className="admin-login-shell">
-        <div className="admin-login-head">
-          <div className="grid gap-1">
-            <p className="eyebrow">Login</p>
-            <h1 className="section__title">ログイン</h1>
-          </div>
-        </div>
-
-        <form className="admin-login-form" onSubmit={handleSignIn}>
+    <AdminPageShell title="ログイン" variant="narrow">
+      <form className="admin-login-form" onSubmit={handleSignIn}>
           <label className="admin-field">
             <span>Email</span>
             <input
@@ -183,8 +176,7 @@ export default function LoginConsole() {
               再試行
             </button>
           ) : null}
-        </form>
-      </div>
-    </section>
+      </form>
+    </AdminPageShell>
   );
 }

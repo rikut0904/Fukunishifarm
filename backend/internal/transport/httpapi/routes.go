@@ -7,13 +7,17 @@ import (
 	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
+	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
 	huma "github.com/danielgtaylor/huma/v2"
 )
+
+const contactReplySenderName = "ふくにしファーム"
 
 type healthOutput struct {
 	Body struct {
@@ -71,6 +75,116 @@ type loginOutput struct {
 type createUserOutput struct {
 	Body struct {
 		User adminUserResponse `json:"user"`
+	}
+}
+
+type contactMessagePayload struct {
+	Name     string `json:"name" required:"true" maxLength:"80"`
+	Email    string `json:"email" required:"true" maxLength:"320"`
+	Category string `json:"category" required:"true" maxLength:"64"`
+	Subject  string `json:"subject" required:"true" maxLength:"160"`
+	Message  string `json:"message" required:"true" maxLength:"65535"`
+}
+
+type contactMessageInput struct {
+	Body contactMessagePayload
+}
+
+type contactMessageResponse struct {
+	ID        uint      `json:"id"`
+	ThreadID  string    `json:"threadId"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Category  string    `json:"category"`
+	Subject   string    `json:"subject"`
+	Message   string    `json:"message"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type contactReplyResponse struct {
+	ID          uint      `json:"id"`
+	MessageID   uint      `json:"messageId"`
+	ThreadID    string    `json:"threadId"`
+	SenderType  string    `json:"senderType"`
+	SenderName  string    `json:"senderName"`
+	SenderEmail string    `json:"senderEmail"`
+	Message     string    `json:"message"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type contactMessageOutput struct {
+	Body struct {
+		Message contactMessageResponse `json:"message"`
+	}
+}
+
+type contactMessageDetailResponse struct {
+	Body struct {
+		Message contactMessageResponse `json:"message"`
+		Replies []contactReplyResponse `json:"replies"`
+	}
+}
+
+type adminContactListInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	Status        string `query:"status" doc:"Filter by status (pending, in_progress, resolved, unresolved, all)"`
+	Page          int    `query:"page" doc:"Page number (1-based)"`
+	Limit         int    `query:"limit" doc:"Number of items per page" minimum:"1" maximum:"100" default:"25"`
+}
+
+type contactMessageCatalogResponse struct {
+	Body struct {
+		Messages []contactMessageResponse `json:"messages"`
+		Total    int64                    `json:"total"`
+		Page     int                      `json:"page"`
+		Limit    int                      `json:"limit"`
+	}
+}
+
+type contactThreadInput struct {
+	ThreadID string `path:"threadId"`
+}
+
+type contactThreadReplyInput struct {
+	ThreadID string `path:"threadId"`
+	Body     struct {
+		Message string `json:"message" required:"true" maxLength:"65535"`
+	}
+}
+
+type contactThreadReplyOutput struct {
+	Body struct {
+		Reply contactReplyResponse `json:"reply"`
+	}
+}
+
+type contactReplyInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+	Body          struct {
+		Message string `json:"message" required:"true" maxLength:"65535"`
+	}
+}
+
+type contactReplyOutput struct {
+	Body struct {
+		Reply contactReplyResponse `json:"reply"`
+	}
+}
+
+type contactStatusInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+	Body          struct {
+		Status string `json:"status" required:"true" example:"in_progress"`
+	}
+}
+
+type contactStatusOutput struct {
+	Body struct {
+		Success bool `json:"success"`
 	}
 }
 
@@ -163,7 +277,7 @@ type grapeItemOutput struct {
 	}
 }
 
-func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, migrated bool) {
+func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, contactService *usecasecontact.Service, migrated bool) {
 	huma.Get(api, "/healthz", func(ctx context.Context, input *struct{}) (*healthOutput, error) {
 		output := &healthOutput{}
 		output.Body.Status = "ok"
@@ -340,6 +454,148 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toNewsCatalogResponse(catalog), nil
 	})
 
+	huma.Post(api, "/v1/contact", func(ctx context.Context, input *contactMessageInput) (*contactMessageOutput, error) {
+		saved, err := contactService.SubmitMessage(ctx, toContactMessage(input.Body))
+		if err != nil {
+			return nil, mapContactError("failed to submit contact message", err)
+		}
+
+		output := &contactMessageOutput{}
+		output.Body.Message = toContactMessageResponse(saved)
+		return output, nil
+	})
+
+	huma.Get(api, "/v1/contact/{threadId}", func(ctx context.Context, input *contactThreadInput) (*contactMessageDetailResponse, error) {
+		detail, err := contactService.GetMessageDetailByThreadID(ctx, input.ThreadID)
+		if err != nil {
+			return nil, mapContactError("failed to load contact thread", err)
+		}
+
+		output := &contactMessageDetailResponse{}
+		output.Body.Message = toContactMessageResponse(detail.Message)
+		output.Body.Replies = make([]contactReplyResponse, 0, len(detail.Replies))
+		for _, reply := range detail.Replies {
+			output.Body.Replies = append(output.Body.Replies, toContactReplyResponse(reply))
+		}
+		return output, nil
+	})
+
+	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *adminContactListInput) (*contactMessageCatalogResponse, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		if input.Page < 1 {
+			input.Page = 1
+		}
+		if input.Limit <= 0 {
+			input.Limit = 25
+		}
+
+		messages, total, err := contactService.ListMessages(ctx, input.Status, input.Page, input.Limit)
+		if err != nil {
+			return nil, mapContactError("failed to load contact messages", err)
+		}
+
+		output := &contactMessageCatalogResponse{}
+		output.Body.Messages = make([]contactMessageResponse, 0, len(messages))
+		for _, message := range messages {
+			output.Body.Messages = append(output.Body.Messages, toContactMessageResponse(message))
+		}
+		output.Body.Total = total
+		output.Body.Page = input.Page
+		output.Body.Limit = input.Limit
+		return output, nil
+	})
+
+	huma.Get(api, "/v1/admin/contact/{id}", func(ctx context.Context, input *struct {
+		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+		ID            uint   `path:"id"`
+	}) (*contactMessageDetailResponse, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		detail, err := contactService.GetMessageDetail(ctx, input.ID)
+		if err != nil {
+			return nil, mapContactError("failed to load contact message", err)
+		}
+
+		output := &contactMessageDetailResponse{}
+		output.Body.Message = toContactMessageResponse(detail.Message)
+		output.Body.Replies = make([]contactReplyResponse, 0, len(detail.Replies))
+		for _, reply := range detail.Replies {
+			output.Body.Replies = append(output.Body.Replies, toContactReplyResponse(reply))
+		}
+		return output, nil
+	})
+
+	huma.Post(api, "/v1/admin/contact/{id}/replies", func(ctx context.Context, input *contactReplyInput) (*contactReplyOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		user, err := authService.GetSession(ctx, token)
+		if err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		reply, err := contactService.ReplyMessage(ctx, input.ID, usecasecontact.ReplyAuthor{
+			UserID: user.ID,
+			Name:   contactReplySenderName,
+			Email:  user.Email,
+		}, input.Body.Message)
+		if err != nil {
+			return nil, mapContactError("failed to create contact reply", err)
+		}
+
+		output := &contactReplyOutput{}
+		output.Body.Reply = toContactReplyResponse(reply)
+		return output, nil
+	})
+
+	huma.Put(api, "/v1/admin/contact/{id}/status", func(ctx context.Context, input *contactStatusInput) (*contactStatusOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if _, err := authService.GetSession(ctx, token); err != nil {
+			return nil, mapAuthError("failed to load admin session", err)
+		}
+
+		err := contactService.UpdateStatus(ctx, input.ID, input.Body.Status)
+		if err != nil {
+			return nil, mapContactError("failed to update contact status", err)
+		}
+
+		output := &contactStatusOutput{}
+		output.Body.Success = true
+		return output, nil
+	})
+
+	huma.Post(api, "/v1/contact/{threadId}/replies", func(ctx context.Context, input *contactThreadReplyInput) (*contactThreadReplyOutput, error) {
+		reply, err := contactService.ReplyThread(ctx, input.ThreadID, input.Body.Message)
+		if err != nil {
+			return nil, mapContactError("failed to create contact reply", err)
+		}
+
+		output := &contactThreadReplyOutput{}
+		output.Body.Reply = toContactReplyResponse(reply)
+		return output, nil
+	})
+
 	huma.Get(api, "/v1/admin/news", func(ctx context.Context, input *sessionInput) (*newsCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
@@ -495,6 +751,19 @@ func mapNewsError(message string, err error) error {
 	}
 }
 
+func mapContactError(message string, err error) error {
+	switch {
+	case errors.Is(err, domaincontact.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
+	case errors.Is(err, domaincontact.ErrMessageNotFound):
+		return huma.Error404NotFound("not found", err)
+	case errors.Is(err, domaincontact.ErrMailNotConfigured):
+		return huma.Error500InternalServerError("mail configuration is missing", err)
+	default:
+		return huma.Error500InternalServerError(message, err)
+	}
+}
+
 func bearerToken(header string) string {
 	value := strings.TrimSpace(header)
 	if value == "" {
@@ -626,6 +895,44 @@ func toNewsOrderCatalog(input struct {
 	}
 
 	return domainnews.Catalog{Items: items}
+}
+
+func toContactMessage(input contactMessagePayload) domaincontact.Message {
+	return domaincontact.Message{
+		Name:     input.Name,
+		Email:    input.Email,
+		Category: input.Category,
+		Subject:  input.Subject,
+		Body:     input.Message,
+	}
+}
+
+func toContactMessageResponse(message domaincontact.Message) contactMessageResponse {
+	return contactMessageResponse{
+		ID:        message.ID,
+		ThreadID:  message.ThreadID,
+		Name:      message.Name,
+		Email:     message.Email,
+		Category:  message.Category,
+		Subject:   message.Subject,
+		Message:   message.Body,
+		Status:    message.Status,
+		CreatedAt: message.CreatedAt,
+	}
+}
+
+func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
+	return contactReplyResponse{
+		ID:          reply.ID,
+		MessageID:   reply.MessageID,
+		ThreadID:    reply.ThreadID,
+		SenderType:  reply.SenderType,
+		SenderName:  reply.SenderName,
+		SenderEmail: reply.SenderEmail,
+		Message:     reply.Message,
+		Status:      reply.Status,
+		CreatedAt:   reply.CreatedAt,
+	}
 }
 
 func toNewsItemResponse(item domainnews.Item) newsItemResponse {
