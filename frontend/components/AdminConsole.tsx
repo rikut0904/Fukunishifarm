@@ -5,6 +5,7 @@ import type { AdminMenuItem } from "@/lib/adminMenu";
 import AdminPageShell from "@/components/AdminPageShell";
 import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
+import AdminUsersPanel from "@/components/AdminUsersPanel";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -159,13 +160,7 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
   }
 
   if (mode === "users") {
-    return (
-      <AdminPageShell title="ユーザー管理" lead="準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。">
-        <div className="admin-login-state">
-          <p className="m-0">現在は閲覧用のプレースホルダです。操作メニューは上部ヘッダーから移動できます。</p>
-        </div>
-      </AdminPageShell>
-    );
+    return <AdminUsersPanel token={status.token} onSignOut={handleSignOut} />;
   }
 
   if (mode === "contact") {

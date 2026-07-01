@@ -17,6 +17,7 @@ import (
 
 	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
+	domainauth "fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	emailses "fukunishifarm/backend/internal/infra/email"
 	firebaseauth "fukunishifarm/backend/internal/infra/firebase"
@@ -94,6 +95,7 @@ func main() {
 		grapeRepository = gormrepo.NewGrapeRepository(database)
 	}
 	var contactReplySender domaincontact.ReplyEmailSender
+	var invitationMailer domainauth.InvitationEmailSender
 	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
 		sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
 		if err != nil {
@@ -101,10 +103,11 @@ func main() {
 			os.Exit(1)
 		}
 		contactReplySender = sender
+		invitationMailer = sender
 	} else {
-		slog.Warn("SES reply sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable contact replies by email")
+		slog.Warn("SES sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable mail delivery")
 	}
-	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
+	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository, invitationMailer, cfg.AdminLoginURL)
 	contactService := usecasecontact.NewService(contactRepository, adminRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
 	if cfg.MicroCMSServiceDomain == "" || cfg.MicroCMSAPIKey == "" {

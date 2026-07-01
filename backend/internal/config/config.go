@@ -11,6 +11,7 @@ type Config struct {
 	DatabaseURL            string
 	CORSAllowOrigins       []string
 	SiteBaseURL            string
+	AdminLoginURL          string
 	MicroCMSServiceDomain  string
 	MicroCMSAPIKey         string
 	MicroCMSBlogEndpoint   string
@@ -35,11 +36,18 @@ func Load() Config {
 		firebaseProjectID = resolved
 	}
 
+	siteBaseURL := strings.TrimRight(strings.TrimSpace(os.Getenv("SITE_BASE_URL")), "/")
+	adminLoginURL := strings.TrimSpace(os.Getenv("ADMIN_LOGIN_URL"))
+	if adminLoginURL == "" && siteBaseURL != "" {
+		adminLoginURL = siteBaseURL + "/login"
+	}
+
 	return Config{
 		Port:                   getenv("PORT", "8080"),
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		CORSAllowOrigins:       parseCSV(getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000")),
-		SiteBaseURL:            strings.TrimRight(strings.TrimSpace(os.Getenv("SITE_BASE_URL")), "/"),
+		SiteBaseURL:            siteBaseURL,
+		AdminLoginURL:          adminLoginURL,
 		MicroCMSServiceDomain:  strings.TrimSpace(os.Getenv("MICROCMS_SERVICE_DOMAIN")),
 		MicroCMSAPIKey:         strings.TrimSpace(getenvAny("MICROCMS_WRITE_API_KEY", "MICROCMS_API_KEY")),
 		MicroCMSBlogEndpoint:   strings.TrimSpace(os.Getenv("MICROCMS_BLOG_ENDPOINT")),

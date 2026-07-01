@@ -8,12 +8,23 @@ export const metadata: Metadata = {
   description: "管理画面へのログインページです。",
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<{
+    email?: string;
+    invited?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = (await searchParams) ?? {};
+  const initialEmail = typeof params.email === "string" ? params.email : "";
+  const invited = params.invited === "1";
+
   return (
     <div className="site-shell">
       <AppHeader variant="sub" />
       <main>
-        <LoginConsole />
+        <LoginConsole initialEmail={initialEmail} invited={invited} />
       </main>
       <SiteFooter />
     </div>

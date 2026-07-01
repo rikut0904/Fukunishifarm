@@ -44,7 +44,6 @@ type createUserInput struct {
 	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
 	Body          struct {
 		Email       string `json:"email" required:"true" example:"new-user@example.com"`
-		Password    string `json:"password" required:"true" example:"password"`
 		DisplayName string `json:"displayName,omitempty" example:"新規ユーザー"`
 	}
 }
@@ -77,6 +76,12 @@ type loginOutput struct {
 type createUserOutput struct {
 	Body struct {
 		User adminUserResponse `json:"user"`
+	}
+}
+
+type adminUsersOutput struct {
+	Body struct {
+		Users []adminUserResponse `json:"users"`
 	}
 }
 
@@ -310,13 +315,33 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 			return nil, huma.Error400BadRequest("missing bearer token")
 		}
 
-		user, err := authService.CreateUser(ctx, token, input.Body.Email, input.Body.Password, input.Body.DisplayName)
+		user, err := authService.CreateUser(ctx, token, input.Body.Email, input.Body.DisplayName)
 		if err != nil {
 			return nil, mapAuthError("failed to create firebase user", err)
 		}
 
 		output := &createUserOutput{}
 		output.Body.User = toAdminUserResponse(user)
+		return output, nil
+	})
+
+	huma.Get(api, "/v1/admin/users", func(ctx context.Context, input *sessionInput) (*adminUsersOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		users, err := authService.ListUsers(ctx, token)
+		if err != nil {
+			return nil, mapAuthError("failed to list admin users", err)
+		}
+
+		output := &adminUsersOutput{}
+		output.Body.Users = make([]adminUserResponse, 0, len(users))
+		for _, user := range users {
+			userCopy := user
+			output.Body.Users = append(output.Body.Users, toAdminUserResponse(&userCopy))
+		}
 		return output, nil
 	})
 
@@ -646,6 +671,8 @@ func mapAuthError(message string, err error) error {
 		return huma.Error401Unauthorized("unauthorized")
 	case errors.Is(err, usecaseauth.ErrForbidden):
 		return huma.Error403Forbidden("forbidden")
+	case errors.Is(err, domainauth.ErrMailNotConfigured):
+		return huma.Error503ServiceUnavailable("invitation mail is not configured")
 	case errors.Is(err, domainauth.ErrUserNotFound):
 		return huma.Error401Unauthorized("unauthorized")
 	default:

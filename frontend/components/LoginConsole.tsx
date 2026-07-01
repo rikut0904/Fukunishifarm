@@ -23,6 +23,11 @@ type Status =
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
 
+type LoginConsoleProps = {
+  initialEmail?: string;
+  invited?: boolean;
+};
+
 async function loginAdmin(email: string, password: string) {
   return apiFetch<LoginResponse>("/v1/auth/login", {
     method: "POST",
@@ -42,10 +47,10 @@ function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
-export default function LoginConsole() {
+export default function LoginConsole({ initialEmail = "", invited = false }: LoginConsoleProps) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: "signed-out" });
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
 
   const handleRetrySession = async () => {
@@ -130,6 +135,9 @@ export default function LoginConsole() {
   return (
     <AdminPageShell title="ログイン" variant="narrow">
       <form className="admin-login-form" onSubmit={handleSignIn}>
+          {invited ? (
+            <p className="admin-feedback">パスワード設定が完了したら、そのままこの画面からログインしてください。</p>
+          ) : null}
           <label className="admin-field">
             <span>Email</span>
             <input

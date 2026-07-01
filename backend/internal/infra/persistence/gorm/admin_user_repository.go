@@ -63,10 +63,19 @@ func (r *AdminUserRepository) FindAdminUserByFirebaseUID(ctx context.Context, fi
 func (r *AdminUserRepository) ListAdminUsers(ctx context.Context) ([]domainauth.AdminUser, error) {
 	var users []domainauth.AdminUser
 
-	tx := r.db.WithContext(ctx).Find(&users)
+	tx := r.db.WithContext(ctx).Order("created_at DESC").Find(&users)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 
 	return users, nil
+}
+
+func (r *AdminUserRepository) DeleteAdminUserByFirebaseUID(ctx context.Context, firebaseUID string) error {
+	tx := r.db.WithContext(ctx).Where("firebase_uid = ?", firebaseUID).Delete(&domainauth.AdminUser{})
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
 }

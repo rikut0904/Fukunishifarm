@@ -1513,6 +1513,143 @@ h4 {
   font-weight: 700;
 }
 
+.admin-users-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-users-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-users-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid rgba(177, 101, 52, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.admin-users-tabs__tab:hover,
+.admin-users-tabs__tab:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(200, 107, 43, 0.3);
+  color: var(--brand-strong);
+  box-shadow: 0 10px 22px rgba(105, 55, 23, 0.08);
+}
+
+.admin-users-tabs__tab--active {
+  border-color: rgba(200, 107, 43, 0.34);
+  background: rgba(247, 220, 192, 0.72);
+  color: var(--brand-strong);
+  box-shadow: 0 12px 26px rgba(105, 55, 23, 0.1);
+}
+
+.admin-users-note {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(177, 101, 52, 0.14);
+  border-radius: 1rem;
+  background: rgba(255, 249, 241, 0.84);
+}
+
+.admin-users-note__title {
+  margin: 0;
+  color: var(--brand-strong);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-users-note__body {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.7;
+}
+
+.admin-users-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-users-table th:nth-child(1),
+.admin-users-table td:nth-child(1) {
+  width: 18%;
+}
+
+.admin-users-table th:nth-child(2),
+.admin-users-table td:nth-child(2) {
+  width: 30%;
+}
+
+.admin-users-table th:nth-child(3),
+.admin-users-table td:nth-child(3) {
+  width: 12%;
+}
+
+.admin-users-table th:nth-child(4),
+.admin-users-table td:nth-child(4) {
+  width: 20%;
+}
+
+.admin-users-table th:nth-child(5),
+.admin-users-table td:nth-child(5) {
+  width: 20%;
+}
+
+.admin-users-table__identity {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-users-table__name {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.admin-users-table__uid {
+  color: var(--muted);
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.admin-users-table__role {
+  display: inline-flex;
+  align-items: center;
+  min-width: 4.5rem;
+  justify-content: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(247, 220, 192, 0.65);
+  color: var(--brand-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .admin-users-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-users-form > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .admin-users-form__actions {
+    grid-column: 1 / -1;
+  }
+}
+
 .admin-field {
   display: grid;
   gap: 0.45rem;

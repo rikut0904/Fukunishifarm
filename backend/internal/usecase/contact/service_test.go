@@ -119,6 +119,10 @@ func (r *fakeAdminRepository) ListAdminUsers(ctx context.Context) ([]domainauth.
 	return r.users, nil
 }
 
+func (r *fakeAdminRepository) DeleteAdminUserByFirebaseUID(ctx context.Context, firebaseUID string) error {
+	return nil
+}
+
 type fakeMailSender struct {
 	mu    sync.Mutex
 	calls []mailCall

@@ -3,6 +3,7 @@ package firebaseauth
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	firebase "firebase.google.com/go/v4"
 	firebaseauth "firebase.google.com/go/v4/auth"
@@ -59,8 +60,10 @@ func (v *Verifier) VerifyIDToken(ctx context.Context, token string) (domainauth.
 
 func (v *Verifier) CreateUser(ctx context.Context, email, password, displayName string) (domainauth.VerifiedIdentity, error) {
 	params := (&firebaseauth.UserToCreate{}).
-		Email(email).
-		Password(password)
+		Email(email)
+	if password != "" {
+		params = params.Password(password)
+	}
 	if displayName != "" {
 		params = params.DisplayName(displayName)
 	}
@@ -76,4 +79,41 @@ func (v *Verifier) CreateUser(ctx context.Context, email, password, displayName 
 		DisplayName: user.DisplayName,
 		PhotoURL:    user.PhotoURL,
 	}, nil
+}
+
+func (v *Verifier) CreateInvitedUser(ctx context.Context, email, displayName string) (domainauth.VerifiedIdentity, error) {
+	return v.CreateUser(ctx, email, "", displayName)
+}
+
+func (v *Verifier) DeleteUser(ctx context.Context, firebaseUID string) error {
+	firebaseUID = strings.TrimSpace(firebaseUID)
+	if firebaseUID == "" {
+		return fmt.Errorf("firebase uid is required")
+	}
+
+	if err := v.client.DeleteUser(ctx, firebaseUID); err != nil {
+		return fmt.Errorf("delete firebase user: %w", err)
+	}
+
+	return nil
+}
+
+func (v *Verifier) GeneratePasswordSetupLink(ctx context.Context, email, continueURL string) (string, error) {
+	email = strings.TrimSpace(email)
+	continueURL = strings.TrimSpace(continueURL)
+	if email == "" {
+		return "", fmt.Errorf("email is required")
+	}
+	if continueURL == "" {
+		return "", fmt.Errorf("continue URL is required")
+	}
+
+	link, err := v.client.PasswordResetLinkWithSettings(ctx, email, &firebaseauth.ActionCodeSettings{
+		URL: continueURL,
+	})
+	if err != nil {
+		return "", fmt.Errorf("generate password setup link: %w", err)
+	}
+
+	return link, nil
 }

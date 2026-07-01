@@ -54,6 +54,14 @@ func NewSESReplySender(ctx context.Context, region, accessKeyID, secretAccessKey
 }
 
 func (s *SESReplySender) SendReplyEmail(ctx context.Context, toEmail, subject, body string) error {
+	return s.sendEmail(ctx, toEmail, subject, body)
+}
+
+func (s *SESReplySender) SendInvitationEmail(ctx context.Context, toEmail, subject, body string) error {
+	return s.sendEmail(ctx, toEmail, subject, body)
+}
+
+func (s *SESReplySender) sendEmail(ctx context.Context, toEmail, subject, body string) error {
 	if s == nil || s.client == nil {
 		return fmt.Errorf("ses sender is not initialized")
 	}
@@ -65,7 +73,7 @@ func (s *SESReplySender) SendReplyEmail(ctx context.Context, toEmail, subject, b
 		return fmt.Errorf("recipient email is required")
 	}
 	if subject == "" {
-		subject = "【ふくにしファーム】お問い合わせへのご返信"
+		subject = "【ふくにしファーム】お知らせ"
 	}
 	if body == "" {
 		return fmt.Errorf("email body is required")
