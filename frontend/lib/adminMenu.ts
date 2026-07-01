@@ -33,12 +33,12 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
     {
       title: "ブログ管理",
       description: "microCMS 上でブログ記事を管理します。",
-      href: blogHref || "/admin/blog",
+      href: blogHref,
     },
     {
       title: "お知らせ管理",
       description: "microCMS 上でお知らせを管理します。",
-      href: newsHref || "/admin/news",
+      href: newsHref,
     },
     {
       title: "ユーザー管理",
@@ -49,4 +49,8 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
   ];
 }
 
-export const adminMenuItems = buildAdminMenuItems("", "blogs", "news");
+export const adminMenuItems = buildAdminMenuItems(
+  process.env.MICROCMS_SERVICE_DOMAIN || "fukunishifarm",
+  process.env.MICROCMS_BLOG_ENDPOINT || "blogs",
+  process.env.MICROCMS_NEWS_ENDPOINT || "news",
+);
