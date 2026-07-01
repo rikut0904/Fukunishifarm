@@ -96,6 +96,12 @@ type resendInvitationOutput struct {
 	}
 }
 
+type deleteAdminUserOutput struct {
+	Body struct {
+		Success bool `json:"success"`
+	}
+}
+
 type contactMessagePayload struct {
 	Name     string `json:"name" required:"true" maxLength:"80"`
 	Email    string `json:"email" required:"true" maxLength:"320"`
@@ -367,6 +373,21 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		}
 
 		output := &resendInvitationOutput{}
+		output.Body.Success = true
+		return output, nil
+	})
+
+	huma.Delete(api, "/v1/admin/users/{id}", func(ctx context.Context, input *adminUserPathInput) (*deleteAdminUserOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if err := authService.DeleteUser(ctx, token, input.ID); err != nil {
+			return nil, mapAuthError("failed to delete admin user", err)
+		}
+
+		output := &deleteAdminUserOutput{}
 		output.Body.Success = true
 		return output, nil
 	})

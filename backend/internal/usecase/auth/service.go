@@ -194,6 +194,37 @@ func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, use
 	return nil
 }
 
+func (s *Service) DeleteUser(ctx context.Context, sessionToken string, userID uint) error {
+	if strings.TrimSpace(sessionToken) == "" || userID == 0 {
+		return ErrInvalidInput
+	}
+
+	currentUser, err := s.GetSession(ctx, sessionToken)
+	if err != nil {
+		return err
+	}
+	if currentUser.ID == userID {
+		return ErrForbidden
+	}
+
+	user, err := s.repository.FindAdminUserByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domainauth.ErrUserNotFound) {
+			return err
+		}
+		return fmt.Errorf("find admin user by id: %w", err)
+	}
+
+	if err := s.creator.DeleteUser(ctx, user.FirebaseUID); err != nil {
+		return fmt.Errorf("delete firebase user: %w", err)
+	}
+	if err := s.repository.DeleteAdminUserByFirebaseUID(ctx, user.FirebaseUID); err != nil {
+		return fmt.Errorf("delete admin user: %w", err)
+	}
+
+	return nil
+}
+
 func rollbackInvite(ctx context.Context, creator domainauth.AccountCreator, repository domainauth.Repository, firebaseUID string) {
 	if creator != nil {
 		if err := creator.DeleteUser(ctx, firebaseUID); err != nil {

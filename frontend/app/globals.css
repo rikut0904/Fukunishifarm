@@ -1637,6 +1637,17 @@ h4 {
   cursor: wait;
 }
 
+.admin-users-table__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-users-table__action--danger {
+  background: rgba(255, 228, 225, 0.9);
+  color: #b42318;
+}
+
 .admin-users-table__role {
   display: inline-flex;
   align-items: center;

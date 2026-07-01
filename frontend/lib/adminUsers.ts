@@ -43,3 +43,12 @@ export async function resendAdminUserInvitation(token: string, id: number) {
     },
   });
 }
+
+export async function deleteAdminUser(token: string, id: number) {
+  return apiFetch<{ success: boolean }>(`/v1/admin/users/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}

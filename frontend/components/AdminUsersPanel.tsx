@@ -2,9 +2,9 @@
 
 import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
-import { type AdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
+import { type AdminUser, deleteAdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
 import { formatDateTime } from "@/lib/datetime";
-import { Loader2, RefreshCcw, Send } from "lucide-react";
+import { Loader2, RefreshCcw, Send, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
@@ -59,6 +59,7 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
   const [toast, setToast] = useState<Toast | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("invite");
   const [resendingUserId, setResendingUserId] = useState<number | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
 
   const loadUsers = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -162,6 +163,36 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
       });
     } finally {
       setResendingUserId(null);
+    }
+  };
+
+  const handleDeleteUser = async (user: AdminUser) => {
+    const confirmed = window.confirm(`${user.email} の管理者アカウントを削除します。この操作は取り消せません。`);
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingUserId(user.id);
+
+    try {
+      await deleteAdminUser(token, user.id);
+      setUsers((current) => current.filter((item) => item.id !== user.id));
+      setToast({
+        kind: "success",
+        message: `${user.email} の管理者アカウントを削除しました。`,
+      });
+    } catch (error) {
+      if (isAuthExpired(error)) {
+        onSignOut();
+        return;
+      }
+
+      setToast({
+        kind: "error",
+        message: error instanceof Error ? error.message : "管理者アカウントを削除できませんでした。",
+      });
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -288,15 +319,26 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                           <td>{user.email}</td>
                           <td>{formatDateTime(user.lastLoginAt) || "-"}</td>
                           <td>
-                            <button
-                              type="button"
-                              className="admin-users-table__action"
-                              onClick={() => void handleResendInvitation(user)}
-                              disabled={resendingUserId === user.id}
-                            >
-                              {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                              再送
-                            </button>
+                            <div className="admin-users-table__actions">
+                              <button
+                                type="button"
+                                className="admin-users-table__action"
+                                onClick={() => void handleResendInvitation(user)}
+                                disabled={resendingUserId === user.id || deletingUserId === user.id}
+                              >
+                                {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                再送
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-users-table__action admin-users-table__action--danger"
+                                onClick={() => void handleDeleteUser(user)}
+                                disabled={deletingUserId === user.id || resendingUserId === user.id}
+                              >
+                                {deletingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                削除
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
