@@ -4,7 +4,7 @@ import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
 import { type AdminUser, deleteAdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
 import { formatDateTime } from "@/lib/datetime";
-import { ChevronRight, Loader2, RefreshCcw, Send, Trash2, X } from "lucide-react";
+import { ChevronRight, Loader2, Send, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
@@ -37,18 +37,6 @@ const initialForm: InviteForm = {
 
 function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
-}
-
-function getLatestCreatedAt(users: AdminUser[]) {
-  return users[0]?.createdAt ?? null;
-}
-
-function getRoleLabel(role: string) {
-  if (role === "admin") {
-    return "管理者";
-  }
-
-  return role || "-";
 }
 
 export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelProps) {
