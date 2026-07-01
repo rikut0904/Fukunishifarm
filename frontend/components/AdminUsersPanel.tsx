@@ -20,6 +20,7 @@ type Toast = {
 
 type AdminUsersPanelProps = {
   token: string;
+  currentUserId: number;
   onSignOut: () => void;
 };
 
@@ -39,7 +40,7 @@ function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
-export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelProps) {
+export default function AdminUsersPanel({ token, currentUserId, onSignOut }: AdminUsersPanelProps) {
   const requestIdRef = useRef(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -186,6 +187,8 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
     }
   };
 
+  const isCurrentUser = (user: AdminUser) => user.id === currentUserId;
+
   return (
     <AdminPageShell
       title="ユーザー管理"
@@ -302,26 +305,28 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                           <td>{formatDateTime(user.lastLoginAt) || "-"}</td>
                           <td>
                             <div className="admin-users-table__actions">
-                              <button
-                                type="button"
-                                className="admin-users-table__action"
-                                onClick={() => void handleResendInvitation(user)}
-                                disabled={resendingUserId === user.id || deletingUserId === user.id}
+                                <button
+                                  type="button"
+                                  className="admin-users-table__action"
+                                  onClick={() => void handleResendInvitation(user)}
+                                  disabled={resendingUserId === user.id || deletingUserId === user.id}
                               >
                                 {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                 再送
                               </button>
-                              <button
-                                type="button"
-                                className="admin-users-table__action admin-users-table__action--danger"
-                                onClick={() => void handleDeleteUser(user)}
-                                disabled={deletingUserId === user.id || resendingUserId === user.id}
-                              >
-                                {deletingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                削除
-                              </button>
-                            </div>
-                          </td>
+                                {!isCurrentUser(user) ? (
+                                  <button
+                                    type="button"
+                                    className="admin-users-table__action admin-users-table__action--danger"
+                                    onClick={() => void handleDeleteUser(user)}
+                                    disabled={deletingUserId === user.id || resendingUserId === user.id}
+                                  >
+                                    {deletingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    削除
+                                  </button>
+                                ) : null}
+                              </div>
+                            </td>
                         </tr>
                       ))}
                     </tbody>
@@ -393,15 +398,17 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                 {resendingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 再送
               </button>
-              <button
-                type="button"
-                className="admin-users-table__action admin-users-table__action--danger"
-                onClick={() => void handleDeleteUser(selectedUser)}
-                disabled={deletingUserId === selectedUser.id || resendingUserId === selectedUser.id}
-              >
-                {deletingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                削除
-              </button>
+              {!isCurrentUser(selectedUser) ? (
+                <button
+                  type="button"
+                  className="admin-users-table__action admin-users-table__action--danger"
+                  onClick={() => void handleDeleteUser(selectedUser)}
+                  disabled={deletingUserId === selectedUser.id || resendingUserId === selectedUser.id}
+                >
+                  {deletingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  削除
+                </button>
+              ) : null}
             </div>
           </div>
         </div>

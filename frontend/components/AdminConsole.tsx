@@ -13,13 +13,14 @@ import Link from "next/link";
 
 type SessionResponse = {
   user: {
+    id: number;
     email: string;
   };
 };
 
 type Status =
   | { kind: "loading" }
-  | { kind: "authenticated"; token: string }
+  | { kind: "authenticated"; token: string; currentUserId: number }
   | { kind: "error"; message: string }
   | { kind: "redirecting" };
 
@@ -60,8 +61,8 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
     }
 
     try {
-      await fetchSession(token);
-      setStatus({ kind: "authenticated", token });
+      const session = await fetchSession(token);
+      setStatus({ kind: "authenticated", token, currentUserId: session.user.id });
     } catch (error) {
       if (isAuthExpired(error)) {
         handleSignOut();
@@ -86,9 +87,9 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
       }
 
       try {
-        await fetchSession(token);
+        const session = await fetchSession(token);
         if (!cancelled) {
-          setStatus({ kind: "authenticated", token });
+          setStatus({ kind: "authenticated", token, currentUserId: session.user.id });
         }
       } catch (error) {
         if (isAuthExpired(error)) {
@@ -160,7 +161,7 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
   }
 
   if (mode === "users") {
-    return <AdminUsersPanel token={status.token} onSignOut={handleSignOut} />;
+    return <AdminUsersPanel token={status.token} currentUserId={status.currentUserId} onSignOut={handleSignOut} />;
   }
 
   if (mode === "contact") {
