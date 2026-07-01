@@ -1,0 +1,23 @@
+name: CI Test
+
+on:
+  pull_request:
+    types:
+      - synchronize
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Run tests
+        run: make test
