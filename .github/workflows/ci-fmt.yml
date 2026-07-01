@@ -2,8 +2,6 @@ name: CI Fmt
 
 on:
   pull_request:
-    types:
-      - synchronize
 
 jobs:
   fmt:
