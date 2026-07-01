@@ -1,7 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { formatBlogDate, getBlogContent, loadPublicBlogPost } from "@/lib/blog";
-import { htmlToPlainText, renderHtmlContent } from "@/lib/html";
+import { htmlExcerpt, renderHtmlContent } from "@/lib/html";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,12 +10,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 function buildBlogDescription(content: string) {
-  const text = htmlToPlainText(content);
-  if (text.length <= 140) {
-    return text;
-  }
-
-  return `${text.slice(0, 139)}…`;
+  return htmlExcerpt(content, 140);
 }
 
 export async function generateMetadata({
