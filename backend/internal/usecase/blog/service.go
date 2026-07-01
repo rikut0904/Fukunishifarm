@@ -13,6 +13,7 @@ import (
 )
 
 const defaultEndpoint = "blogs"
+const maxCatalogLimit = 100
 
 type Service struct {
 	client   *microcms.Client
@@ -47,6 +48,8 @@ func NewService(serviceDomain, apiKey, endpoint string) *Service {
 func (s *Service) GetPublicCatalog(ctx context.Context, limit int) (domainblog.Catalog, error) {
 	if limit <= 0 {
 		limit = 12
+	} else if limit > maxCatalogLimit {
+		limit = maxCatalogLimit
 	}
 
 	var response microCMSListResponse
