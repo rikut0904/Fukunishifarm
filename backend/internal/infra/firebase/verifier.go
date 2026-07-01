@@ -92,6 +92,9 @@ func (v *Verifier) DeleteUser(ctx context.Context, firebaseUID string) error {
 	}
 
 	if err := v.client.DeleteUser(ctx, firebaseUID); err != nil {
+		if firebaseauth.IsUserNotFound(err) {
+			return nil
+		}
 		return fmt.Errorf("delete firebase user: %w", err)
 	}
 
