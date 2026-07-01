@@ -88,7 +88,12 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	resp, err := c.httpClient.Do(req)
+	httpClient := c.httpClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("microcms request failed: %w", err)
 	}
