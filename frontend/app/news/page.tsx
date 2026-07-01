@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
 };
 
-function formatNewsDate(date: string) {
+function formatNewsDate(date: string | null | undefined) {
+  if (!date) {
+    return "";
+  }
+
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) {
     return date;
