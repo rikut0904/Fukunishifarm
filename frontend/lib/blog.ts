@@ -63,7 +63,12 @@ export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
 }
 
 export async function fetchPublicBlogPostBySlug(slug: string) {
-  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog/${slug}`, {
+  const normalizedSlug = slug.trim();
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog/${encodeURIComponent(normalizedSlug)}`, {
     cache: "no-store",
   });
   if (response.status === 404) {
@@ -73,6 +78,9 @@ export async function fetchPublicBlogPostBySlug(slug: string) {
     throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
   }
   const payload = (await response.json()) as { post: BlogPost };
+  if (!payload?.post) {
+    throw new ApiError(response.status, "API response did not include a blog post");
+  }
   return normalizeBlogPost(payload.post);
 }
 
