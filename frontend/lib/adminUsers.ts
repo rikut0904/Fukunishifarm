@@ -7,7 +7,7 @@ export type AdminUser = {
   displayName?: string;
   photoURL?: string;
   role: string;
-  lastLoginAt: string;
+  lastLoginAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };

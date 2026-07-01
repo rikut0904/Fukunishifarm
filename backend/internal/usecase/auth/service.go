@@ -62,7 +62,7 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 		return nil, fmt.Errorf("verify firebase id token: %w", err)
 	}
 
-	user, err := s.repository.UpsertAdminUser(ctx, identity)
+	user, err := s.repository.UpsertLoginAdminUser(ctx, identity)
 	if err != nil {
 		return nil, fmt.Errorf("upsert admin user: %w", err)
 	}
@@ -102,7 +102,7 @@ func (s *Service) CreateUser(ctx context.Context, sessionToken, email, displayNa
 		return nil, fmt.Errorf("create firebase user: %w", err)
 	}
 
-	user, err := s.repository.UpsertAdminUser(ctx, identity)
+	user, err := s.repository.CreateAdminUser(ctx, identity)
 	if err != nil {
 		rollbackInvite(ctx, s.creator, s.repository, identity.FirebaseUID)
 		return nil, fmt.Errorf("upsert created user: %w", err)

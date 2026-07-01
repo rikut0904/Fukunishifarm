@@ -104,7 +104,11 @@ type fakeAdminRepository struct {
 	err   error
 }
 
-func (r *fakeAdminRepository) UpsertAdminUser(ctx context.Context, identity domainauth.VerifiedIdentity) (*domainauth.AdminUser, error) {
+func (r *fakeAdminRepository) CreateAdminUser(ctx context.Context, identity domainauth.VerifiedIdentity) (*domainauth.AdminUser, error) {
+	return nil, nil
+}
+
+func (r *fakeAdminRepository) UpsertLoginAdminUser(ctx context.Context, identity domainauth.VerifiedIdentity) (*domainauth.AdminUser, error) {
 	return nil, nil
 }
 

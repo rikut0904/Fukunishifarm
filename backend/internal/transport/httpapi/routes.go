@@ -49,15 +49,15 @@ type createUserInput struct {
 }
 
 type adminUserResponse struct {
-	ID          uint      `json:"id"`
-	FirebaseUID string    `json:"firebaseUid"`
-	Email       string    `json:"email"`
-	DisplayName string    `json:"displayName,omitempty"`
-	PhotoURL    string    `json:"photoURL,omitempty"`
-	Role        string    `json:"role"`
-	LastLoginAt time.Time `json:"lastLoginAt"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID          uint       `json:"id"`
+	FirebaseUID string     `json:"firebaseUid"`
+	Email       string     `json:"email"`
+	DisplayName string     `json:"displayName,omitempty"`
+	PhotoURL    string     `json:"photoURL,omitempty"`
+	Role        string     `json:"role"`
+	LastLoginAt *time.Time `json:"lastLoginAt"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 type sessionOutput struct {
@@ -792,6 +792,11 @@ func bearerToken(header string) string {
 }
 
 func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
+	var lastLoginAt *time.Time
+	if !user.LastLoginAt.IsZero() {
+		lastLoginAt = &user.LastLoginAt
+	}
+
 	return adminUserResponse{
 		ID:          user.ID,
 		FirebaseUID: user.FirebaseUID,
@@ -799,7 +804,7 @@ func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
 		DisplayName: user.DisplayName,
 		PhotoURL:    user.PhotoURL,
 		Role:        user.Role,
-		LastLoginAt: user.LastLoginAt,
+		LastLoginAt: lastLoginAt,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 	}
