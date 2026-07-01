@@ -7,10 +7,12 @@ import (
 	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
+	domainblog "fukunishifarm/backend/internal/domain/blog"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecaseblog "fukunishifarm/backend/internal/usecase/blog"
 	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
@@ -224,12 +226,12 @@ type grapeCatalogInput struct {
 }
 
 type newsItemResponse struct {
-	ID        uint      `json:"id"`
-	Date      string    `json:"date"`
-	Title     string    `json:"title"`
-	SortOrder int       `json:"sortOrder"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	SortOrder   int    `json:"sortOrder"`
+	PublishedAt string `json:"publishedAt,omitempty"`
+	CreatedAt   string `json:"createdAt,omitempty"`
+	UpdatedAt   string `json:"updatedAt,omitempty"`
 }
 
 type newsCatalogResponse struct {
@@ -238,33 +240,49 @@ type newsCatalogResponse struct {
 	}
 }
 
-type newsItemOutput struct {
+type blogImageResponse struct {
+	URL    string `json:"url"`
+	Height int    `json:"height,omitempty"`
+	Width  int    `json:"width,omitempty"`
+}
+
+type blogCategoryResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type blogPostResponse struct {
+	ID          string                `json:"id"`
+	Title       string                `json:"title"`
+	Slug        string                `json:"slug"`
+	Excerpt     string                `json:"excerpt"`
+	Content     string                `json:"content"`
+	Eyecatch    *blogImageResponse    `json:"eyecatch,omitempty"`
+	Category    *blogCategoryResponse `json:"category,omitempty"`
+	PublishedAt string                `json:"publishedAt"`
+	RevisedAt   string                `json:"revisedAt,omitempty"`
+	CreatedAt   string                `json:"createdAt,omitempty"`
+	UpdatedAt   string                `json:"updatedAt,omitempty"`
+}
+
+type blogCatalogOutput struct {
 	Body struct {
-		Item newsItemResponse `json:"item"`
+		Posts []blogPostResponse `json:"posts"`
 	}
 }
 
-type newsItemInput struct {
-	Date      string `json:"date" required:"true"`
-	Title     string `json:"title" required:"true"`
-	SortOrder int    `json:"sortOrder"`
-}
-
-type newsCatalogInput struct {
+type blogPostOutput struct {
 	Body struct {
-		Items []newsItemInput `json:"items"`
+		Post blogPostResponse `json:"post"`
 	}
 }
 
-type newsItemOrderInput struct {
-	ID        uint `json:"id" required:"true"`
-	SortOrder int  `json:"sortOrder"`
+type publicBlogListInput struct {
+	Limit int `query:"limit" minimum:"1" maximum:"100" default:"12"`
 }
 
-type newsOrderInput struct {
-	Body struct {
-		Items []newsItemOrderInput `json:"items"`
-	}
+type publicBlogPostInput struct {
+	Slug string `path:"slug"`
 }
 
 type grapeItemPath struct {
@@ -277,7 +295,7 @@ type grapeItemOutput struct {
 	}
 }
 
-func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, contactService *usecasecontact.Service, migrated bool) {
+func Register(api huma.API, authService *usecaseauth.Service, grapeService *usecasegrape.Service, newsService *usecasenews.Service, blogService *usecaseblog.Service, contactService *usecasecontact.Service, migrated bool) {
 	huma.Get(api, "/healthz", func(ctx context.Context, input *struct{}) (*healthOutput, error) {
 		output := &healthOutput{}
 		output.Body.Status = "ok"
@@ -596,120 +614,26 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Get(api, "/v1/admin/news", func(ctx context.Context, input *sessionInput) (*newsCatalogResponse, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		catalog, err := newsService.GetAdminCatalog(ctx)
+	huma.Get(api, "/v1/blog", func(ctx context.Context, input *publicBlogListInput) (*blogCatalogOutput, error) {
+		catalog, err := blogService.GetPublicCatalog(ctx, input.Limit)
 		if err != nil {
-			return nil, mapNewsError("failed to load news catalog", err)
+			return nil, mapBlogError("failed to load blog catalog", err)
 		}
 
-		return toNewsCatalogResponse(catalog), nil
+		return toBlogCatalogResponse(catalog), nil
 	})
 
-	huma.Post(api, "/v1/admin/news", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          newsItemInput
-	}) (*newsItemOutput, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		saved, err := newsService.CreateItem(ctx, toNewsItem(input.Body))
+	huma.Get(api, "/v1/blog/{slug}", func(ctx context.Context, input *publicBlogPostInput) (*blogPostOutput, error) {
+		post, err := blogService.GetPublicPostBySlug(ctx, input.Slug)
 		if err != nil {
-			return nil, mapNewsError("failed to create news item", err)
+			return nil, mapBlogError("failed to load blog post", err)
 		}
 
-		output := &newsItemOutput{}
-		output.Body.Item = toNewsItemResponse(saved)
+		output := &blogPostOutput{}
+		output.Body.Post = toBlogPostResponse(post)
 		return output, nil
 	})
 
-	huma.Put(api, "/v1/admin/news/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-		Body          newsItemInput
-	}) (*newsItemOutput, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		saved, err := newsService.UpdateItem(ctx, toNewsItemWithID(input.ID, input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to update news item", err)
-		}
-
-		output := &newsItemOutput{}
-		output.Body.Item = toNewsItemResponse(saved)
-		return output, nil
-	})
-
-	huma.Put(api, "/v1/admin/news/reorder", func(ctx context.Context, input *newsOrderInput) (*newsCatalogResponse, error) {
-		catalog, err := newsService.ReorderCatalog(ctx, toNewsOrderCatalog(input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to reorder news items", err)
-		}
-
-		return toNewsCatalogResponse(catalog), nil
-	})
-
-	huma.Delete(api, "/v1/admin/news/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-	}) (*struct{}, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		if err := newsService.DeleteItem(ctx, input.ID); err != nil {
-			return nil, mapNewsError("failed to delete news item", err)
-		}
-
-		return &struct{}{}, nil
-	})
-
-	huma.Put(api, "/v1/admin/news", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          newsCatalogInput
-	}) (*newsCatalogResponse, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		catalog, err := newsService.ReplaceCatalog(ctx, toNewsCatalog(input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to update news catalog", err)
-		}
-
-		return toNewsCatalogResponse(catalog), nil
-	})
 }
 
 func mapAuthError(message string, err error) error {
@@ -745,6 +669,17 @@ func mapNewsError(message string, err error) error {
 	case errors.Is(err, domainnews.ErrInvalidInput):
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domainnews.ErrItemNotFound):
+		return huma.Error404NotFound("not found", err)
+	default:
+		return huma.Error500InternalServerError(message, err)
+	}
+}
+
+func mapBlogError(message string, err error) error {
+	switch {
+	case errors.Is(err, domainblog.ErrInvalidInput):
+		return huma.Error400BadRequest("invalid input", err)
+	case errors.Is(err, domainblog.ErrPostNotFound):
 		return huma.Error404NotFound("not found", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
@@ -856,47 +791,6 @@ func toGrapeItemResponse(item domaingrape.Item) grapeItemResponse {
 	}
 }
 
-func toNewsCatalog(input newsCatalogInput) domainnews.Catalog {
-	items := make([]domainnews.Item, 0, len(input.Body.Items))
-	for _, item := range input.Body.Items {
-		items = append(items, domainnews.Item{
-			Date:      item.Date,
-			Title:     item.Title,
-			SortOrder: item.SortOrder,
-		})
-	}
-
-	return domainnews.Catalog{Items: items}
-}
-
-func toNewsItem(input newsItemInput) domainnews.Item {
-	return domainnews.Item{
-		Date:      input.Date,
-		Title:     input.Title,
-		SortOrder: input.SortOrder,
-	}
-}
-
-func toNewsItemWithID(id uint, input newsItemInput) domainnews.Item {
-	item := toNewsItem(input)
-	item.ID = id
-	return item
-}
-
-func toNewsOrderCatalog(input struct {
-	Items []newsItemOrderInput `json:"items"`
-}) domainnews.Catalog {
-	items := make([]domainnews.Item, 0, len(input.Items))
-	for _, item := range input.Items {
-		items = append(items, domainnews.Item{
-			ID:        item.ID,
-			SortOrder: item.SortOrder,
-		})
-	}
-
-	return domainnews.Catalog{Items: items}
-}
-
 func toContactMessage(input contactMessagePayload) domaincontact.Message {
 	return domaincontact.Message{
 		Name:     input.Name,
@@ -937,12 +831,12 @@ func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
 
 func toNewsItemResponse(item domainnews.Item) newsItemResponse {
 	return newsItemResponse{
-		ID:        item.ID,
-		Date:      item.Date,
-		Title:     item.Title,
-		SortOrder: item.SortOrder,
-		CreatedAt: item.CreatedAt,
-		UpdatedAt: item.UpdatedAt,
+		ID:          item.ID,
+		Title:       item.Title,
+		SortOrder:   item.SortOrder,
+		PublishedAt: item.PublishedAt,
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
 	}
 }
 
@@ -950,15 +844,45 @@ func toNewsCatalogResponse(catalog domainnews.Catalog) *newsCatalogResponse {
 	output := &newsCatalogResponse{}
 	output.Body.Items = make([]newsItemResponse, 0, len(catalog.Items))
 	for _, item := range catalog.Items {
-		output.Body.Items = append(output.Body.Items, newsItemResponse{
-			ID:        item.ID,
-			Date:      item.Date,
-			Title:     item.Title,
-			SortOrder: item.SortOrder,
-			CreatedAt: item.CreatedAt,
-			UpdatedAt: item.UpdatedAt,
-		})
+		output.Body.Items = append(output.Body.Items, toNewsItemResponse(item))
 	}
 
 	return output
+}
+
+func toBlogCatalogResponse(catalog domainblog.Catalog) *blogCatalogOutput {
+	output := &blogCatalogOutput{}
+	output.Body.Posts = make([]blogPostResponse, 0, len(catalog.Posts))
+	for _, post := range catalog.Posts {
+		output.Body.Posts = append(output.Body.Posts, toBlogPostResponse(post))
+	}
+	return output
+}
+
+func toBlogPostResponse(post domainblog.Post) blogPostResponse {
+	response := blogPostResponse{
+		ID:          post.ID,
+		Title:       post.Title,
+		Slug:        post.Slug,
+		Excerpt:     post.Excerpt,
+		Content:     post.Content,
+		PublishedAt: post.PublishedAt,
+		RevisedAt:   post.RevisedAt,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
+	}
+	if post.Eyecatch != nil {
+		response.Eyecatch = &blogImageResponse{
+			URL:    post.Eyecatch.URL,
+			Height: post.Eyecatch.Height,
+			Width:  post.Eyecatch.Width,
+		}
+	}
+	if post.Category != nil {
+		response.Category = &blogCategoryResponse{
+			ID:   post.Category.ID,
+			Name: post.Category.Name,
+		}
+	}
+	return response
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gorm.io/gorm"
 
 	"fukunishifarm/backend/internal/bootstrap"
 	"fukunishifarm/backend/internal/config"
@@ -23,6 +24,7 @@ import (
 	sessionjwt "fukunishifarm/backend/internal/infra/session"
 	"fukunishifarm/backend/internal/transport/httpapi"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
+	usecaseblog "fukunishifarm/backend/internal/usecase/blog"
 	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	usecasenews "fukunishifarm/backend/internal/usecase/news"
@@ -30,24 +32,38 @@ import (
 	backenddb "fukunishifarm/backend/internal/db"
 )
 
+func isRouteAllowedWithoutMigration(path string) bool {
+	return path == "/healthz" ||
+		path == "/v1/news" ||
+		path == "/v1/blog" ||
+		strings.HasPrefix(path, "/v1/blog/")
+}
+
 func main() {
 	cfg := config.Load()
 	ctx := context.Background()
-
-	database, err := backenddb.Open(cfg.DatabaseURL)
-	if err != nil {
-		slog.Error("open database", "error", err)
-		os.Exit(1)
-	}
-
 	migrated := true
-	if err := bootstrap.RequireMigrated(ctx, database); err != nil {
-		if errors.Is(err, bootstrap.ErrDatabaseNotMigrated) {
+	var database *gorm.DB
+
+	if strings.TrimSpace(cfg.DatabaseURL) == "" {
+		migrated = false
+		slog.Warn("database is not configured; starting in public-blog mode", "hint", "set DATABASE_URL and run `make migrate` to enable DB-backed features")
+	} else {
+		opened, err := backenddb.Open(cfg.DatabaseURL)
+		if err != nil {
 			migrated = false
-			slog.Warn("database not migrated", "hint", "run `make migrate`")
+			slog.Warn("database is unavailable; starting in public-blog mode", "error", err)
 		} else {
-			slog.Error("check database migration", "error", err)
-			os.Exit(1)
+			database = opened
+			if err := bootstrap.RequireMigrated(ctx, database); err != nil {
+				if errors.Is(err, bootstrap.ErrDatabaseNotMigrated) {
+					migrated = false
+					slog.Warn("database not migrated", "hint", "run `make migrate`")
+				} else {
+					migrated = false
+					slog.Warn("check database migration failed; starting in public-blog mode", "error", err)
+				}
+			}
 		}
 	}
 
@@ -69,10 +85,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	adminRepository := gormrepo.NewAdminUserRepository(database)
-	contactRepository := gormrepo.NewContactRepository(database)
-	grapeRepository := gormrepo.NewGrapeRepository(database)
-	newsRepository := gormrepo.NewNewsRepository(database)
+	var adminRepository *gormrepo.AdminUserRepository
+	var contactRepository *gormrepo.ContactRepository
+	var grapeRepository *gormrepo.GrapeRepository
+	if database != nil && migrated {
+		adminRepository = gormrepo.NewAdminUserRepository(database)
+		contactRepository = gormrepo.NewContactRepository(database)
+		grapeRepository = gormrepo.NewGrapeRepository(database)
+	}
 	var contactReplySender domaincontact.ReplyEmailSender
 	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
 		sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
@@ -87,7 +107,11 @@ func main() {
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
 	contactService := usecasecontact.NewService(contactRepository, adminRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
-	newsService := usecasenews.NewService(newsRepository)
+	if cfg.MicroCMSServiceDomain == "" || cfg.MicroCMSAPIKey == "" {
+		slog.Warn("microCMS is not fully configured; blog and news features will be unavailable", "domain", cfg.MicroCMSServiceDomain, "has_key", cfg.MicroCMSAPIKey != "")
+	}
+	newsService := usecasenews.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSNewsEndpoint)
+	blogService := usecaseblog.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSBlogEndpoint)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -105,7 +129,7 @@ func main() {
 				return next(c)
 			}
 
-			if c.Request().Method == http.MethodOptions || c.Request().URL.Path == "/healthz" {
+			if c.Request().Method == http.MethodOptions || isRouteAllowedWithoutMigration(c.Request().URL.Path) {
 				return next(c)
 			}
 
@@ -117,7 +141,7 @@ func main() {
 	})
 
 	api := humaecho.New(e, huma.DefaultConfig("Fukunishi Farm API", "1.0.0"))
-	httpapi.Register(api, authService, grapeService, newsService, contactService, migrated)
+	httpapi.Register(api, authService, grapeService, newsService, blogService, contactService, migrated)
 
 	slog.Info("starting api server", "port", cfg.Port)
 	if err := e.Start(":" + cfg.Port); err != nil && err != http.ErrServerClosed {

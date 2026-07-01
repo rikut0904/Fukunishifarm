@@ -1,6 +1,7 @@
 import AdminHeader from "@/components/AdminHeader";
 import AdminConsole from "@/components/AdminConsole";
 import SiteFooter from "@/components/SiteFooter";
+import { buildAdminMenuItems } from "@/lib/adminMenu";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,11 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
+  const menuItems = buildAdminMenuItems(
+    process.env.MICROCMS_SERVICE_DOMAIN?.trim() ?? "",
+    process.env.MICROCMS_BLOG_ENDPOINT?.trim() || "blogs",
+    process.env.MICROCMS_NEWS_ENDPOINT?.trim() || "news",
+  );
+
   return (
     <div className="site-shell">
       <AdminHeader />
       <main>
-        <AdminConsole />
+        <AdminConsole menuItems={menuItems} />
       </main>
       <SiteFooter />
     </div>

@@ -1,39 +1,16 @@
-import { ApiError, apiFetch, isMigrationRequiredError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 
 export type NewsItem = {
-  id: number;
-  date: string;
+  id: string;
   title: string;
   sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
+  publishedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NewsCatalog = {
   items: NewsItem[];
-};
-
-export type NewsItemInput = {
-  date: string;
-  title: string;
-  sortOrder: number;
-};
-
-export type NewsCatalogInput = {
-  items: NewsItemInput[];
-};
-
-export type NewsItemOrderInput = {
-  id: number;
-  sortOrder: number;
-};
-
-export type NewsOrderInput = {
-  items: NewsItemOrderInput[];
-};
-
-export type NewsItemResponse = {
-  item: NewsItem;
 };
 
 export type PublicNewsCatalogState = {
@@ -47,7 +24,7 @@ function sortNewsItems(items: NewsItem[]) {
       return left.sortOrder - right.sortOrder;
     }
 
-    return left.id - right.id;
+    return left.publishedAt < right.publishedAt ? 1 : -1;
   });
 }
 
@@ -60,17 +37,13 @@ function getPublicApiBaseUrl() {
   return apiBaseUrl.replace(/\/$/, "");
 }
 
-export async function loadPublicNewsCatalog(onMigrationRequired: () => never): Promise<PublicNewsCatalogState> {
+export async function loadPublicNewsCatalog(): Promise<PublicNewsCatalogState> {
   try {
     return {
       catalog: await fetchPublicNewsCatalog(),
       errorMessage: null,
     };
-  } catch (error) {
-    if (isMigrationRequiredError(error)) {
-      onMigrationRequired();
-    }
-
+  } catch {
     return {
       catalog: null,
       errorMessage: "データが取得できませんでした。",
@@ -84,24 +57,7 @@ export async function fetchPublicNewsCatalog() {
   });
 
   if (!response.ok) {
-    const contentType = response.headers.get("content-type") ?? "";
-    const text = await response.text();
-
-    if (contentType.includes("application/json")) {
-      let parsed: { message?: string; code?: string } | null = null;
-      try {
-        parsed = JSON.parse(text) as { message?: string; code?: string };
-      } catch {
-        parsed = null;
-      }
-
-      if (parsed) {
-        const message = parsed.message ?? `API request failed: ${response.status} ${response.statusText}`;
-        throw new ApiError(response.status, message, parsed.code);
-      }
-    }
-
-    throw new ApiError(response.status, text || `API request failed: ${response.status} ${response.statusText}`);
+    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
   }
 
   const catalog = (await response.json()) as NewsCatalog;
@@ -110,61 +66,4 @@ export async function fetchPublicNewsCatalog() {
     ...catalog,
     items: sortNewsItems(catalog.items),
   };
-}
-
-export async function fetchAdminNewsCatalog(token: string) {
-  return apiFetch<NewsCatalog>("/v1/admin/news", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function updateAdminNewsCatalog(token: string, catalog: NewsCatalogInput) {
-  return apiFetch<NewsCatalog>("/v1/admin/news", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(catalog),
-  });
-}
-
-export async function createAdminNewsItem(token: string, item: NewsItemInput) {
-  return apiFetch<NewsItemResponse>("/v1/admin/news", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(item),
-  });
-}
-
-export async function updateAdminNewsItem(token: string, id: number, item: NewsItemInput) {
-  return apiFetch<NewsItemResponse>(`/v1/admin/news/${id}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(item),
-  });
-}
-
-export async function deleteAdminNewsItem(token: string, id: number) {
-  return apiFetch<void>(`/v1/admin/news/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export async function reorderAdminNewsCatalog(token: string, catalog: NewsOrderInput) {
-  return apiFetch<NewsCatalog>("/v1/admin/news/reorder", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(catalog),
-  });
 }

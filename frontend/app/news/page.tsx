@@ -1,6 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import ResponsiveCarousel from "@/components/ResponsiveCarousel";
 import SiteFooter from "@/components/SiteFooter";
+import { formatBlogDate } from "@/lib/blog";
 import { loadPublicGrapeCatalog } from "@/lib/grapes";
 import { loadPublicNewsCatalog } from "@/lib/news";
 import Image from "next/image";
@@ -16,10 +17,6 @@ export const metadata: Metadata = {
   title: "News",
   description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
 };
-
-function formatNewsDate(date: string) {
-  return date.replaceAll("-", "/");
-}
 
 function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
   return (
@@ -56,7 +53,7 @@ export default async function NewsPage({
   searchParams?: { page?: string | string[] } | Promise<{ page?: string | string[] }>;
 }) {
   const { catalog: grapeCatalog, errorMessage: grapeErrorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
-  const { catalog, errorMessage } = await loadPublicNewsCatalog(() => redirect("/migration"));
+  const { catalog, errorMessage } = await loadPublicNewsCatalog();
   const resolvedSearchParams = await searchParams;
   const pageValue = Array.isArray(resolvedSearchParams?.page) ? resolvedSearchParams.page[0] : resolvedSearchParams?.page;
   const requestedPage = Number(pageValue ?? 1);
@@ -98,7 +95,7 @@ export default async function NewsPage({
               {visibleItems.map((item) => (
                 <article className="card news-card" key={item.id}>
                   <div className="card__body">
-                    <p className="news-card__date">{formatNewsDate(item.date)}</p>
+                    <p className="news-card__date">{formatBlogDate(item.publishedAt)}</p>
                     <p className="news-card__title">{item.title}</p>
                   </div>
                 </article>
