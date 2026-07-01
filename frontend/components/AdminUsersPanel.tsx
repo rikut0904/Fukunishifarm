@@ -4,7 +4,7 @@ import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
 import { type AdminUser, deleteAdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
 import { formatDateTime } from "@/lib/datetime";
-import { Loader2, RefreshCcw, Send, Trash2 } from "lucide-react";
+import { ChevronRight, Loader2, RefreshCcw, Send, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
@@ -60,6 +60,7 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
   const [activeTab, setActiveTab] = useState<TabKey>("invite");
   const [resendingUserId, setResendingUserId] = useState<number | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
   const loadUsers = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -177,6 +178,7 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
     try {
       await deleteAdminUser(token, user.id);
       setUsers((current) => current.filter((item) => item.id !== user.id));
+      setSelectedUser((current) => (current?.id === user.id ? null : current));
       setToast({
         kind: "success",
         message: `${user.email} の管理者アカウントを削除しました。`,
@@ -199,12 +201,6 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
   return (
     <AdminPageShell
       title="ユーザー管理"
-      actions={
-        <button type="button" className="button-link button-link--secondary" onClick={() => void loadUsers()}>
-          <RefreshCcw className="h-4 w-4" />
-          再読み込み
-        </button>
-      }
     >
       <div className="admin-users-tabs" role="tablist" aria-label="ユーザー管理タブ">
         <button
@@ -233,83 +229,81 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
 
       {activeTab === "invite" ? (
         <section className="admin-editor-section" role="tabpanel" id="admin-users-panel-invite" aria-labelledby="admin-users-tab-invite">
-          <div className="admin-editor-item">
-            <div className="admin-editor-item__head">
-              <div>
-                <h2 className="admin-editor-item__title">管理者を招待</h2>
-              </div>
+          <div className="admin-editor-item__head">
+            <div>
+              <h2 className="admin-editor-item__title">管理者を招待</h2>
             </div>
-
-            <form className="admin-users-form" onSubmit={handleSubmit}>
-              <label className="admin-field">
-                <span>表示名</span>
-                <input
-                  className="admin-input"
-                  type="text"
-                  value={form.displayName}
-                  onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))}
-                  placeholder="例: 山田 太郎"
-                />
-              </label>
-
-              <label className="admin-field">
-                <span>メールアドレス</span>
-                <input
-                  className="admin-input"
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                  placeholder="admin@example.com"
-                  required
-                />
-              </label>
-              <div className="admin-users-form__actions">
-                <button type="submit" className="button-link button-link--primary" disabled={status.kind === "submitting"}>
-                  {status.kind === "submitting" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  招待メールを送信
-                </button>
-              </div>
-            </form>
           </div>
+
+          <form className="admin-users-form" onSubmit={handleSubmit}>
+            <label className="admin-field">
+              <span>表示名</span>
+              <input
+                className="admin-input"
+                type="text"
+                value={form.displayName}
+                onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))}
+                placeholder="例: 山田 太郎"
+              />
+            </label>
+
+            <label className="admin-field">
+              <span>メールアドレス</span>
+              <input
+                className="admin-input"
+                type="email"
+                value={form.email}
+                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                placeholder="admin@example.com"
+                required
+              />
+            </label>
+            <div className="admin-users-form__actions">
+              <button type="submit" className="button-link button-link--primary" disabled={status.kind === "submitting"}>
+                {status.kind === "submitting" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                招待メールを送信
+              </button>
+            </div>
+          </form>
         </section>
       ) : null}
 
       {activeTab === "list" ? (
         <section className="admin-editor-section" role="tabpanel" id="admin-users-panel-list" aria-labelledby="admin-users-tab-list">
-          <div className="admin-editor-item">
-            <div className="admin-editor-item__head">
-              <div>
-                <h2 className="admin-editor-item__title">管理者一覧</h2>
-              </div>
+          <div className="admin-editor-item__head">
+            <div>
+              <h2 className="admin-editor-item__title">管理者一覧</h2>
             </div>
+          </div>
 
-            {status.kind === "loading" ? (
-              <div className="admin-login-state">
-                <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
-                <p className="m-0">読み込み中...</p>
-              </div>
-            ) : null}
+          {status.kind === "loading" ? (
+            <div className="admin-login-state">
+              <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-strong)]" />
+              <p className="m-0">読み込み中...</p>
+            </div>
+          ) : null}
 
-            {status.kind === "error" ? (
-              <div className="admin-error-panel">
-                <p className="admin-error">{status.message}</p>
-              </div>
-            ) : null}
+          {status.kind === "error" ? (
+            <div className="admin-error-panel">
+              <p className="admin-error">{status.message}</p>
+            </div>
+          ) : null}
 
-            {status.kind !== "loading" && status.kind !== "error" ? (
-              <div className="card table-card">
-                <table className="info-table admin-users-table">
-                  <thead>
-                    <tr>
-                      <th>表示名</th>
-                      <th>メールアドレス</th>
-                      <th>最終ログイン</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length > 0 ? (
-                      users.map((user) => (
+          {status.kind !== "loading" && status.kind !== "error" ? (
+            users.length > 0 ? (
+              <>
+                <div className="card table-card admin-users-table-wrap">
+                  <table className="info-table admin-users-table">
+                    <thead>
+                      <tr>
+                        <th>表示名</th>
+                        <th>メールアドレス</th>
+                        <th>最終ログイン</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
                         <tr key={user.id}>
                           <td>
                             <div className="admin-users-table__identity">
@@ -341,21 +335,89 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                             </div>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4}>管理者ユーザーはまだ登録されていません。</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
-          </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="admin-users-mobile-list">
+                  {users.map((user) => (
+                    <button
+                      key={`mobile-${user.id}`}
+                      type="button"
+                      className="admin-users-mobile-list__item"
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      <span className="admin-users-mobile-list__name">{user.displayName || "未設定"}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="admin-users-empty">管理者ユーザーはまだ登録されていません。</div>
+            )
+          ) : null}
         </section>
       ) : null}
 
       {toast ? <div className={`admin-toast admin-toast--${toast.kind}`}>{toast.message}</div> : null}
+
+      {selectedUser ? (
+        <div className="admin-users-modal" role="presentation" onClick={() => setSelectedUser(null)}>
+          <div
+            className="admin-users-modal__dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-user-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-users-modal__head">
+              <div className="grid gap-1">
+                <h3 className="section__title" id="admin-user-modal-title">
+                  {selectedUser.displayName || "未設定"}
+                </h3>
+                <p className="admin-editor-item__meta">管理者アカウントの詳細と操作</p>
+              </div>
+              <button type="button" className="admin-users-modal__close" onClick={() => setSelectedUser(null)} aria-label="閉じる">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <dl className="admin-users-modal__meta">
+              <div>
+                <dt>メールアドレス</dt>
+                <dd>{selectedUser.email}</dd>
+              </div>
+              <div>
+                <dt>最終ログイン</dt>
+                <dd>{formatDateTime(selectedUser.lastLoginAt) || "-"}</dd>
+              </div>
+            </dl>
+
+            <div className="admin-users-modal__actions">
+              <button
+                type="button"
+                className="admin-users-table__action"
+                onClick={() => void handleResendInvitation(selectedUser)}
+                disabled={resendingUserId === selectedUser.id || deletingUserId === selectedUser.id}
+              >
+                {resendingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                再送
+              </button>
+              <button
+                type="button"
+                className="admin-users-table__action admin-users-table__action--danger"
+                onClick={() => void handleDeleteUser(selectedUser)}
+                disabled={deletingUserId === selectedUser.id || resendingUserId === selectedUser.id}
+              >
+                {deletingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                削除
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </AdminPageShell>
   );
 }
