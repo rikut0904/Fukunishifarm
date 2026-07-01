@@ -107,6 +107,9 @@ func main() {
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
 	contactService := usecasecontact.NewService(contactRepository, adminRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
+	if cfg.MicroCMSServiceDomain == "" || cfg.MicroCMSAPIKey == "" {
+		slog.Warn("microCMS is not fully configured; blog and news features will be unavailable", "domain", cfg.MicroCMSServiceDomain, "has_key", cfg.MicroCMSAPIKey != "")
+	}
 	newsService := usecasenews.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSNewsEndpoint)
 	blogService := usecaseblog.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSBlogEndpoint)
 
