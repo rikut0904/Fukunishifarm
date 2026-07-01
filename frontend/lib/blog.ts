@@ -53,10 +53,11 @@ export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
     throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
   }
   const payload = (await response.json()) as { posts: BlogPost[] };
+  const posts = Array.isArray(payload?.posts) ? payload.posts : [];
 
   return {
-    contents: payload.posts.map(normalizeBlogPost),
-    totalCount: payload.posts.length,
+    contents: posts.map(normalizeBlogPost),
+    totalCount: posts.length,
     offset: 0,
     limit,
   };
