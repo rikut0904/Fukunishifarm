@@ -1,6 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import ResponsiveCarousel from "@/components/ResponsiveCarousel";
 import SiteFooter from "@/components/SiteFooter";
+import { formatBlogDate } from "@/lib/blog";
 import { loadPublicGrapeCatalog } from "@/lib/grapes";
 import { loadPublicNewsCatalog } from "@/lib/news";
 import Image from "next/image";
@@ -16,24 +17,6 @@ export const metadata: Metadata = {
   title: "News",
   description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
 };
-
-function formatNewsDate(date: string | null | undefined) {
-  if (!date) {
-    return "";
-  }
-
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) {
-    return date;
-  }
-
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Tokyo",
-  }).format(parsed);
-}
 
 function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
   return (
@@ -112,7 +95,7 @@ export default async function NewsPage({
               {visibleItems.map((item) => (
                 <article className="card news-card" key={item.id}>
                   <div className="card__body">
-                    <p className="news-card__date">{formatNewsDate(item.publishedAt)}</p>
+                    <p className="news-card__date">{formatBlogDate(item.publishedAt)}</p>
                     <p className="news-card__title">{item.title}</p>
                   </div>
                 </article>
