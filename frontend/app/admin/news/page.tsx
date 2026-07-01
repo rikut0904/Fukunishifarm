@@ -1,15 +1,13 @@
-import AdminConsole from "@/components/AdminConsole";
-import AdminHeader from "@/components/AdminHeader";
-import SiteFooter from "@/components/SiteFooter";
+import MicroCMSAdminPage from "@/components/MicroCMSAdminPage";
 
 export default function AdminNewsPage() {
   return (
-    <div className="site-shell">
-      <AdminHeader />
-      <main>
-        <AdminConsole mode="news" />
-      </main>
-      <SiteFooter />
-    </div>
+    <MicroCMSAdminPage
+      eyebrow="News"
+      title="お知らせ管理"
+      lead="お知らせの編集は microCMS で行います。この画面ではローカル編集機能を提供しません。"
+      endpointEnvValue={process.env.MICROCMS_NEWS_ENDPOINT}
+      defaultEndpoint="news"
+    />
   );
 }

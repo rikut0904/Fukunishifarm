@@ -3,121 +3,75 @@ package news
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	domainnews "fukunishifarm/backend/internal/domain/news"
+	"fukunishifarm/backend/internal/infra/microcms"
 )
 
+const defaultEndpoint = "news"
+
 type Service struct {
-	repository domainnews.Repository
+	client   *microcms.Client
+	endpoint string
 }
 
-func NewService(repository domainnews.Repository) *Service {
-	return &Service{repository: repository}
+type microCMSListResponse struct {
+	Contents []microCMSNewsItem `json:"contents"`
+}
+
+type microCMSNewsItem struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	PublishedAt string `json:"publishedAt"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+}
+
+func NewService(serviceDomain, apiKey, endpoint string) *Service {
+	return &Service{
+		client:   microcms.NewClient(serviceDomain, apiKey),
+		endpoint: strings.TrimSpace(endpoint),
+	}
 }
 
 func (s *Service) GetPublicCatalog(ctx context.Context) (domainnews.Catalog, error) {
-	return s.getCatalog(ctx)
-}
-
-func (s *Service) GetAdminCatalog(ctx context.Context) (domainnews.Catalog, error) {
-	return s.getCatalog(ctx)
-}
-
-func (s *Service) ReplaceCatalog(ctx context.Context, catalog domainnews.Catalog) (domainnews.Catalog, error) {
-	items, err := normalizeItems(catalog.Items)
-	if err != nil {
+	var response microCMSListResponse
+	if err := s.request(ctx, map[string]string{
+		"limit":  "100",
+		"orders": "-publishedAt",
+	}, &response); err != nil {
 		return domainnews.Catalog{}, err
 	}
 
-	if err := s.repository.ReplaceItems(ctx, items); err != nil {
-		return domainnews.Catalog{}, fmt.Errorf("replace news items: %w", err)
-	}
-
-	return s.getCatalog(ctx)
+	return domainnews.Catalog{Items: toItems(response.Contents)}, nil
 }
 
-func (s *Service) CreateItem(ctx context.Context, item domainnews.Item) (domainnews.Item, error) {
-	normalized, err := normalizeItem(item)
-	if err != nil {
-		return domainnews.Item{}, err
+func (s *Service) request(ctx context.Context, query map[string]string, out any) error {
+	endpoint := s.endpoint
+	if endpoint == "" {
+		endpoint = defaultEndpoint
 	}
 
-	saved, err := s.repository.CreateItem(ctx, normalized)
-	if err != nil {
-		return domainnews.Item{}, fmt.Errorf("create news item: %w", err)
-	}
-
-	return saved, nil
-}
-
-func (s *Service) UpdateItem(ctx context.Context, item domainnews.Item) (domainnews.Item, error) {
-	normalized, err := normalizeItem(item)
-	if err != nil {
-		return domainnews.Item{}, err
-	}
-
-	saved, err := s.repository.UpdateItem(ctx, normalized)
-	if err != nil {
-		return domainnews.Item{}, fmt.Errorf("update news item: %w", err)
-	}
-
-	return saved, nil
-}
-
-func (s *Service) DeleteItem(ctx context.Context, id uint) error {
-	if err := s.repository.DeleteItem(ctx, id); err != nil {
-		return fmt.Errorf("delete news item: %w", err)
+	if err := s.client.Request(ctx, endpoint, http.MethodGet, "", query, nil, out); err != nil {
+		return fmt.Errorf("load microcms news: %w", err)
 	}
 
 	return nil
 }
 
-func (s *Service) ReorderCatalog(ctx context.Context, catalog domainnews.Catalog) (domainnews.Catalog, error) {
-	items := make([]domainnews.Item, 0, len(catalog.Items))
-	for index, item := range catalog.Items {
-		item.SortOrder = index
-		items = append(items, item)
+func toItems(contents []microCMSNewsItem) []domainnews.Item {
+	items := make([]domainnews.Item, 0, len(contents))
+	for index, item := range contents {
+		items = append(items, domainnews.Item{
+			ID:          item.ID,
+			Title:       item.Title,
+			SortOrder:   index,
+			PublishedAt: item.PublishedAt,
+			CreatedAt:   item.CreatedAt,
+			UpdatedAt:   item.UpdatedAt,
+		})
 	}
-
-	if err := s.repository.ReorderItems(ctx, items); err != nil {
-		return domainnews.Catalog{}, fmt.Errorf("reorder news items: %w", err)
-	}
-
-	return s.getCatalog(ctx)
-}
-
-func (s *Service) getCatalog(ctx context.Context) (domainnews.Catalog, error) {
-	items, err := s.repository.ListItems(ctx)
-	if err != nil {
-		return domainnews.Catalog{}, fmt.Errorf("list news items: %w", err)
-	}
-
-	return domainnews.Catalog{Items: items}, nil
-}
-
-func normalizeItems(items []domainnews.Item) ([]domainnews.Item, error) {
-	normalized := make([]domainnews.Item, 0, len(items))
-	for index, item := range items {
-		item.SortOrder = index
-		normalizedItem, err := normalizeItem(item)
-		if err != nil {
-			return nil, err
-		}
-
-		normalized = append(normalized, normalizedItem)
-	}
-
-	return normalized, nil
-}
-
-func normalizeItem(item domainnews.Item) (domainnews.Item, error) {
-	item.Date = strings.TrimSpace(item.Date)
-	item.Title = strings.TrimSpace(item.Title)
-
-	if item.Date == "" || item.Title == "" {
-		return domainnews.Item{}, domainnews.ErrInvalidInput
-	}
-
-	return item, nil
+	return items
 }

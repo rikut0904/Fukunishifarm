@@ -8,7 +8,6 @@ import (
 	"fukunishifarm/backend/internal/domain/auth"
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
-	domainnews "fukunishifarm/backend/internal/domain/news"
 	gormrepo "fukunishifarm/backend/internal/infra/persistence/gorm"
 	usecasegrape "fukunishifarm/backend/internal/usecase/grape"
 	"github.com/google/uuid"
@@ -20,14 +19,8 @@ var ErrDatabaseNotMigrated = errors.New("database not migrated")
 const contactThreadBackfillBatchSize = 100
 
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
-	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domainnews.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
+	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
-	}
-
-	if db.Migrator().HasColumn(&domainnews.Item{}, "Body") {
-		if err := db.Migrator().DropColumn(&domainnews.Item{}, "Body"); err != nil {
-			return fmt.Errorf("drop news body column: %w", err)
-		}
 	}
 
 	if err := backfillContactThreadIDs(ctx, db); err != nil {
@@ -47,7 +40,7 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 }
 
 func RequireMigrated(ctx context.Context, db *gorm.DB) error {
-	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domainnews.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) || !db.Migrator().HasTable(&domaincontact.Reply{}) {
+	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) || !db.Migrator().HasTable(&domaincontact.Reply{}) {
 		return ErrDatabaseNotMigrated
 	}
 

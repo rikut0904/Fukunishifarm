@@ -34,6 +34,7 @@ import (
 
 func isRouteAllowedWithoutMigration(path string) bool {
 	return path == "/healthz" ||
+		path == "/v1/news" ||
 		path == "/v1/blog" ||
 		strings.HasPrefix(path, "/v1/blog/")
 }
@@ -87,12 +88,10 @@ func main() {
 	var adminRepository *gormrepo.AdminUserRepository
 	var contactRepository *gormrepo.ContactRepository
 	var grapeRepository *gormrepo.GrapeRepository
-	var newsRepository *gormrepo.NewsRepository
 	if database != nil && migrated {
 		adminRepository = gormrepo.NewAdminUserRepository(database)
 		contactRepository = gormrepo.NewContactRepository(database)
 		grapeRepository = gormrepo.NewGrapeRepository(database)
-		newsRepository = gormrepo.NewNewsRepository(database)
 	}
 	var contactReplySender domaincontact.ReplyEmailSender
 	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
@@ -108,7 +107,7 @@ func main() {
 	authService := usecaseauth.NewService(authenticator, verifier, verifier, sessionManager, adminRepository)
 	contactService := usecasecontact.NewService(contactRepository, adminRepository, contactReplySender, cfg.SiteBaseURL)
 	grapeService := usecasegrape.NewService(grapeRepository)
-	newsService := usecasenews.NewService(newsRepository)
+	newsService := usecasenews.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSNewsEndpoint)
 	blogService := usecaseblog.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSBlogEndpoint)
 
 	e := echo.New()

@@ -1,11 +1,10 @@
 "use client";
 
 import { ApiError, apiFetch } from "@/lib/api";
-import { adminMenuItems } from "@/lib/adminMenu";
+import type { AdminMenuItem } from "@/lib/adminMenu";
 import AdminPageShell from "@/components/AdminPageShell";
 import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
-import NewsCatalogEditor from "@/components/NewsCatalogEditor";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,7 +23,8 @@ type Status =
   | { kind: "redirecting" };
 
 type AdminConsoleProps = {
-  mode?: "home" | "grape" | "news" | "users" | "contact";
+  mode?: "home" | "grape" | "users" | "contact";
+  menuItems?: AdminMenuItem[];
 };
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
@@ -41,7 +41,7 @@ function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
-export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
+export default function AdminConsole({ mode = "home", menuItems = [] }: AdminConsoleProps) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: "loading" });
 
@@ -142,7 +142,7 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
       <AdminPageShell title="管理ページ" lead="編集したい項目を選んでください。">
         <div className="admin-home-panel">
           <div className="admin-menu">
-            {adminMenuItems.map((item) => (
+            {menuItems.map((item) => (
               <Link key={item.href} href={item.href} className="admin-menu-card">
                 <div className="admin-menu-card__head">
                   <h2 className="admin-menu-card__title">{item.title}</h2>
@@ -170,10 +170,6 @@ export default function AdminConsole({ mode = "home" }: AdminConsoleProps) {
 
   if (mode === "contact") {
     return <ContactMessagesPanel token={status.token} onSignOut={handleSignOut} />;
-  }
-
-  if (mode === "news") {
-    return <NewsCatalogEditor token={status.token} onSignOut={handleSignOut} />;
   }
 
   return <GrapeCatalogEditor token={status.token} onSignOut={handleSignOut} />;

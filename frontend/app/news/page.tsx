@@ -18,7 +18,17 @@ export const metadata: Metadata = {
 };
 
 function formatNewsDate(date: string) {
-  return date.replaceAll("-", "/");
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Tokyo",
+  }).format(parsed);
 }
 
 function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
@@ -56,7 +66,7 @@ export default async function NewsPage({
   searchParams?: { page?: string | string[] } | Promise<{ page?: string | string[] }>;
 }) {
   const { catalog: grapeCatalog, errorMessage: grapeErrorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
-  const { catalog, errorMessage } = await loadPublicNewsCatalog(() => redirect("/migration"));
+  const { catalog, errorMessage } = await loadPublicNewsCatalog();
   const resolvedSearchParams = await searchParams;
   const pageValue = Array.isArray(resolvedSearchParams?.page) ? resolvedSearchParams.page[0] : resolvedSearchParams?.page;
   const requestedPage = Number(pageValue ?? 1);
@@ -98,7 +108,7 @@ export default async function NewsPage({
               {visibleItems.map((item) => (
                 <article className="card news-card" key={item.id}>
                   <div className="card__body">
-                    <p className="news-card__date">{formatNewsDate(item.date)}</p>
+                    <p className="news-card__date">{formatNewsDate(item.publishedAt)}</p>
                     <p className="news-card__title">{item.title}</p>
                   </div>
                 </article>

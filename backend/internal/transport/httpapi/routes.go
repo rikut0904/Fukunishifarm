@@ -226,35 +226,17 @@ type grapeCatalogInput struct {
 }
 
 type newsItemResponse struct {
-	ID        uint      `json:"id"`
-	Date      string    `json:"date"`
-	Title     string    `json:"title"`
-	SortOrder int       `json:"sortOrder"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	SortOrder   int    `json:"sortOrder"`
+	PublishedAt string `json:"publishedAt,omitempty"`
+	CreatedAt   string `json:"createdAt,omitempty"`
+	UpdatedAt   string `json:"updatedAt,omitempty"`
 }
 
 type newsCatalogResponse struct {
 	Body struct {
 		Items []newsItemResponse `json:"items"`
-	}
-}
-
-type newsItemOutput struct {
-	Body struct {
-		Item newsItemResponse `json:"item"`
-	}
-}
-
-type newsItemInput struct {
-	Date      string `json:"date" required:"true"`
-	Title     string `json:"title" required:"true"`
-	SortOrder int    `json:"sortOrder"`
-}
-
-type newsCatalogInput struct {
-	Body struct {
-		Items []newsItemInput `json:"items"`
 	}
 }
 
@@ -301,17 +283,6 @@ type publicBlogListInput struct {
 
 type publicBlogPostInput struct {
 	Slug string `path:"slug"`
-}
-
-type newsItemOrderInput struct {
-	ID        uint `json:"id" required:"true"`
-	SortOrder int  `json:"sortOrder"`
-}
-
-type newsOrderInput struct {
-	Body struct {
-		Items []newsItemOrderInput `json:"items"`
-	}
 }
 
 type grapeItemPath struct {
@@ -643,24 +614,6 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Get(api, "/v1/admin/news", func(ctx context.Context, input *sessionInput) (*newsCatalogResponse, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		catalog, err := newsService.GetAdminCatalog(ctx)
-		if err != nil {
-			return nil, mapNewsError("failed to load news catalog", err)
-		}
-
-		return toNewsCatalogResponse(catalog), nil
-	})
-
 	huma.Get(api, "/v1/blog", func(ctx context.Context, input *publicBlogListInput) (*blogCatalogOutput, error) {
 		catalog, err := blogService.GetPublicCatalog(ctx, input.Limit)
 		if err != nil {
@@ -681,102 +634,6 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Post(api, "/v1/admin/news", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          newsItemInput
-	}) (*newsItemOutput, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		saved, err := newsService.CreateItem(ctx, toNewsItem(input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to create news item", err)
-		}
-
-		output := &newsItemOutput{}
-		output.Body.Item = toNewsItemResponse(saved)
-		return output, nil
-	})
-
-	huma.Put(api, "/v1/admin/news/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-		Body          newsItemInput
-	}) (*newsItemOutput, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		saved, err := newsService.UpdateItem(ctx, toNewsItemWithID(input.ID, input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to update news item", err)
-		}
-
-		output := &newsItemOutput{}
-		output.Body.Item = toNewsItemResponse(saved)
-		return output, nil
-	})
-
-	huma.Put(api, "/v1/admin/news/reorder", func(ctx context.Context, input *newsOrderInput) (*newsCatalogResponse, error) {
-		catalog, err := newsService.ReorderCatalog(ctx, toNewsOrderCatalog(input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to reorder news items", err)
-		}
-
-		return toNewsCatalogResponse(catalog), nil
-	})
-
-	huma.Delete(api, "/v1/admin/news/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-	}) (*struct{}, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		if err := newsService.DeleteItem(ctx, input.ID); err != nil {
-			return nil, mapNewsError("failed to delete news item", err)
-		}
-
-		return &struct{}{}, nil
-	})
-
-	huma.Put(api, "/v1/admin/news", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          newsCatalogInput
-	}) (*newsCatalogResponse, error) {
-		token := bearerToken(input.Authorization)
-		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
-		}
-
-		if _, err := authService.GetSession(ctx, token); err != nil {
-			return nil, mapAuthError("failed to load admin session", err)
-		}
-
-		catalog, err := newsService.ReplaceCatalog(ctx, toNewsCatalog(input.Body))
-		if err != nil {
-			return nil, mapNewsError("failed to update news catalog", err)
-		}
-
-		return toNewsCatalogResponse(catalog), nil
-	})
 }
 
 func mapAuthError(message string, err error) error {
@@ -934,47 +791,6 @@ func toGrapeItemResponse(item domaingrape.Item) grapeItemResponse {
 	}
 }
 
-func toNewsCatalog(input newsCatalogInput) domainnews.Catalog {
-	items := make([]domainnews.Item, 0, len(input.Body.Items))
-	for _, item := range input.Body.Items {
-		items = append(items, domainnews.Item{
-			Date:      item.Date,
-			Title:     item.Title,
-			SortOrder: item.SortOrder,
-		})
-	}
-
-	return domainnews.Catalog{Items: items}
-}
-
-func toNewsItem(input newsItemInput) domainnews.Item {
-	return domainnews.Item{
-		Date:      input.Date,
-		Title:     input.Title,
-		SortOrder: input.SortOrder,
-	}
-}
-
-func toNewsItemWithID(id uint, input newsItemInput) domainnews.Item {
-	item := toNewsItem(input)
-	item.ID = id
-	return item
-}
-
-func toNewsOrderCatalog(input struct {
-	Items []newsItemOrderInput `json:"items"`
-}) domainnews.Catalog {
-	items := make([]domainnews.Item, 0, len(input.Items))
-	for _, item := range input.Items {
-		items = append(items, domainnews.Item{
-			ID:        item.ID,
-			SortOrder: item.SortOrder,
-		})
-	}
-
-	return domainnews.Catalog{Items: items}
-}
-
 func toContactMessage(input contactMessagePayload) domaincontact.Message {
 	return domaincontact.Message{
 		Name:     input.Name,
@@ -1015,12 +831,12 @@ func toContactReplyResponse(reply domaincontact.Reply) contactReplyResponse {
 
 func toNewsItemResponse(item domainnews.Item) newsItemResponse {
 	return newsItemResponse{
-		ID:        item.ID,
-		Date:      item.Date,
-		Title:     item.Title,
-		SortOrder: item.SortOrder,
-		CreatedAt: item.CreatedAt,
-		UpdatedAt: item.UpdatedAt,
+		ID:          item.ID,
+		Title:       item.Title,
+		SortOrder:   item.SortOrder,
+		PublishedAt: item.PublishedAt,
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
 	}
 }
 
@@ -1028,14 +844,7 @@ func toNewsCatalogResponse(catalog domainnews.Catalog) *newsCatalogResponse {
 	output := &newsCatalogResponse{}
 	output.Body.Items = make([]newsItemResponse, 0, len(catalog.Items))
 	for _, item := range catalog.Items {
-		output.Body.Items = append(output.Body.Items, newsItemResponse{
-			ID:        item.ID,
-			Date:      item.Date,
-			Title:     item.Title,
-			SortOrder: item.SortOrder,
-			CreatedAt: item.CreatedAt,
-			UpdatedAt: item.UpdatedAt,
-		})
+		output.Body.Items = append(output.Body.Items, toNewsItemResponse(item))
 	}
 
 	return output

@@ -14,6 +14,7 @@ type Config struct {
 	MicroCMSServiceDomain  string
 	MicroCMSAPIKey         string
 	MicroCMSBlogEndpoint   string
+	MicroCMSNewsEndpoint   string
 	AWSRegion              string
 	AWSAccessKeyID         string
 	AWSSecretAccessKey     string
@@ -42,6 +43,7 @@ func Load() Config {
 		MicroCMSServiceDomain:  strings.TrimSpace(os.Getenv("MICROCMS_SERVICE_DOMAIN")),
 		MicroCMSAPIKey:         strings.TrimSpace(getenvAny("MICROCMS_WRITE_API_KEY", "MICROCMS_API_KEY")),
 		MicroCMSBlogEndpoint:   strings.TrimSpace(os.Getenv("MICROCMS_BLOG_ENDPOINT")),
+		MicroCMSNewsEndpoint:   strings.TrimSpace(os.Getenv("MICROCMS_NEWS_ENDPOINT")),
 		AWSRegion:              strings.TrimSpace(os.Getenv("AWS_REGION")),
 		AWSAccessKeyID:         strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID")),
 		AWSSecretAccessKey:     strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY")),
