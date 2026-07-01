@@ -112,6 +112,10 @@ func (r *fakeAdminRepository) FindAdminUserByFirebaseUID(ctx context.Context, fi
 	return nil, nil
 }
 
+func (r *fakeAdminRepository) FindAdminUserByID(ctx context.Context, id uint) (*domainauth.AdminUser, error) {
+	return nil, nil
+}
+
 func (r *fakeAdminRepository) ListAdminUsers(ctx context.Context) ([]domainauth.AdminUser, error) {
 	if r.err != nil {
 		return nil, r.err

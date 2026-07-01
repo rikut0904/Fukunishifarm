@@ -60,6 +60,20 @@ func (r *AdminUserRepository) FindAdminUserByFirebaseUID(ctx context.Context, fi
 	return &user, nil
 }
 
+func (r *AdminUserRepository) FindAdminUserByID(ctx context.Context, id uint) (*domainauth.AdminUser, error) {
+	var user domainauth.AdminUser
+
+	tx := r.db.WithContext(ctx).Where("id = ?", id).First(&user)
+	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			return nil, domainauth.ErrUserNotFound
+		}
+		return nil, tx.Error
+	}
+
+	return &user, nil
+}
+
 func (r *AdminUserRepository) ListAdminUsers(ctx context.Context) ([]domainauth.AdminUser, error) {
 	var users []domainauth.AdminUser
 

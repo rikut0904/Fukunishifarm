@@ -85,6 +85,17 @@ type adminUsersOutput struct {
 	}
 }
 
+type adminUserPathInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+}
+
+type resendInvitationOutput struct {
+	Body struct {
+		Success bool `json:"success"`
+	}
+}
+
 type contactMessagePayload struct {
 	Name     string `json:"name" required:"true" maxLength:"80"`
 	Email    string `json:"email" required:"true" maxLength:"320"`
@@ -342,6 +353,21 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 			userCopy := user
 			output.Body.Users = append(output.Body.Users, toAdminUserResponse(&userCopy))
 		}
+		return output, nil
+	})
+
+	huma.Post(api, "/v1/admin/users/{id}/resend", func(ctx context.Context, input *adminUserPathInput) (*resendInvitationOutput, error) {
+		token := bearerToken(input.Authorization)
+		if token == "" {
+			return nil, huma.Error400BadRequest("missing bearer token")
+		}
+
+		if err := authService.ResendInvitation(ctx, token, input.ID); err != nil {
+			return nil, mapAuthError("failed to resend invitation email", err)
+		}
+
+		output := &resendInvitationOutput{}
+		output.Body.Success = true
 		return output, nil
 	})
 
@@ -674,7 +700,7 @@ func mapAuthError(message string, err error) error {
 	case errors.Is(err, domainauth.ErrMailNotConfigured):
 		return huma.Error503ServiceUnavailable("invitation mail is not configured")
 	case errors.Is(err, domainauth.ErrUserNotFound):
-		return huma.Error401Unauthorized("unauthorized")
+		return huma.Error404NotFound("admin user not found", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}

@@ -2,9 +2,9 @@
 
 import AdminPageShell from "@/components/AdminPageShell";
 import { ApiError } from "@/lib/api";
-import { type AdminUser, fetchAdminUsers, inviteAdminUser } from "@/lib/adminUsers";
+import { type AdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
 import { formatDateTime } from "@/lib/datetime";
-import { Loader2, Mail, RefreshCcw, ShieldCheck, Users } from "lucide-react";
+import { Loader2, RefreshCcw, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Status =
@@ -58,6 +58,7 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
   const [form, setForm] = useState<InviteForm>(initialForm);
   const [toast, setToast] = useState<Toast | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("invite");
+  const [resendingUserId, setResendingUserId] = useState<number | null>(null);
 
   const loadUsers = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -137,6 +138,30 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
         kind: "error",
         message: error instanceof Error ? error.message : "管理者ユーザーを招待できませんでした。",
       });
+    }
+  };
+
+  const handleResendInvitation = async (user: AdminUser) => {
+    setResendingUserId(user.id);
+
+    try {
+      await resendAdminUserInvitation(token, user.id);
+      setToast({
+        kind: "success",
+        message: `${user.email} に招待メールを再送しました。`,
+      });
+    } catch (error) {
+      if (isAuthExpired(error)) {
+        onSignOut();
+        return;
+      }
+
+      setToast({
+        kind: "error",
+        message: error instanceof Error ? error.message : "招待メールを再送できませんでした。",
+      });
+    } finally {
+      setResendingUserId(null);
     }
   };
 
@@ -248,6 +273,7 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                       <th>表示名</th>
                       <th>メールアドレス</th>
                       <th>最終ログイン</th>
+                      <th>操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -261,11 +287,22 @@ export default function AdminUsersPanel({ token, onSignOut }: AdminUsersPanelPro
                           </td>
                           <td>{user.email}</td>
                           <td>{formatDateTime(user.lastLoginAt) || "-"}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="admin-users-table__action"
+                              onClick={() => void handleResendInvitation(user)}
+                              disabled={resendingUserId === user.id}
+                            >
+                              {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                              再送
+                            </button>
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5}>管理者ユーザーはまだ登録されていません。</td>
+                        <td colSpan={4}>管理者ユーザーはまだ登録されていません。</td>
                       </tr>
                     )}
                   </tbody>

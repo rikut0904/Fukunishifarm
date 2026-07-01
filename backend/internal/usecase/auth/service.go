@@ -161,6 +161,39 @@ func (s *Service) ListUsers(ctx context.Context, sessionToken string) ([]domaina
 	return users, nil
 }
 
+func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, userID uint) error {
+	if strings.TrimSpace(sessionToken) == "" || userID == 0 {
+		return ErrInvalidInput
+	}
+	if s.mailer == nil || s.loginURL == "" {
+		return domainauth.ErrMailNotConfigured
+	}
+
+	if _, err := s.GetSession(ctx, sessionToken); err != nil {
+		return err
+	}
+
+	user, err := s.repository.FindAdminUserByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domainauth.ErrUserNotFound) {
+			return err
+		}
+		return fmt.Errorf("find admin user by id: %w", err)
+	}
+
+	passwordSetupLink, err := s.creator.GeneratePasswordSetupLink(ctx, user.Email, buildLoginContinueURL(s.loginURL, user.Email))
+	if err != nil {
+		return fmt.Errorf("generate password setup link: %w", err)
+	}
+
+	subject, body := buildInvitationEmail(user.Email, user.DisplayName, passwordSetupLink, s.loginURL)
+	if err := s.mailer.SendInvitationEmail(ctx, user.Email, subject, body); err != nil {
+		return fmt.Errorf("send invitation email: %w", err)
+	}
+
+	return nil
+}
+
 func rollbackInvite(ctx context.Context, creator domainauth.AccountCreator, repository domainauth.Repository, firebaseUID string) {
 	if creator != nil {
 		if err := creator.DeleteUser(ctx, firebaseUID); err != nil {

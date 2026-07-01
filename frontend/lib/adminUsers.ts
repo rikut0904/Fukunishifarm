@@ -34,3 +34,12 @@ export async function inviteAdminUser(token: string, input: AdminUserInvitationI
     body: JSON.stringify(input),
   });
 }
+
+export async function resendAdminUserInvitation(token: string, id: number) {
+  return apiFetch<{ success: boolean }>(`/v1/admin/users/${id}/resend`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
