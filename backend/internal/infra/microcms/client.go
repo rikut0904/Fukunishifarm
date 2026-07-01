@@ -126,10 +126,10 @@ func normalizeServiceDomain(value string) string {
 	value = strings.TrimPrefix(value, "http://")
 	value = strings.TrimSuffix(value, "/")
 	value = strings.TrimPrefix(value, "www.")
-	value = strings.TrimSuffix(value, ".microcms.io")
 	if index := strings.Index(value, "/"); index >= 0 {
 		value = value[:index]
 	}
+	value = strings.TrimSuffix(value, ".microcms.io")
 
 	return strings.TrimSpace(value)
 }
