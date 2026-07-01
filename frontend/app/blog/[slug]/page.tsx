@@ -93,7 +93,6 @@ export default async function BlogPostPage({
                   alt={post.title}
                   width={1440}
                   height={810}
-                  unoptimized
                   className="h-full w-full object-cover"
                   priority
                 />
