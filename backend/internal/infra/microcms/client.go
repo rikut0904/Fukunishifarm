@@ -45,10 +45,20 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		return fmt.Errorf("microcms service is not configured")
 	}
 
+	basePath := "/api/v1/" + strings.Trim(strings.TrimSpace(endpoint), "/")
 	requestURL := url.URL{
 		Scheme: "https",
 		Host:   c.serviceDomain + ".microcms.io",
-		Path:   "/api/v1/" + strings.Trim(strings.TrimSpace(endpoint), "/") + path,
+		Path:   basePath,
+	}
+	if path != "" {
+		parsedPath, err := url.Parse(path)
+		if err != nil {
+			return fmt.Errorf("parse microcms request path: %w", err)
+		}
+
+		requestURL.Path = basePath + parsedPath.Path
+		requestURL.RawPath = basePath + parsedPath.EscapedPath()
 	}
 	values := requestURL.Query()
 	for key, value := range query {
