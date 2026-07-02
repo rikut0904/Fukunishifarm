@@ -7,7 +7,6 @@ export type ContactMessageInput = {
   subject: string;
   message: string;
   website?: string;
-  submittedAt?: number;
 };
 
 export type ContactMessageResponse = {

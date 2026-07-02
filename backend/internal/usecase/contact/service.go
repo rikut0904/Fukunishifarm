@@ -25,8 +25,6 @@ type Service struct {
 const contactMailPrefix = "【ふくにしファーム】"
 const maxContactListLimit = 100
 const contactStatusUpdateTimeout = 10 * time.Second
-const contactMinimumSubmitDuration = 2 * time.Second
-const contactSubmittedAtFutureAllowance = 1 * time.Minute
 const (
 	maxContactNameLength    = 80
 	maxContactEmailLength   = 320
@@ -35,8 +33,7 @@ const (
 )
 
 type SubmissionMeta struct {
-	Honeypot    string
-	SubmittedAt time.Time
+	Honeypot string
 }
 
 type ReplyAuthor struct {
@@ -94,21 +91,7 @@ func (s *Service) SubmitPublicMessage(ctx context.Context, message domaincontact
 }
 
 func validateSubmissionMeta(meta SubmissionMeta) error {
-	now := time.Now()
-
 	if strings.TrimSpace(meta.Honeypot) != "" {
-		return domaincontact.ErrInvalidInput
-	}
-
-	if meta.SubmittedAt.IsZero() {
-		return domaincontact.ErrInvalidInput
-	}
-
-	if meta.SubmittedAt.After(now.Add(contactSubmittedAtFutureAllowance)) {
-		return domaincontact.ErrInvalidInput
-	}
-
-	if now.Sub(meta.SubmittedAt) < contactMinimumSubmitDuration {
 		return domaincontact.ErrInvalidInput
 	}
 

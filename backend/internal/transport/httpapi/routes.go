@@ -103,13 +103,12 @@ type deleteAdminUserOutput struct {
 }
 
 type contactMessagePayload struct {
-	Name        string `json:"name" required:"true" maxLength:"80"`
-	Email       string `json:"email" required:"true" maxLength:"320"`
-	Category    string `json:"category" required:"true" maxLength:"64"`
-	Subject     string `json:"subject" required:"true" maxLength:"160"`
-	Message     string `json:"message" required:"true" maxLength:"65535"`
-	Website     string `json:"website,omitempty" maxLength:"255"`
-	SubmittedAt int64  `json:"submittedAt" required:"true" example:"1751439600000"`
+	Name     string `json:"name" required:"true" maxLength:"80"`
+	Email    string `json:"email" required:"true" maxLength:"320"`
+	Category string `json:"category" required:"true" maxLength:"64"`
+	Subject  string `json:"subject" required:"true" maxLength:"160"`
+	Message  string `json:"message" required:"true" maxLength:"65535"`
+	Website  string `json:"website,omitempty" maxLength:"255"`
 }
 
 type contactMessageInput struct {
@@ -813,14 +812,8 @@ func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
 }
 
 func toContactSubmissionMeta(input contactMessagePayload) usecasecontact.SubmissionMeta {
-	submittedAt := time.Time{}
-	if input.SubmittedAt > 0 {
-		submittedAt = time.UnixMilli(input.SubmittedAt)
-	}
-
 	return usecasecontact.SubmissionMeta{
-		Honeypot:    input.Website,
-		SubmittedAt: submittedAt,
+		Honeypot: input.Website,
 	}
 }
 

@@ -366,28 +366,7 @@ func TestSubmitPublicMessageRejectsHoneypotValue(t *testing.T) {
 		Subject:  "お問い合わせ",
 		Body:     "内容です",
 	}, SubmissionMeta{
-		Honeypot:    "https://spam.example.com",
-		SubmittedAt: time.Now().Add(-10 * time.Second),
-	})
-	if !errors.Is(err, domaincontact.ErrInvalidInput) {
-		t.Fatalf("error = %v, want ErrInvalidInput", err)
-	}
-}
-
-func TestSubmitPublicMessageRejectsTooFastSubmission(t *testing.T) {
-	t.Parallel()
-
-	repo := &fakeContactRepository{}
-	service := NewService(repo, &fakeAdminRepository{}, nil, "https://example.com")
-
-	_, err := service.SubmitPublicMessage(context.Background(), domaincontact.Message{
-		Name:     "山田 太郎",
-		Email:    "taro@example.com",
-		Category: "general",
-		Subject:  "お問い合わせ",
-		Body:     "内容です",
-	}, SubmissionMeta{
-		SubmittedAt: time.Now(),
+		Honeypot: "https://spam.example.com",
 	})
 	if !errors.Is(err, domaincontact.ErrInvalidInput) {
 		t.Fatalf("error = %v, want ErrInvalidInput", err)
@@ -406,9 +385,7 @@ func TestSubmitPublicMessageAcceptsValidSubmissionMeta(t *testing.T) {
 		Category: "general",
 		Subject:  "お問い合わせ",
 		Body:     "内容です",
-	}, SubmissionMeta{
-		SubmittedAt: time.Now().Add(-10 * time.Second),
-	})
+	}, SubmissionMeta{})
 	if err != nil {
 		t.Fatalf("SubmitPublicMessage returned error: %v", err)
 	}
