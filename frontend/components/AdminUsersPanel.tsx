@@ -40,6 +40,10 @@ function isAuthExpired(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
+function canResendInvitation(user: AdminUser) {
+  return !user.lastLoginAt;
+}
+
 export default function AdminUsersPanel({ token, currentUserId, onSignOut }: AdminUsersPanelProps) {
   const requestIdRef = useRef(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
@@ -304,16 +308,18 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
                           <td>{user.email}</td>
                           <td>{formatDateTime(user.lastLoginAt) || "-"}</td>
                           <td>
-                            <div className="admin-users-table__actions">
-                                <button
-                                  type="button"
-                                  className="admin-users-table__action"
-                                  onClick={() => void handleResendInvitation(user)}
-                                  disabled={resendingUserId === user.id || deletingUserId === user.id}
-                              >
-                                {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                                再送
-                              </button>
+                              <div className="admin-users-table__actions">
+                                {canResendInvitation(user) ? (
+                                  <button
+                                    type="button"
+                                    className="admin-users-table__action"
+                                    onClick={() => void handleResendInvitation(user)}
+                                    disabled={resendingUserId === user.id || deletingUserId === user.id}
+                                  >
+                                    {resendingUserId === user.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                    再送
+                                  </button>
+                                ) : null}
                                 {!isCurrentUser(user) ? (
                                   <button
                                     type="button"
@@ -389,15 +395,17 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
             </dl>
 
             <div className="admin-users-modal__actions">
-              <button
-                type="button"
-                className="admin-users-table__action"
-                onClick={() => void handleResendInvitation(selectedUser)}
-                disabled={resendingUserId === selectedUser.id || deletingUserId === selectedUser.id}
-              >
-                {resendingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                再送
-              </button>
+              {canResendInvitation(selectedUser) ? (
+                <button
+                  type="button"
+                  className="admin-users-table__action"
+                  onClick={() => void handleResendInvitation(selectedUser)}
+                  disabled={resendingUserId === selectedUser.id || deletingUserId === selectedUser.id}
+                >
+                  {resendingUserId === selectedUser.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  再送
+                </button>
+              ) : null}
               {!isCurrentUser(selectedUser) ? (
                 <button
                   type="button"
