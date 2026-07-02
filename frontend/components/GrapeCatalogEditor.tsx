@@ -9,6 +9,7 @@ import {
   type GrapeCatalog,
   type GrapeItem,
   type GrapeItemInput,
+  updateAdminGrapeCatalog,
   updateAdminGrapeItem,
 } from "@/lib/grapes";
 import { ChevronDown, ChevronUp, Loader2, LogOut, Pencil, Plus, RefreshCcw, Save, Trash2, X } from "lucide-react";
@@ -570,11 +571,11 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
     setFeedback("");
 
     try {
-      await Promise.all(
-        normalizedItems
+      await updateAdminGrapeCatalog(token, {
+        items: normalizedItems
           .filter((item) => item.id !== 0)
-          .map((item) => updateAdminGrapeItem(token, item.id, toItemInput(item))),
-      );
+          .map((item) => toItemInput(item)),
+      });
       setStatus({ kind: "ready" });
       pushToast("success", "表示順を保存しました。");
     } catch (error) {
