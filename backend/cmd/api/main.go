@@ -33,11 +33,24 @@ import (
 	backenddb "fukunishifarm/backend/internal/db"
 )
 
+const publicMutationRateLimit = 10
+const publicMutationRateWindow = time.Minute
+
 func isRouteAllowedWithoutMigration(path string) bool {
 	return path == "/healthz" ||
 		path == "/v1/news" ||
 		path == "/v1/blog" ||
 		strings.HasPrefix(path, "/v1/blog/")
+}
+
+func isRateLimitedPublicMutation(method, path string) bool {
+	if method != http.MethodPost {
+		return false
+	}
+
+	return path == "/v1/auth/login" ||
+		path == "/v1/contact" ||
+		strings.HasPrefix(path, "/v1/contact/") && strings.HasSuffix(path, "/replies")
 }
 
 func main() {
@@ -125,6 +138,30 @@ func main() {
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: false,
+	}))
+	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Skipper: func(c echo.Context) bool {
+			return !isRateLimitedPublicMutation(c.Request().Method, c.Request().URL.Path)
+		},
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+			Rate:      publicMutationRateLimit,
+			ExpiresIn: publicMutationRateWindow,
+		}),
+		IdentifierExtractor: func(c echo.Context) (string, error) {
+			return c.RealIP() + ":" + c.Request().Method + ":" + c.Path(), nil
+		},
+		ErrorHandler: func(c echo.Context, err error) error {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"code":    "rate_limiter_error",
+				"message": "rate limiter error",
+			})
+		},
+		DenyHandler: func(c echo.Context, identifier string, err error) error {
+			return c.JSON(http.StatusTooManyRequests, map[string]string{
+				"code":    "rate_limited",
+				"message": "too many requests, please try again later",
+			})
+		},
 	}))
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
