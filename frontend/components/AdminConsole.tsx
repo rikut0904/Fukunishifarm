@@ -5,6 +5,7 @@ import type { AdminMenuItem } from "@/lib/adminMenu";
 import AdminPageShell from "@/components/AdminPageShell";
 import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import GrapeCatalogEditor from "@/components/GrapeCatalogEditor";
+import AdminUsersPanel from "@/components/AdminUsersPanel";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -12,13 +13,14 @@ import Link from "next/link";
 
 type SessionResponse = {
   user: {
+    id: number;
     email: string;
   };
 };
 
 type Status =
   | { kind: "loading" }
-  | { kind: "authenticated"; token: string }
+  | { kind: "authenticated"; token: string; currentUserId: number }
   | { kind: "error"; message: string }
   | { kind: "redirecting" };
 
@@ -59,8 +61,8 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
     }
 
     try {
-      await fetchSession(token);
-      setStatus({ kind: "authenticated", token });
+      const session = await fetchSession(token);
+      setStatus({ kind: "authenticated", token, currentUserId: session.user.id });
     } catch (error) {
       if (isAuthExpired(error)) {
         handleSignOut();
@@ -85,9 +87,9 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
       }
 
       try {
-        await fetchSession(token);
+        const session = await fetchSession(token);
         if (!cancelled) {
-          setStatus({ kind: "authenticated", token });
+          setStatus({ kind: "authenticated", token, currentUserId: session.user.id });
         }
       } catch (error) {
         if (isAuthExpired(error)) {
@@ -159,13 +161,7 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
   }
 
   if (mode === "users") {
-    return (
-      <AdminPageShell title="ユーザー管理" lead="準備中です。ここに管理者ユーザーの一覧や追加機能を実装できます。">
-        <div className="admin-login-state">
-          <p className="m-0">現在は閲覧用のプレースホルダです。操作メニューは上部ヘッダーから移動できます。</p>
-        </div>
-      </AdminPageShell>
-    );
+    return <AdminUsersPanel token={status.token} currentUserId={status.currentUserId} onSignOut={handleSignOut} />;
   }
 
   if (mode === "contact") {

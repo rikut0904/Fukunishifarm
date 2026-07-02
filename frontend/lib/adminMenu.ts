@@ -44,7 +44,6 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
       title: "ユーザー管理",
       description: "管理者ユーザーの追加、編集、権限管理を行います。",
       href: "/admin/users",
-      badge: "準備中",
     },
   ];
 }
