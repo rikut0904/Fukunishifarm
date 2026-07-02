@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { submitContactMessage } from "@/lib/contact";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
@@ -25,16 +25,22 @@ function isValidEmailAddress(value: string) {
 }
 
 export default function ContactForm() {
+  const submittedAtRef = useRef(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState<InquiryType>(INQUIRY_TYPES[0].value);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    submittedAtRef.current = Date.now();
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,6 +70,8 @@ export default function ContactForm() {
         category,
         subject: subject.trim(),
         message: message.trim(),
+        website,
+        submittedAt: submittedAtRef.current,
       });
 
       setSuccessMessage("お問い合わせを受け付けました。");
@@ -73,6 +81,8 @@ export default function ContactForm() {
       setCategory(INQUIRY_TYPES[0].value);
       setSubject("");
       setMessage("");
+      setWebsite("");
+      submittedAtRef.current = Date.now();
     } catch (error) {
       console.error("failed to submit contact message", error);
       setErrorMessage("送信に失敗しました。時間をおいて再度お試しください。");
@@ -84,6 +94,18 @@ export default function ContactForm() {
 
   return (
     <form className="contact-form" onSubmit={handleSubmit}>
+      <label className="contact-field contact-field--honeypot" aria-hidden="true">
+        <span>Webサイト</span>
+        <input
+          className="contact-input"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={website}
+          onChange={(event) => setWebsite(event.target.value)}
+        />
+      </label>
+
       <div className="grid grid--2">
         <label className="contact-field">
           <span>お名前</span>

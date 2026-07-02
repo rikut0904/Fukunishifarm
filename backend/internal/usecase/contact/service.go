@@ -25,12 +25,19 @@ type Service struct {
 const contactMailPrefix = "【ふくにしファーム】"
 const maxContactListLimit = 100
 const contactStatusUpdateTimeout = 10 * time.Second
+const contactMinimumSubmitDuration = 2 * time.Second
+const contactSubmittedAtFutureAllowance = 1 * time.Minute
 const (
 	maxContactNameLength    = 80
 	maxContactEmailLength   = 320
 	maxContactSubjectLength = 160
 	maxContactBodyLength    = 65535
 )
+
+type SubmissionMeta struct {
+	Honeypot    string
+	SubmittedAt time.Time
+}
 
 type ReplyAuthor struct {
 	UserID uint
@@ -76,6 +83,36 @@ func (s *Service) SubmitMessage(ctx context.Context, message domaincontact.Messa
 	s.notifyAdminUsersAsync(adminUsers, buildNewInquiryNotification(saved, s.siteBaseURL))
 
 	return saved, nil
+}
+
+func (s *Service) SubmitPublicMessage(ctx context.Context, message domaincontact.Message, meta SubmissionMeta) (domaincontact.Message, error) {
+	if err := validateSubmissionMeta(meta); err != nil {
+		return domaincontact.Message{}, err
+	}
+
+	return s.SubmitMessage(ctx, message)
+}
+
+func validateSubmissionMeta(meta SubmissionMeta) error {
+	now := time.Now()
+
+	if strings.TrimSpace(meta.Honeypot) != "" {
+		return domaincontact.ErrInvalidInput
+	}
+
+	if meta.SubmittedAt.IsZero() {
+		return domaincontact.ErrInvalidInput
+	}
+
+	if meta.SubmittedAt.After(now.Add(contactSubmittedAtFutureAllowance)) {
+		return domaincontact.ErrInvalidInput
+	}
+
+	if now.Sub(meta.SubmittedAt) < contactMinimumSubmitDuration {
+		return domaincontact.ErrInvalidInput
+	}
+
+	return nil
 }
 
 func (s *Service) ListMessages(ctx context.Context, status string, page, limit int) ([]domaincontact.Message, int64, error) {

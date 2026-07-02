@@ -103,11 +103,13 @@ type deleteAdminUserOutput struct {
 }
 
 type contactMessagePayload struct {
-	Name     string `json:"name" required:"true" maxLength:"80"`
-	Email    string `json:"email" required:"true" maxLength:"320"`
-	Category string `json:"category" required:"true" maxLength:"64"`
-	Subject  string `json:"subject" required:"true" maxLength:"160"`
-	Message  string `json:"message" required:"true" maxLength:"65535"`
+	Name        string `json:"name" required:"true" maxLength:"80"`
+	Email       string `json:"email" required:"true" maxLength:"320"`
+	Category    string `json:"category" required:"true" maxLength:"64"`
+	Subject     string `json:"subject" required:"true" maxLength:"160"`
+	Message     string `json:"message" required:"true" maxLength:"65535"`
+	Website     string `json:"website,omitempty" maxLength:"255"`
+	SubmittedAt int64  `json:"submittedAt" required:"true" example:"1751439600000"`
 }
 
 type contactMessageInput struct {
@@ -545,7 +547,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	})
 
 	huma.Post(api, "/v1/contact", func(ctx context.Context, input *contactMessageInput) (*contactMessageOutput, error) {
-		saved, err := contactService.SubmitMessage(ctx, toContactMessage(input.Body))
+		saved, err := contactService.SubmitPublicMessage(ctx, toContactMessage(input.Body), toContactSubmissionMeta(input.Body))
 		if err != nil {
 			return nil, mapContactError("failed to submit contact message", err)
 		}
@@ -807,6 +809,18 @@ func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
 		LastLoginAt: lastLoginAt,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
+	}
+}
+
+func toContactSubmissionMeta(input contactMessagePayload) usecasecontact.SubmissionMeta {
+	submittedAt := time.Time{}
+	if input.SubmittedAt > 0 {
+		submittedAt = time.UnixMilli(input.SubmittedAt)
+	}
+
+	return usecasecontact.SubmissionMeta{
+		Honeypot:    input.Website,
+		SubmittedAt: submittedAt,
 	}
 }
 
