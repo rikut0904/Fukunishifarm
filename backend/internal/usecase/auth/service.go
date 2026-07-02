@@ -183,6 +183,9 @@ func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, use
 		}
 		return fmt.Errorf("find admin user by id: %w", err)
 	}
+	if !user.LastLoginAt.IsZero() {
+		return ErrInvalidInput
+	}
 
 	passwordSetupLink, err := s.creator.GeneratePasswordSetupLink(ctx, user.Email, buildLoginContinueURL(s.loginURL, user.Email))
 	if err != nil {
