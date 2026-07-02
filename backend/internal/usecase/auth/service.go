@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
+	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 )
@@ -16,6 +17,8 @@ var (
 	ErrUnauthorized = errors.New("unauthorized")
 	ErrForbidden    = errors.New("forbidden")
 )
+
+const rollbackInviteTimeout = 10 * time.Second
 
 type Service struct {
 	authenticator domainauth.PasswordAuthenticator
@@ -225,14 +228,17 @@ func (s *Service) DeleteUser(ctx context.Context, sessionToken string, userID ui
 	return nil
 }
 
-func rollbackInvite(ctx context.Context, creator domainauth.AccountCreator, repository domainauth.Repository, firebaseUID string) {
+func rollbackInvite(_ context.Context, creator domainauth.AccountCreator, repository domainauth.Repository, firebaseUID string) {
+	rollbackCtx, cancel := context.WithTimeout(context.Background(), rollbackInviteTimeout)
+	defer cancel()
+
 	if creator != nil {
-		if err := creator.DeleteUser(ctx, firebaseUID); err != nil {
+		if err := creator.DeleteUser(rollbackCtx, firebaseUID); err != nil {
 			slog.Error("rollback firebase user failed", "firebase_uid", firebaseUID, "error", err)
 		}
 	}
 	if repository != nil {
-		if err := repository.DeleteAdminUserByFirebaseUID(ctx, firebaseUID); err != nil {
+		if err := repository.DeleteAdminUserByFirebaseUID(rollbackCtx, firebaseUID); err != nil {
 			slog.Error("rollback admin user failed", "firebase_uid", firebaseUID, "error", err)
 		}
 	}
