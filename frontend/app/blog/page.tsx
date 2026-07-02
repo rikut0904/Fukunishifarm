@@ -5,8 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Blog",
   description: "ふくにしファームのブログです。",

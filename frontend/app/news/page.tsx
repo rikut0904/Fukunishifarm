@@ -9,8 +9,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 const PAGE_SIZE = 5;
 
 export const metadata: Metadata = {

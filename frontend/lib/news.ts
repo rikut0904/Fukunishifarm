@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api";
+import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type NewsItem = {
   id: string;
@@ -53,7 +54,9 @@ export async function loadPublicNewsCatalog(): Promise<PublicNewsCatalogState> {
 
 export async function fetchPublicNewsCatalog() {
   const response = await fetch(`${getPublicApiBaseUrl()}/v1/news`, {
-    cache: "no-store",
+    next: {
+      revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
+    },
   });
 
   if (!response.ok) {

@@ -1,4 +1,5 @@
 import { ApiError, apiFetch, isMigrationRequiredError } from "@/lib/api";
+import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type GrapeItem = {
   id: number;
@@ -79,7 +80,9 @@ export async function loadPublicGrapeCatalog(onMigrationRequired: () => never): 
 
 export async function fetchPublicGrapeCatalog() {
   const response = await fetch(`${getPublicApiBaseUrl()}/v1/grapes`, {
-    cache: "no-store",
+    next: {
+      revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
+    },
   });
 
   if (!response.ok) {

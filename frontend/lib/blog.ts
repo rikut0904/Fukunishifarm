@@ -1,6 +1,7 @@
 import { ApiError } from "@/lib/api";
 import { formatBlogDate } from "@/lib/blog-format";
 import type { BlogPost, PublicBlogCatalogState, PublicBlogPostState } from "@/lib/blog-types";
+import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 import { htmlExcerpt, htmlToPlainText } from "@/lib/html";
 
 const DEFAULT_LIST_LIMIT = 6;
@@ -47,7 +48,9 @@ function getPublicApiBaseUrl() {
 
 export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
   const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog?limit=${limit}`, {
-    cache: "no-store",
+    next: {
+      revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
+    },
   });
   if (!response.ok) {
     throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
@@ -70,7 +73,9 @@ export async function fetchPublicBlogPostBySlug(slug: string) {
   }
 
   const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog/${encodeURIComponent(normalizedSlug)}`, {
-    cache: "no-store",
+    next: {
+      revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
+    },
   });
   if (response.status === 404) {
     return null;

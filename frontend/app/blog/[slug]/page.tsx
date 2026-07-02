@@ -7,8 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 function buildBlogDescription(content: string) {
   return htmlExcerpt(content, 140);
 }
