@@ -27,14 +27,7 @@ func (r *AdminUserRepository) CreateAdminUser(ctx context.Context, identity doma
 		Role:        "admin",
 	}
 
-	tx := r.db.WithContext(ctx).Where(domainauth.AdminUser{FirebaseUID: identity.FirebaseUID}).
-		Assign(domainauth.AdminUser{
-			Email:       identity.Email,
-			DisplayName: identity.DisplayName,
-			PhotoURL:    identity.PhotoURL,
-			Role:        "admin",
-		}).
-		FirstOrCreate(&user)
+	tx := r.db.WithContext(ctx).Create(&user)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}

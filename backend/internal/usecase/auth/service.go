@@ -108,7 +108,7 @@ func (s *Service) CreateUser(ctx context.Context, sessionToken, email, displayNa
 	user, err := s.repository.CreateAdminUser(ctx, identity)
 	if err != nil {
 		rollbackInvite(ctx, s.creator, s.repository, identity.FirebaseUID)
-		return nil, fmt.Errorf("upsert created user: %w", err)
+		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 
 	passwordSetupLink, err := s.creator.GeneratePasswordSetupLink(ctx, identity.Email, buildLoginContinueURL(s.loginURL, identity.Email))

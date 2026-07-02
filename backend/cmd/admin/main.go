@@ -71,7 +71,7 @@ func main() {
 	repository := gormrepo.NewAdminUserRepository(database)
 	user, err := repository.CreateAdminUser(ctx, identity)
 	if err != nil {
-		slog.Error("upsert admin user", "error", err)
+		slog.Error("create admin user", "error", err)
 		os.Exit(1)
 	}
 
