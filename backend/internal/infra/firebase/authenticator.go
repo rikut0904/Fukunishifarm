@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 )
@@ -17,6 +18,8 @@ type Authenticator struct {
 	apiKey string
 	client *http.Client
 }
+
+const firebaseAuthTimeout = 15 * time.Second
 
 type firebasePasswordRequest struct {
 	Email             string `json:"email"`
@@ -45,7 +48,9 @@ func NewAuthenticator(apiKey string) (*Authenticator, error) {
 
 	return &Authenticator{
 		apiKey: apiKey,
-		client: http.DefaultClient,
+		client: &http.Client{
+			Timeout: firebaseAuthTimeout,
+		},
 	}, nil
 }
 
@@ -68,7 +73,14 @@ func (a *Authenticator) AuthenticateWithPassword(ctx context.Context, email, pas
 	}
 	request.Header.Set("Content-Type", "application/json")
 
-	response, err := a.client.Do(request)
+	client := a.client
+	if client == nil {
+		client = &http.Client{
+			Timeout: firebaseAuthTimeout,
+		}
+	}
+
+	response, err := client.Do(request)
 	if err != nil {
 		return domainauth.LoginResult{}, fmt.Errorf("call firebase auth endpoint: %w", err)
 	}
