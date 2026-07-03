@@ -17,6 +17,8 @@ const defaultEndpoint = "blogs"
 const maxCatalogLimit = 100
 const publicBlogRequestTimeout = 15 * time.Second
 const publicBlogCacheTTL = time.Minute
+const maxCatalogCacheEntries = 32
+const maxPostCacheEntries = 128
 
 type Service struct {
 	client   *microcms.Client
@@ -221,6 +223,9 @@ func (s *Service) storeCatalog(key string, catalog domainblog.Catalog) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.evictExpiredCatalogsLocked(time.Now())
+	s.evictOldestCatalogsLocked(maxCatalogCacheEntries - 1)
+
 	s.catalogs[key] = cachedBlogCatalog{
 		value:    catalog,
 		cachedAt: time.Now(),
@@ -256,9 +261,62 @@ func (s *Service) storePost(slug string, post domainblog.Post) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.evictExpiredPostsLocked(time.Now())
+	s.evictOldestPostsLocked(maxPostCacheEntries - 1)
+
 	s.posts[slug] = cachedBlogPost{
 		value:    post,
 		cachedAt: time.Now(),
 		hasValue: true,
+	}
+}
+
+func (s *Service) evictExpiredCatalogsLocked(now time.Time) {
+	for key, cached := range s.catalogs {
+		if !cached.hasValue || now.Sub(cached.cachedAt) > publicBlogCacheTTL {
+			delete(s.catalogs, key)
+		}
+	}
+}
+
+func (s *Service) evictOldestCatalogsLocked(targetSize int) {
+	for len(s.catalogs) > targetSize {
+		oldestKey := ""
+		var oldestTime time.Time
+		for key, cached := range s.catalogs {
+			if oldestKey == "" || cached.cachedAt.Before(oldestTime) {
+				oldestKey = key
+				oldestTime = cached.cachedAt
+			}
+		}
+		if oldestKey == "" {
+			return
+		}
+		delete(s.catalogs, oldestKey)
+	}
+}
+
+func (s *Service) evictExpiredPostsLocked(now time.Time) {
+	for key, cached := range s.posts {
+		if !cached.hasValue || now.Sub(cached.cachedAt) > publicBlogCacheTTL {
+			delete(s.posts, key)
+		}
+	}
+}
+
+func (s *Service) evictOldestPostsLocked(targetSize int) {
+	for len(s.posts) > targetSize {
+		oldestKey := ""
+		var oldestTime time.Time
+		for key, cached := range s.posts {
+			if oldestKey == "" || cached.cachedAt.Before(oldestTime) {
+				oldestKey = key
+				oldestTime = cached.cachedAt
+			}
+		}
+		if oldestKey == "" {
+			return
+		}
+		delete(s.posts, oldestKey)
 	}
 }

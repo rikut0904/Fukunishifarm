@@ -15,6 +15,7 @@ import (
 const defaultEndpoint = "news"
 const publicNewsRequestTimeout = 8 * time.Second
 const publicNewsCacheTTL = time.Minute
+const maxNewsCacheEntries = 32
 
 type Service struct {
 	client   *microcms.Client
@@ -153,9 +154,38 @@ func (s *Service) storeCatalog(key string, catalog domainnews.Catalog) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	now := time.Now()
+	s.evictExpiredCatalogsLocked(now)
+	s.evictOldestCatalogsLocked(maxNewsCacheEntries - 1)
+
 	s.cached[key] = cachedNewsCatalog{
 		value:    catalog,
-		cachedAt: time.Now(),
+		cachedAt: now,
 		hasValue: true,
+	}
+}
+
+func (s *Service) evictExpiredCatalogsLocked(now time.Time) {
+	for key, cached := range s.cached {
+		if !cached.hasValue || now.Sub(cached.cachedAt) > publicNewsCacheTTL {
+			delete(s.cached, key)
+		}
+	}
+}
+
+func (s *Service) evictOldestCatalogsLocked(targetSize int) {
+	for len(s.cached) > targetSize {
+		oldestKey := ""
+		var oldestTime time.Time
+		for key, cached := range s.cached {
+			if oldestKey == "" || cached.cachedAt.Before(oldestTime) {
+				oldestKey = key
+				oldestTime = cached.cachedAt
+			}
+		}
+		if oldestKey == "" {
+			return
+		}
+		delete(s.cached, oldestKey)
 	}
 }
