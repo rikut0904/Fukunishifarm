@@ -12,6 +12,9 @@ export type NewsItem = {
 
 export type NewsCatalog = {
   items: NewsItem[];
+  total: number;
+  page: number;
+  limit: number;
 };
 
 export type PublicNewsCatalogState = {
@@ -38,10 +41,10 @@ function getPublicApiBaseUrl() {
   return apiBaseUrl.replace(/\/$/, "");
 }
 
-export async function loadPublicNewsCatalog(): Promise<PublicNewsCatalogState> {
+export async function loadPublicNewsCatalog(page = 1, limit = 5): Promise<PublicNewsCatalogState> {
   try {
     return {
-      catalog: await fetchPublicNewsCatalog(),
+      catalog: await fetchPublicNewsCatalog(page, limit),
       errorMessage: null,
     };
   } catch {
@@ -52,8 +55,13 @@ export async function loadPublicNewsCatalog(): Promise<PublicNewsCatalogState> {
   }
 }
 
-export async function fetchPublicNewsCatalog() {
-  const response = await fetch(`${getPublicApiBaseUrl()}/v1/news`, {
+export async function fetchPublicNewsCatalog(page = 1, limit = 5) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  const response = await fetch(`${getPublicApiBaseUrl()}/v1/news?${params.toString()}`, {
     next: {
       revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
     },
@@ -67,6 +75,9 @@ export async function fetchPublicNewsCatalog() {
 
   return {
     ...catalog,
-    items: sortNewsItems(catalog.items),
+    total: Number.isFinite(catalog.total) ? catalog.total : catalog.items.length,
+    page: Number.isFinite(catalog.page) ? catalog.page : page,
+    limit: Number.isFinite(catalog.limit) && catalog.limit > 0 ? catalog.limit : limit,
+    items: sortNewsItems(Array.isArray(catalog.items) ? catalog.items : []),
   };
 }

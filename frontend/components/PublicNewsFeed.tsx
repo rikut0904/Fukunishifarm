@@ -3,52 +3,25 @@
 import { formatBlogDate } from "@/lib/blog";
 import type { NewsItem } from "@/lib/news";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { startTransition } from "react";
-
-const PAGE_SIZE = 5;
-
-function clampPage(page: number, totalPages: number) {
-  if (!Number.isFinite(page) || page < 1) {
-    return 1;
-  }
-
-  return Math.min(page, Math.max(totalPages, 1));
-}
 
 export default function PublicNewsFeed({
   items,
+  total,
+  page,
+  limit,
   errorMessage,
 }: {
   items: NewsItem[] | null;
+  total: number;
+  page: number;
+  limit: number;
   errorMessage: string | null;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const totalItems = items?.length ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const requestedPage = Number(searchParams.get("page") ?? 1);
-  const currentPage = clampPage(requestedPage, totalPages);
-  const visibleItems = items ? items.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE) : [];
-  const showPagination = totalItems > PAGE_SIZE;
-
-  const moveToPage = (page: number) => {
-    const nextPage = clampPage(page, totalPages);
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (nextPage <= 1) {
-      params.delete("page");
-    } else {
-      params.set("page", String(nextPage));
-    }
-
-    const query = params.toString();
-    startTransition(() => {
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-    });
-  };
+  const totalPages = Math.max(1, Math.ceil(total / Math.max(limit, 1)));
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+  const showPagination = total > limit;
+  const previousHref = currentPage <= 2 ? "/news" : `/news?page=${currentPage - 1}`;
+  const nextHref = `/news?page=${currentPage + 1}`;
 
   if (errorMessage) {
     return (
@@ -58,7 +31,7 @@ export default function PublicNewsFeed({
     );
   }
 
-  if (visibleItems.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="card card__body">
         <p className="m-0">現在表示できるお知らせはありません。</p>
@@ -69,7 +42,7 @@ export default function PublicNewsFeed({
   return (
     <>
       <div className="news-feed">
-        {visibleItems.map((item) => (
+        {items.map((item) => (
           <article className="card news-card" key={item.id}>
             <div className="card__body">
               <p className="news-card__date">{formatBlogDate(item.publishedAt)}</p>
@@ -90,18 +63,18 @@ export default function PublicNewsFeed({
                 前へ
               </span>
             ) : (
-              <button type="button" className="button-link button-link--secondary" onClick={() => moveToPage(currentPage - 1)}>
+              <Link href={previousHref} className="button-link button-link--secondary">
                 前へ
-              </button>
+              </Link>
             )}
             {currentPage >= totalPages ? (
               <span className="button-link button-link--secondary" aria-disabled="true">
                 次へ
               </span>
             ) : (
-              <button type="button" className="button-link button-link--secondary" onClick={() => moveToPage(currentPage + 1)}>
+              <Link href={nextHref} className="button-link button-link--secondary">
                 次へ
-              </button>
+              </Link>
             )}
           </div>
         </div>

@@ -10,5 +10,8 @@ type Item struct {
 }
 
 type Catalog struct {
-	Items []Item `json:"items"`
+	Items      []Item `json:"items"`
+	TotalCount int    `json:"totalCount"`
+	Offset     int    `json:"offset"`
+	Limit      int    `json:"limit"`
 }

@@ -16,6 +16,21 @@ export const metadata: Metadata = {
   description: "滋賀県甲賀市信楽町にてぶどう狩りを行っています。",
 };
 
+type NewsPageProps = {
+  searchParams?: Promise<{
+    page?: string;
+  }>;
+};
+
+function parseNewsPage(value: string | undefined) {
+  const page = Number(value ?? "1");
+  if (!Number.isFinite(page) || page < 1) {
+    return 1;
+  }
+
+  return Math.floor(page);
+}
+
 function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
   return (
     <article className="card">
@@ -37,9 +52,11 @@ function saleStatusCard(item: { name: string; imagePath: string; imageFocus: str
   );
 }
 
-export default async function NewsPage() {
+export default async function NewsPage({ searchParams }: NewsPageProps) {
+  const params = (await searchParams) ?? {};
+  const page = parseNewsPage(params.page);
   const { catalog: grapeCatalog, errorMessage: grapeErrorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
-  const { catalog, errorMessage } = await loadPublicNewsCatalog();
+  const { catalog, errorMessage } = await loadPublicNewsCatalog(page, 5);
   const saleSlides = grapeCatalog
     ? grapeCatalog.items.map((item) => ({
         id: `${item.id}`,
@@ -64,7 +81,13 @@ export default async function NewsPage() {
             <h1 className="section__title">お知らせ</h1>
           </div>
 
-          <PublicNewsFeed items={catalog?.items ?? null} errorMessage={errorMessage} />
+          <PublicNewsFeed
+            items={catalog?.items ?? null}
+            total={catalog?.total ?? 0}
+            page={catalog?.page ?? page}
+            limit={catalog?.limit ?? 5}
+            errorMessage={errorMessage}
+          />
         </section>
 
         <section className="section section--soft">

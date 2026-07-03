@@ -284,7 +284,15 @@ type newsItemResponse struct {
 type newsCatalogResponse struct {
 	Body struct {
 		Items []newsItemResponse `json:"items"`
+		Total int                `json:"total"`
+		Page  int                `json:"page"`
+		Limit int                `json:"limit"`
 	}
+}
+
+type publicNewsListInput struct {
+	Page  int `query:"page" minimum:"1" default:"1"`
+	Limit int `query:"limit" minimum:"1" maximum:"100" default:"5"`
 }
 
 type blogImageResponse struct {
@@ -551,13 +559,17 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toGrapeCatalogResponse(catalog), nil
 	})
 
-	huma.Get(api, "/v1/news", func(ctx context.Context, input *struct{}) (*newsCatalogResponse, error) {
-		catalog, err := newsService.GetPublicCatalog(ctx)
+	huma.Get(api, "/v1/news", func(ctx context.Context, input *publicNewsListInput) (*newsCatalogResponse, error) {
+		if input.Page < 1 {
+			input.Page = 1
+		}
+
+		catalog, err := newsService.GetPublicCatalog(ctx, input.Page, input.Limit)
 		if err != nil {
 			return nil, mapNewsError("failed to load news catalog", err)
 		}
 
-		return toNewsCatalogResponse(catalog), nil
+		return toNewsCatalogResponse(catalog, input.Page), nil
 	})
 
 	huma.Post(api, "/v1/contact", func(ctx context.Context, input *contactMessageInput) (*contactMessageOutput, error) {
@@ -943,9 +955,12 @@ func toNewsItemResponse(item domainnews.Item) newsItemResponse {
 	}
 }
 
-func toNewsCatalogResponse(catalog domainnews.Catalog) *newsCatalogResponse {
+func toNewsCatalogResponse(catalog domainnews.Catalog, page int) *newsCatalogResponse {
 	output := &newsCatalogResponse{}
 	output.Body.Items = make([]newsItemResponse, 0, len(catalog.Items))
+	output.Body.Total = catalog.TotalCount
+	output.Body.Page = page
+	output.Body.Limit = catalog.Limit
 	for _, item := range catalog.Items {
 		output.Body.Items = append(output.Body.Items, toNewsItemResponse(item))
 	}

@@ -61,7 +61,7 @@ async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitem
 
 async function loadNewsEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
   try {
-    const { items } = await fetchPublicNewsCatalog();
+    const { items } = await fetchPublicNewsCatalog(1, 100);
     if (items.length === 0) {
       return [];
     }
