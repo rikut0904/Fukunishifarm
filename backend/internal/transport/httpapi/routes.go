@@ -330,7 +330,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Post(api, "/v1/admin/users", func(ctx context.Context, input *createUserInput) (*createUserOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		user, err := authService.CreateUser(ctx, token, input.Body.Email, input.Body.DisplayName)
@@ -346,7 +346,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Get(api, "/v1/admin/users", func(ctx context.Context, input *sessionInput) (*adminUsersOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		users, err := authService.ListUsers(ctx, token)
@@ -366,7 +366,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Post(api, "/v1/admin/users/{id}/resend", func(ctx context.Context, input *adminUserPathInput) (*resendInvitationOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if err := authService.ResendInvitation(ctx, token, input.ID); err != nil {
@@ -381,7 +381,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Delete(api, "/v1/admin/users/{id}", func(ctx context.Context, input *adminUserPathInput) (*deleteAdminUserOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if err := authService.DeleteUser(ctx, token, input.ID); err != nil {
@@ -408,7 +408,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Get(api, "/v1/auth/session", func(ctx context.Context, input *sessionInput) (*sessionOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		user, err := authService.GetSession(ctx, token)
@@ -433,7 +433,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Get(api, "/v1/admin/grapes", func(ctx context.Context, input *sessionInput) (*grapeCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -454,7 +454,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	}) (*grapeItemOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -478,7 +478,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	}) (*grapeItemOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -501,7 +501,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	}) (*struct{}, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -521,7 +521,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	}) (*grapeCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -574,7 +574,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Get(api, "/v1/admin/contact", func(ctx context.Context, input *adminContactListInput) (*contactMessageCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -610,7 +610,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	}) (*contactMessageDetailResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
@@ -634,7 +634,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Post(api, "/v1/admin/contact/{id}/replies", func(ctx context.Context, input *contactReplyInput) (*contactReplyOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		user, err := authService.GetSession(ctx, token)
@@ -659,7 +659,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	huma.Put(api, "/v1/admin/contact/{id}/status", func(ctx context.Context, input *contactStatusInput) (*contactStatusOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
-			return nil, huma.Error400BadRequest("missing bearer token")
+			return nil, huma.Error401Unauthorized("missing bearer token")
 		}
 
 		if _, err := authService.GetSession(ctx, token); err != nil {
