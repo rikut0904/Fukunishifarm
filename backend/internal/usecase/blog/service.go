@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -83,8 +84,12 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 	}
 	offset := (page - 1) * limit
 	cacheKey := catalogCacheKey(page, limit)
+	endpoint := s.getEndpoint()
+
+	slog.Info("load public blog catalog", "endpoint", endpoint, "page", page, "limit", limit, "offset", offset)
 
 	if catalog, ok := s.getCachedCatalog(cacheKey); ok {
+		slog.Info("serve public blog catalog from cache", "endpoint", endpoint, "page", page, "limit", limit, "count", len(catalog.Posts))
 		return catalog, nil
 	}
 
@@ -97,7 +102,9 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 		"limit":  fmt.Sprintf("%d", limit),
 		"orders": "-publishedAt",
 	}, &response); err != nil {
+		slog.Error("load public blog catalog failed", "endpoint", endpoint, "page", page, "limit", limit, "offset", offset, "error", err)
 		if cached, ok := s.getAnyCachedCatalog(cacheKey); ok {
+			slog.Warn("serve stale public blog catalog from cache after error", "endpoint", endpoint, "page", page, "limit", limit, "count", len(cached.Posts))
 			return cached, nil
 		}
 		return domainblog.Catalog{}, err
@@ -110,6 +117,7 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 		Limit:      response.Limit,
 	}
 	s.storeCatalog(cacheKey, catalog)
+	slog.Info("loaded public blog catalog", "endpoint", endpoint, "page", page, "limit", limit, "count", len(catalog.Posts), "total", catalog.TotalCount)
 	return catalog, nil
 }
 
@@ -119,7 +127,11 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 		return domainblog.Post{}, domainblog.ErrInvalidInput
 	}
 
+	endpoint := s.getEndpoint()
+	slog.Info("load public blog post", "endpoint", endpoint, "id", id)
+
 	if post, ok := s.getCachedPost(id); ok {
+		slog.Info("serve public blog post from cache", "endpoint", endpoint, "id", id, "title", post.Title)
 		return post, nil
 	}
 
@@ -128,7 +140,9 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 
 	var response microCMSPost
 	if err := s.request(requestCtx, http.MethodGet, "/"+url.PathEscape(id), nil, &response); err != nil {
+		slog.Error("load public blog post failed", "endpoint", endpoint, "id", id, "error", err)
 		if cached, ok := s.getAnyCachedPost(id); ok {
+			slog.Warn("serve stale public blog post from cache after error", "endpoint", endpoint, "id", id, "title", cached.Title)
 			return cached, nil
 		}
 		return domainblog.Post{}, err
@@ -136,14 +150,12 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 
 	post := toPost(response)
 	s.storePost(id, post)
+	slog.Info("loaded public blog post", "endpoint", endpoint, "id", id, "title", post.Title)
 	return post, nil
 }
 
 func (s *Service) request(ctx context.Context, method, path string, query map[string]string, out any) error {
-	endpoint := s.endpoint
-	if endpoint == "" {
-		endpoint = defaultEndpoint
-	}
+	endpoint := s.getEndpoint()
 
 	if err := s.client.Request(ctx, endpoint, method, path, query, nil, out); err != nil {
 		var responseError *microcms.ResponseError
@@ -154,6 +166,15 @@ func (s *Service) request(ctx context.Context, method, path string, query map[st
 	}
 
 	return nil
+}
+
+func (s *Service) getEndpoint() string {
+	endpoint := s.endpoint
+	if endpoint == "" {
+		endpoint = defaultEndpoint
+	}
+
+	return endpoint
 }
 
 func toPosts(contents []microCMSPost) []domainblog.Post {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -102,25 +103,32 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		}
 	}
 
+	slog.Info("microcms request", "method", method, "url", requestURL.String(), "endpoint", endpoint)
+
 	resp, err := httpClient.Do(req)
 	if err != nil {
+		slog.Error("microcms request transport failed", "method", method, "url", requestURL.String(), "endpoint", endpoint, "error", err)
 		return fmt.Errorf("microcms request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		slog.Error("microcms request returned non-success status", "method", method, "url", requestURL.String(), "endpoint", endpoint, "status_code", resp.StatusCode, "status", resp.Status, "body", strings.TrimSpace(string(body)))
 		return &ResponseError{
 			StatusCode: resp.StatusCode,
 			Status:     resp.Status,
 			Body:       strings.TrimSpace(string(body)),
 		}
 	}
+
+	slog.Info("microcms request completed", "method", method, "url", requestURL.String(), "endpoint", endpoint, "status_code", resp.StatusCode)
 	if out == nil || resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		slog.Error("decode microcms response failed", "method", method, "url", requestURL.String(), "endpoint", endpoint, "error", err)
 		return fmt.Errorf("decode microcms response: %w", err)
 	}
 	return nil
