@@ -42,8 +42,12 @@ type routeAvailability struct {
 	contact bool
 }
 
+func matchesPathPrefix(path, prefix string) bool {
+	return path == prefix || strings.HasPrefix(path, prefix+"/")
+}
+
 func isRouteAvailable(method, path string, availability routeAvailability) bool {
-	if path == "/healthz" || path == "/v1/news" || path == "/v1/blog" || strings.HasPrefix(path, "/v1/blog/") {
+	if path == "/healthz" || path == "/v1/news" || matchesPathPrefix(path, "/v1/blog") {
 		return true
 	}
 
@@ -51,19 +55,19 @@ func isRouteAvailable(method, path string, availability routeAvailability) bool 
 		return availability.grape
 	}
 
-	if path == "/v1/contact" || strings.HasPrefix(path, "/v1/contact/") {
+	if matchesPathPrefix(path, "/v1/contact") {
 		return availability.contact
 	}
 
-	if path == "/v1/auth/login" || path == "/v1/auth/session" || strings.HasPrefix(path, "/v1/admin/users") {
+	if path == "/v1/auth/login" || path == "/v1/auth/session" || matchesPathPrefix(path, "/v1/admin/users") {
 		return availability.auth
 	}
 
-	if path == "/v1/admin/grapes" || strings.HasPrefix(path, "/v1/admin/grapes/") {
+	if matchesPathPrefix(path, "/v1/admin/grapes") {
 		return availability.auth && availability.grape
 	}
 
-	if path == "/v1/admin/contact" || strings.HasPrefix(path, "/v1/admin/contact/") {
+	if matchesPathPrefix(path, "/v1/admin/contact") {
 		return availability.auth && availability.contact
 	}
 
