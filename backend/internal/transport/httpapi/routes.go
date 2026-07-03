@@ -341,7 +341,7 @@ type publicBlogListInput struct {
 }
 
 type publicBlogPostInput struct {
-	Slug string `path:"slug"`
+	ID string `path:"id"`
 }
 
 type grapeItemPath struct {
@@ -724,8 +724,8 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toBlogCatalogResponse(catalog, input.Page), nil
 	})
 
-	huma.Get(api, "/v1/blog/{slug}", func(ctx context.Context, input *publicBlogPostInput) (*blogPostOutput, error) {
-		post, err := blogService.GetPublicPostBySlug(ctx, input.Slug)
+	huma.Get(api, "/v1/blog/{id}", func(ctx context.Context, input *publicBlogPostInput) (*blogPostOutput, error) {
+		post, err := blogService.GetPublicPostByID(ctx, input.ID)
 		if err != nil {
 			return nil, mapBlogError("failed to load blog post", err)
 		}

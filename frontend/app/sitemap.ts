@@ -4,6 +4,8 @@ import { fetchPublicBlogPosts, getBlogPath } from "@/lib/blog";
 import { fetchPublicNewsCatalog } from "@/lib/news";
 import { getSiteBaseUrl } from "@/lib/site";
 
+const SITEMAP_FETCH_TIMEOUT_MS = 5000;
+
 const STATIC_ROUTES = [
   "/",
   "/about",
@@ -46,9 +48,26 @@ function toLastModifiedDate(value: string | undefined): Date | undefined {
   return parsed;
 }
 
+async function withSitemapTimeout<T>(promise: Promise<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("sitemap fetch timeout")), SITEMAP_FETCH_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
   try {
-    const { contents } = await fetchPublicBlogPosts(1, 100);
+    const { contents } = await withSitemapTimeout(fetchPublicBlogPosts(1, 100));
 
     return contents.map((post) => ({
       url: new URL(getBlogPath(post), `${siteBaseUrl}/`).toString(),
@@ -61,7 +80,7 @@ async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitem
 
 async function loadNewsEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
   try {
-    const { items } = await fetchPublicNewsCatalog(1, 100);
+    const { items } = await withSitemapTimeout(fetchPublicNewsCatalog(1, 100));
     if (items.length === 0) {
       return [];
     }

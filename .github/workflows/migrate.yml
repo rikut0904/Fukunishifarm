@@ -6,16 +6,26 @@ on:
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    environment: DB
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26"
           cache-dependency-path: backend/go.sum
+
+      - name: Validate migration secrets
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "DATABASE_URL secret is not configured for this workflow." >&2
+            exit 1
+          fi
 
       - name: Run migration
         env:
