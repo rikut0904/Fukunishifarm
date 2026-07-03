@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -112,36 +113,29 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 	return catalog, nil
 }
 
-func (s *Service) GetPublicPostBySlug(ctx context.Context, slug string) (domainblog.Post, error) {
-	slug = strings.TrimSpace(slug)
-	if slug == "" {
+func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.Post, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
 		return domainblog.Post{}, domainblog.ErrInvalidInput
 	}
 
-	if post, ok := s.getCachedPost(slug); ok {
+	if post, ok := s.getCachedPost(id); ok {
 		return post, nil
 	}
 
 	requestCtx, cancel := context.WithTimeout(ctx, publicBlogRequestTimeout)
 	defer cancel()
 
-	var response microCMSListResponse
-	if err := s.request(requestCtx, http.MethodGet, "", map[string]string{
-		"filters": "slug[equals]" + slug,
-		"limit":   "1",
-	}, &response); err != nil {
-		if cached, ok := s.getAnyCachedPost(slug); ok {
+	var response microCMSPost
+	if err := s.request(requestCtx, http.MethodGet, "/"+url.PathEscape(id), nil, &response); err != nil {
+		if cached, ok := s.getAnyCachedPost(id); ok {
 			return cached, nil
 		}
 		return domainblog.Post{}, err
 	}
 
-	if len(response.Contents) == 0 {
-		return domainblog.Post{}, domainblog.ErrPostNotFound
-	}
-
-	post := toPost(response.Contents[0])
-	s.storePost(slug, post)
+	post := toPost(response)
+	s.storePost(id, post)
 	return post, nil
 }
 
@@ -233,11 +227,11 @@ func (s *Service) storeCatalog(key string, catalog domainblog.Catalog) {
 	}
 }
 
-func (s *Service) getCachedPost(slug string) (domainblog.Post, bool) {
+func (s *Service) getCachedPost(id string) (domainblog.Post, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cached, ok := s.posts[slug]
+	cached, ok := s.posts[id]
 	if !ok || !cached.hasValue || time.Since(cached.cachedAt) > publicBlogCacheTTL {
 		return domainblog.Post{}, false
 	}
@@ -245,11 +239,11 @@ func (s *Service) getCachedPost(slug string) (domainblog.Post, bool) {
 	return cached.value, true
 }
 
-func (s *Service) getAnyCachedPost(slug string) (domainblog.Post, bool) {
+func (s *Service) getAnyCachedPost(id string) (domainblog.Post, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cached, ok := s.posts[slug]
+	cached, ok := s.posts[id]
 	if !ok || !cached.hasValue {
 		return domainblog.Post{}, false
 	}
@@ -257,14 +251,14 @@ func (s *Service) getAnyCachedPost(slug string) (domainblog.Post, bool) {
 	return cached.value, true
 }
 
-func (s *Service) storePost(slug string, post domainblog.Post) {
+func (s *Service) storePost(id string, post domainblog.Post) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.evictExpiredPostsLocked(time.Now())
 	s.evictOldestPostsLocked(maxPostCacheEntries - 1)
 
-	s.posts[slug] = cachedBlogPost{
+	s.posts[id] = cachedBlogPost{
 		value:    post,
 		cachedAt: time.Now(),
 		hasValue: true,
