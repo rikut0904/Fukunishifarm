@@ -6,12 +6,16 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 )
 
 const publicGrapeRequestTimeout = 8 * time.Second
 const publicGrapeCacheTTL = time.Minute
+const maxGrapeNameLength = 120
+const maxGrapeImagePathLength = 255
+const maxGrapeImageFocusLength = 120
 
 type Service struct {
 	repository domaingrape.Repository
@@ -165,6 +169,15 @@ func normalizeItem(item domaingrape.Item) (domaingrape.Item, error) {
 	}
 
 	if item.Name == "" || item.Description == "" || item.ImagePath == "" || item.ImageFocus == "" {
+		return domaingrape.Item{}, domaingrape.ErrInvalidInput
+	}
+	if utf8.RuneCountInString(item.Name) > maxGrapeNameLength {
+		return domaingrape.Item{}, domaingrape.ErrInvalidInput
+	}
+	if utf8.RuneCountInString(item.ImagePath) > maxGrapeImagePathLength {
+		return domaingrape.Item{}, domaingrape.ErrInvalidInput
+	}
+	if utf8.RuneCountInString(item.ImageFocus) > maxGrapeImageFocusLength {
 		return domaingrape.Item{}, domaingrape.ErrInvalidInput
 	}
 

@@ -188,6 +188,9 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 	if body == "" {
 		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
 	}
+	if utf8.RuneCountInString(body) > maxContactBodyLength {
+		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
+	}
 
 	if s.mailer == nil {
 		return domaincontact.Reply{}, domaincontact.ErrMailNotConfigured
@@ -301,6 +304,9 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 func (s *Service) ReplyThread(ctx context.Context, threadID string, body string) (domaincontact.Reply, error) {
 	body = strings.TrimSpace(body)
 	if body == "" {
+		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
+	}
+	if utf8.RuneCountInString(body) > maxContactBodyLength {
 		return domaincontact.Reply{}, domaincontact.ErrInvalidInput
 	}
 
