@@ -19,6 +19,7 @@ type fakeContactRepository struct {
 	messageErr               error
 	getMessageCalls          int
 	createReplyErr           error
+	replyStatusErr           error
 	messageStatusErr         error
 	statuses                 []string
 	messageStatuses          []string
@@ -85,6 +86,9 @@ func (r *fakeContactRepository) UpdateReplyStatus(ctx context.Context, id uint, 
 	r.replyStatusHasDeadline = append(r.replyStatusHasDeadline, hasDeadline)
 	if r.savedReply.ID == id {
 		r.savedReply.Status = status
+	}
+	if r.replyStatusErr != nil {
+		return r.replyStatusErr
 	}
 	return nil
 }
@@ -659,6 +663,46 @@ func TestReplyMessageIgnoresMessageStatusUpdateFailureAfterMailSend(t *testing.T
 	}
 	if repo.savedReply.Status != "sent" {
 		t.Fatalf("reply status = %q, want %q", repo.savedReply.Status, "sent")
+	}
+	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
+		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)
+	}
+}
+
+func TestReplyMessageIgnoresReplyStatusUpdateFailureAfterMailSend(t *testing.T) {
+	t.Parallel()
+
+	repo := &fakeContactRepository{
+		message: domaincontact.Message{
+			ID:       42,
+			ThreadID: "thread-42",
+			Name:     "問い合わせ者",
+			Email:    "customer@example.com",
+			Subject:  "お問い合わせ",
+			Status:   "pending",
+		},
+		replyStatusErr: errors.New("db update failed"),
+	}
+	mailer := &fakeMailSender{}
+	service := NewService(repo, &fakeAdminRepository{}, mailer, "https://example.com")
+
+	saved, err := service.ReplyMessage(context.Background(), 42, ReplyAuthor{
+		UserID: 1,
+		Name:   "運営",
+		Email:  "admin@example.com",
+	}, "返信内容")
+	if err != nil {
+		t.Fatalf("ReplyMessage returned error: %v", err)
+	}
+	waitForMailCalls(t, mailer, 1)
+	if saved.ID == 0 {
+		t.Fatalf("saved reply ID = %d, want non-zero", saved.ID)
+	}
+	if saved.Status != "sent" {
+		t.Fatalf("saved reply status = %q, want %q", saved.Status, "sent")
+	}
+	if len(repo.replyStatuses) != 1 || repo.replyStatuses[0] != "sent" {
+		t.Fatalf("reply status updates = %v, want [sent]", repo.replyStatuses)
 	}
 	if len(repo.messageStatuses) != 1 || repo.messageStatuses[0] != "in_progress" {
 		t.Fatalf("message status updates = %v, want [in_progress]", repo.messageStatuses)

@@ -281,7 +281,7 @@ func (s *Service) ReplyMessage(ctx context.Context, messageID uint, author Reply
 		return nil
 	}(); err != nil {
 		slog.Error("failed to update contact reply status", "reply_id", saved.ID, "error", err)
-		return saved, fmt.Errorf("update contact reply status: %w", err)
+		saved.Status = "sent"
 	}
 
 	if message.Status == "pending" {
