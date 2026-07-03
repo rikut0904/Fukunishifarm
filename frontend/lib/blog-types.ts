@@ -37,10 +37,14 @@ export type BlogCatalogResponse = {
   totalCount: number;
   offset: number;
   limit: number;
+  page: number;
 };
 
 export type PublicBlogCatalogState = {
   posts: BlogPost[] | null;
+  totalCount: number;
+  page: number;
+  limit: number;
   errorMessage: string | null;
 };
 

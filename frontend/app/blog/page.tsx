@@ -1,7 +1,7 @@
 import AppHeader from "@/components/AppHeader";
+import BlogCardGrid from "@/components/BlogCardGrid";
 import SiteFooter from "@/components/SiteFooter";
-import { formatBlogDate, getBlogEyecatchUrl, getBlogPath, loadPublicBlogPosts } from "@/lib/blog";
-import Image from "next/image";
+import { loadPublicBlogPosts } from "@/lib/blog";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const { posts, errorMessage } = await loadPublicBlogPosts(12);
+  const { posts, errorMessage } = await loadPublicBlogPosts(1, 3);
 
   return (
     <div className="site-shell">
@@ -43,39 +43,17 @@ export default async function BlogPage() {
               <p className="m-0">{errorMessage}</p>
             </div>
           ) : posts && posts.length > 0 ? (
-            <div className="blog-grid">
-              {posts.map((post) => {
-                const eyecatchUrl = getBlogEyecatchUrl(post);
-
-                return (
-                <article className="card blog-card" key={post.id}>
-                  {eyecatchUrl ? (
-                    <div className="blog-card__media">
-                      <Image
-                        src={eyecatchUrl}
-                        alt={post.title}
-                        width={1200}
-                        height={675}
-                        className="h-full w-full object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="blog-card__media blog-card__media--placeholder" aria-label="写真なし">
-                      <span>NO IMAGE</span>
-                    </div>
-                  )}
-                  <div className="card__body blog-card__body">
-                    <p className="news-card__date">{formatBlogDate(post.publishedAt)}</p>
-                    <h3 className="card__title">{post.title}</h3>
-                    <p className="card__text blog-card__excerpt">{post.excerpt}</p>
-                    <Link href={getBlogPath(post)} className="button-link button-link--secondary">
-                      記事を読む
-                    </Link>
-                  </div>
-                </article>
-              )})}
-            </div>
+            <>
+              <BlogCardGrid posts={posts} compact />
+              <div className="blog-archive-cta">
+                <div>
+                  <p className="blog-archive-cta__eyebrow">Archive</p>
+                </div>
+                <Link href="/blog/archive" className="button-link button-link--secondary">
+                  一覧を見る
+                </Link>
+              </div>
+            </>
           ) : (
             <div className="card card__body">
               <p className="m-0">現在表示できるブログ記事はありません。</p>

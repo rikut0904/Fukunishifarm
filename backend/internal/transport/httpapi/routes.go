@@ -315,6 +315,9 @@ type blogPostResponse struct {
 type blogCatalogOutput struct {
 	Body struct {
 		Posts []blogPostResponse `json:"posts"`
+		Total int                `json:"total"`
+		Page  int                `json:"page"`
+		Limit int                `json:"limit"`
 	}
 }
 
@@ -325,6 +328,7 @@ type blogPostOutput struct {
 }
 
 type publicBlogListInput struct {
+	Page  int `query:"page" minimum:"1" default:"1"`
 	Limit int `query:"limit" minimum:"1" maximum:"100" default:"12"`
 }
 
@@ -696,12 +700,16 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 	})
 
 	huma.Get(api, "/v1/blog", func(ctx context.Context, input *publicBlogListInput) (*blogCatalogOutput, error) {
-		catalog, err := blogService.GetPublicCatalog(ctx, input.Limit)
+		if input.Page < 1 {
+			input.Page = 1
+		}
+
+		catalog, err := blogService.GetPublicCatalog(ctx, input.Page, input.Limit)
 		if err != nil {
 			return nil, mapBlogError("failed to load blog catalog", err)
 		}
 
-		return toBlogCatalogResponse(catalog), nil
+		return toBlogCatalogResponse(catalog, input.Page), nil
 	})
 
 	huma.Get(api, "/v1/blog/{slug}", func(ctx context.Context, input *publicBlogPostInput) (*blogPostOutput, error) {
@@ -944,9 +952,12 @@ func toNewsCatalogResponse(catalog domainnews.Catalog) *newsCatalogResponse {
 	return output
 }
 
-func toBlogCatalogResponse(catalog domainblog.Catalog) *blogCatalogOutput {
+func toBlogCatalogResponse(catalog domainblog.Catalog, page int) *blogCatalogOutput {
 	output := &blogCatalogOutput{}
 	output.Body.Posts = make([]blogPostResponse, 0, len(catalog.Posts))
+	output.Body.Total = catalog.TotalCount
+	output.Body.Page = page
+	output.Body.Limit = catalog.Limit
 	for _, post := range catalog.Posts {
 		output.Body.Posts = append(output.Body.Posts, toBlogPostResponse(post))
 	}

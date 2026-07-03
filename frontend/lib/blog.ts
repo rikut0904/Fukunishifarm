@@ -53,8 +53,13 @@ function getPublicApiBaseUrl() {
   return apiBaseUrl.replace(/\/$/, "");
 }
 
-export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
-  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog?limit=${limit}`, {
+export async function fetchPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog?${params.toString()}`, {
     next: {
       revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
     },
@@ -62,14 +67,18 @@ export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
   if (!response.ok) {
     throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
   }
-  const payload = (await response.json()) as { posts: BlogPost[] };
+  const payload = (await response.json()) as { posts?: BlogPost[]; total?: number; page?: number; limit?: number };
   const posts = Array.isArray(payload?.posts) ? payload.posts : [];
+  const normalizedLimit = Number.isFinite(payload?.limit) && Number(payload.limit) > 0 ? Number(payload.limit) : limit;
+  const normalizedPage = Number.isFinite(payload?.page) && Number(payload.page) > 0 ? Number(payload.page) : page;
+  const totalCount = Number.isFinite(payload?.total) && Number(payload.total) >= 0 ? Number(payload.total) : posts.length;
 
   return {
     contents: posts.map(normalizeBlogPost),
-    totalCount: posts.length,
-    offset: 0,
-    limit,
+    totalCount,
+    offset: Math.max(normalizedPage - 1, 0) * normalizedLimit,
+    limit: normalizedLimit,
+    page: normalizedPage,
   };
 }
 
@@ -101,16 +110,22 @@ export async function fetchPublicBlogPostBySlug(slug: string) {
   return fetchPublicBlogPostBySlugCached(slug);
 }
 
-export async function loadPublicBlogPosts(limit = DEFAULT_LIST_LIMIT): Promise<PublicBlogCatalogState> {
+export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT): Promise<PublicBlogCatalogState> {
   try {
-    const response = await fetchPublicBlogPosts(limit);
+    const response = await fetchPublicBlogPosts(page, limit);
     return {
       posts: response.contents,
+      totalCount: response.totalCount,
+      page: response.page,
+      limit: response.limit,
       errorMessage: null,
     };
   } catch {
     return {
       posts: null,
+      totalCount: 0,
+      page,
+      limit,
       errorMessage: "ブログ記事を読み込めませんでした。",
     };
   }

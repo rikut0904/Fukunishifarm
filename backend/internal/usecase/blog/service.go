@@ -22,7 +22,7 @@ type Service struct {
 	client   *microcms.Client
 	endpoint string
 	mu       sync.RWMutex
-	catalogs map[int]cachedBlogCatalog
+	catalogs map[string]cachedBlogCatalog
 	posts    map[string]cachedBlogPost
 }
 
@@ -39,7 +39,10 @@ type cachedBlogPost struct {
 }
 
 type microCMSListResponse struct {
-	Contents []microCMSPost `json:"contents"`
+	Contents   []microCMSPost `json:"contents"`
+	TotalCount int            `json:"totalCount"`
+	Offset     int            `json:"offset"`
+	Limit      int            `json:"limit"`
 }
 
 type microCMSPost struct {
@@ -61,19 +64,24 @@ func NewService(serviceDomain, apiKey, endpoint string) *Service {
 	return &Service{
 		client:   microcms.NewClient(serviceDomain, apiKey),
 		endpoint: strings.TrimSpace(endpoint),
-		catalogs: make(map[int]cachedBlogCatalog),
+		catalogs: make(map[string]cachedBlogCatalog),
 		posts:    make(map[string]cachedBlogPost),
 	}
 }
 
-func (s *Service) GetPublicCatalog(ctx context.Context, limit int) (domainblog.Catalog, error) {
+func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domainblog.Catalog, error) {
+	if page < 1 {
+		page = 1
+	}
 	if limit <= 0 {
 		limit = 12
 	} else if limit > maxCatalogLimit {
 		limit = maxCatalogLimit
 	}
+	offset := (page - 1) * limit
+	cacheKey := catalogCacheKey(page, limit)
 
-	if catalog, ok := s.getCachedCatalog(limit); ok {
+	if catalog, ok := s.getCachedCatalog(cacheKey); ok {
 		return catalog, nil
 	}
 
@@ -82,17 +90,23 @@ func (s *Service) GetPublicCatalog(ctx context.Context, limit int) (domainblog.C
 
 	var response microCMSListResponse
 	if err := s.request(requestCtx, http.MethodGet, "", map[string]string{
+		"offset": fmt.Sprintf("%d", offset),
 		"limit":  fmt.Sprintf("%d", limit),
 		"orders": "-publishedAt",
 	}, &response); err != nil {
-		if cached, ok := s.getAnyCachedCatalog(limit); ok {
+		if cached, ok := s.getAnyCachedCatalog(cacheKey); ok {
 			return cached, nil
 		}
 		return domainblog.Catalog{}, err
 	}
 
-	catalog := domainblog.Catalog{Posts: toPosts(response.Contents)}
-	s.storeCatalog(limit, catalog)
+	catalog := domainblog.Catalog{
+		Posts:      toPosts(response.Contents),
+		TotalCount: response.TotalCount,
+		Offset:     response.Offset,
+		Limit:      response.Limit,
+	}
+	s.storeCatalog(cacheKey, catalog)
 	return catalog, nil
 }
 
@@ -175,11 +189,15 @@ func toPost(item microCMSPost) domainblog.Post {
 	}
 }
 
-func (s *Service) getCachedCatalog(limit int) (domainblog.Catalog, bool) {
+func catalogCacheKey(page, limit int) string {
+	return fmt.Sprintf("%d:%d", page, limit)
+}
+
+func (s *Service) getCachedCatalog(key string) (domainblog.Catalog, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cached, ok := s.catalogs[limit]
+	cached, ok := s.catalogs[key]
 	if !ok || !cached.hasValue || time.Since(cached.cachedAt) > publicBlogCacheTTL {
 		return domainblog.Catalog{}, false
 	}
@@ -187,11 +205,11 @@ func (s *Service) getCachedCatalog(limit int) (domainblog.Catalog, bool) {
 	return cached.value, true
 }
 
-func (s *Service) getAnyCachedCatalog(limit int) (domainblog.Catalog, bool) {
+func (s *Service) getAnyCachedCatalog(key string) (domainblog.Catalog, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cached, ok := s.catalogs[limit]
+	cached, ok := s.catalogs[key]
 	if !ok || !cached.hasValue {
 		return domainblog.Catalog{}, false
 	}
@@ -199,11 +217,11 @@ func (s *Service) getAnyCachedCatalog(limit int) (domainblog.Catalog, bool) {
 	return cached.value, true
 }
 
-func (s *Service) storeCatalog(limit int, catalog domainblog.Catalog) {
+func (s *Service) storeCatalog(key string, catalog domainblog.Catalog) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.catalogs[limit] = cachedBlogCatalog{
+	s.catalogs[key] = cachedBlogCatalog{
 		value:    catalog,
 		cachedAt: time.Now(),
 		hasValue: true,

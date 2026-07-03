@@ -2161,6 +2161,31 @@ h4 {
   overflow: hidden;
 }
 
+.blog-archive-cta {
+  display: grid;
+  gap: 0.9rem;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(123, 95, 77, 0.14);
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, rgba(255, 248, 242, 0.96), rgba(255, 255, 255, 0.96));
+}
+
+.blog-archive-cta__eyebrow {
+  margin: 0 0 0.3rem;
+  color: rgba(180, 101, 35, 0.92);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.blog-archive-cta__text {
+  margin: 0;
+  color: var(--muted);
+}
+
 .blog-hero {
   display: grid;
   gap: 1rem;
@@ -2405,6 +2430,10 @@ h4 {
 
   .blog-grid--compact {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .blog-archive-cta {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .admin-blog-layout {

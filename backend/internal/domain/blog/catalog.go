@@ -26,5 +26,8 @@ type Post struct {
 }
 
 type Catalog struct {
-	Posts []Post `json:"posts"`
+	Posts      []Post `json:"posts"`
+	TotalCount int    `json:"totalCount"`
+	Offset     int    `json:"offset"`
+	Limit      int    `json:"limit"`
 }

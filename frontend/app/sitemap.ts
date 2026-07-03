@@ -9,6 +9,7 @@ const STATIC_ROUTES = [
   "/about",
   "/access",
   "/blog",
+  "/blog/archive",
   "/contact",
   "/download",
   "/reservation",
@@ -47,7 +48,7 @@ function toLastModifiedDate(value: string | undefined): Date | undefined {
 
 async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
   try {
-    const { contents } = await fetchPublicBlogPosts(100);
+    const { contents } = await fetchPublicBlogPosts(1, 100);
 
     return contents.map((post) => ({
       url: new URL(getBlogPath(post), `${siteBaseUrl}/`).toString(),
