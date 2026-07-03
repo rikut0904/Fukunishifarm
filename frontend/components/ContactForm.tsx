@@ -30,7 +30,7 @@ export default function ContactForm() {
   const [category, setCategory] = useState<InquiryType>(INQUIRY_TYPES[0].value);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [website, setWebsite] = useState("");
+  const [faxNumber, setFaxNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -65,7 +65,7 @@ export default function ContactForm() {
         category,
         subject: subject.trim(),
         message: message.trim(),
-        website,
+        faxNumber,
       });
 
       setSuccessMessage("お問い合わせを受け付けました。");
@@ -75,7 +75,7 @@ export default function ContactForm() {
       setCategory(INQUIRY_TYPES[0].value);
       setSubject("");
       setMessage("");
-      setWebsite("");
+      setFaxNumber("");
     } catch (error) {
       console.error("failed to submit contact message", error);
       setErrorMessage("送信に失敗しました。時間をおいて再度お試しください。");
@@ -88,14 +88,15 @@ export default function ContactForm() {
   return (
     <form className="contact-form" onSubmit={handleSubmit}>
       <label className="contact-field contact-field--honeypot" aria-hidden="true">
-        <span>Webサイト</span>
+        <span>FAX番号</span>
         <input
           className="contact-input"
           type="text"
+          name="faxNumber"
           tabIndex={-1}
           autoComplete="off"
-          value={website}
-          onChange={(event) => setWebsite(event.target.value)}
+          value={faxNumber}
+          onChange={(event) => setFaxNumber(event.target.value)}
         />
       </label>
 

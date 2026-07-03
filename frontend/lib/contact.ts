@@ -6,7 +6,7 @@ export type ContactMessageInput = {
   category: string;
   subject: string;
   message: string;
-  website?: string;
+  faxNumber?: string;
 };
 
 export type ContactMessageResponse = {

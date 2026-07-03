@@ -106,7 +106,7 @@ type contactMessagePayload struct {
 	Category string `json:"category" required:"true" maxLength:"64"`
 	Subject  string `json:"subject" required:"true" maxLength:"160"`
 	Message  string `json:"message" required:"true" maxLength:"65535"`
-	Website  string `json:"website,omitempty" maxLength:"255"`
+	FaxNumber string `json:"faxNumber,omitempty" maxLength:"255"`
 }
 
 type contactMessageInput struct {
@@ -821,7 +821,7 @@ func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
 
 func toContactSubmissionMeta(input contactMessagePayload) usecasecontact.SubmissionMeta {
 	return usecasecontact.SubmissionMeta{
-		Honeypot: input.Website,
+		Honeypot: input.FaxNumber,
 	}
 }
 
