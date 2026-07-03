@@ -27,7 +27,6 @@ type Service struct {
 }
 
 type cachedBlogCatalog struct {
-	limit    int
 	value    domainblog.Catalog
 	cachedAt time.Time
 	hasValue bool
@@ -51,10 +50,6 @@ type microCMSPost struct {
 	Content     string               `json:"content"`
 	Body        string               `json:"body"`
 	Eyecatch    *domainblog.Image    `json:"eyecatch"`
-	EyeCatch    *domainblog.Image    `json:"eyeCatch"`
-	Thumbnail   *domainblog.Image    `json:"thumbnail"`
-	Image       *domainblog.Image    `json:"image"`
-	CoverImage  *domainblog.Image    `json:"coverImage"`
 	Category    *domainblog.Category `json:"category"`
 	PublishedAt string               `json:"publishedAt"`
 	RevisedAt   string               `json:"revisedAt"`
@@ -171,23 +166,13 @@ func toPost(item microCMSPost) domainblog.Post {
 		Slug:        item.Slug,
 		Excerpt:     item.Excerpt,
 		Content:     content,
-		Eyecatch:    pickBlogImage(item.Eyecatch, item.EyeCatch, item.Thumbnail, item.Image, item.CoverImage),
+		Eyecatch:    item.Eyecatch,
 		Category:    item.Category,
 		PublishedAt: item.PublishedAt,
 		RevisedAt:   item.RevisedAt,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	}
-}
-
-func pickBlogImage(images ...*domainblog.Image) *domainblog.Image {
-	for _, image := range images {
-		if image != nil && strings.TrimSpace(image.URL) != "" {
-			return image
-		}
-	}
-
-	return nil
 }
 
 func (s *Service) getCachedCatalog(limit int) (domainblog.Catalog, bool) {
@@ -219,7 +204,6 @@ func (s *Service) storeCatalog(limit int, catalog domainblog.Catalog) {
 	defer s.mu.Unlock()
 
 	s.catalogs[limit] = cachedBlogCatalog{
-		limit:    limit,
 		value:    catalog,
 		cachedAt: time.Now(),
 		hasValue: true,
