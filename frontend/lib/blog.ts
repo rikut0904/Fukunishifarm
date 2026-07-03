@@ -7,31 +7,47 @@ import { cache } from "react";
 
 const DEFAULT_LIST_LIMIT = 6;
 
+function normalizeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function normalizeBlogPost(post: unknown): BlogPost | null {
   if (!post || typeof post !== "object") {
     return null;
   }
 
-  const candidate = post as Partial<BlogPost>;
-  const id = candidate.id?.trim() ?? "";
-  const title = candidate.title?.trim() ?? "";
+  const candidate = post as Record<string, unknown>;
+  const id = normalizeString(candidate.id);
+  const title = normalizeString(candidate.title);
   if (!id || !title) {
     return null;
   }
 
-  const content = candidate.content ?? candidate.body ?? "";
-  const excerpt = normalizeExcerpt(candidate.excerpt, content);
+  const content =
+    typeof candidate.content === "string"
+      ? candidate.content
+      : typeof candidate.body === "string"
+        ? candidate.body
+        : "";
+  const excerpt = normalizeExcerpt(typeof candidate.excerpt === "string" ? candidate.excerpt : undefined, content);
   const eyecatch = normalizeBlogImage(candidate.eyecatch);
+  const category = normalizeBlogCategory(candidate.category);
+  const publishedAt = normalizeString(candidate.publishedAt) || normalizeString(candidate.createdAt) || normalizeString(candidate.updatedAt);
 
   return {
-    ...candidate,
     id,
     title,
-    slug: candidate.slug?.trim() ?? "",
-    content,
+    slug: normalizeString(candidate.slug),
     excerpt,
+    content,
+    body: typeof candidate.body === "string" ? candidate.body : undefined,
     eyecatch,
-  } as BlogPost;
+    category,
+    publishedAt,
+    revisedAt: normalizeString(candidate.revisedAt) || undefined,
+    createdAt: normalizeString(candidate.createdAt) || undefined,
+    updatedAt: normalizeString(candidate.updatedAt) || undefined,
+  };
 }
 
 export { formatBlogDate };
@@ -43,6 +59,24 @@ function normalizeExcerpt(excerpt: string | null | undefined, content: string) {
   }
 
   return htmlExcerpt(content, 120);
+}
+
+function normalizeBlogCategory(category: unknown): BlogPost["category"] {
+  if (!category || typeof category !== "object") {
+    return null;
+  }
+
+  const candidate = category as Record<string, unknown>;
+  const id = normalizeString(candidate.id);
+  const name = normalizeString(candidate.name);
+  if (!id && !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+  };
 }
 
 export function getBlogContent(post: BlogPost) {
@@ -156,20 +190,22 @@ export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT):
   }
 }
 
-function normalizeBlogImage(image: BlogPost["eyecatch"]) {
-  if (!image) {
-    return image;
+function normalizeBlogImage(image: unknown): BlogPost["eyecatch"] {
+  if (!image || typeof image !== "object") {
+    return null;
   }
 
-  const url = image.url?.trim() || image.src?.trim() || "";
+  const candidate = image as Record<string, unknown>;
+  const url = normalizeString(candidate.url) || normalizeString(candidate.src);
   if (!url) {
     return null;
   }
 
   return {
-    ...image,
     url,
     src: url,
+    height: typeof candidate.height === "number" ? candidate.height : undefined,
+    width: typeof candidate.width === "number" ? candidate.width : undefined,
   };
 }
 
