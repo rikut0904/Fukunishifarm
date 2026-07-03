@@ -6,7 +6,7 @@ type Item struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	Name        string    `gorm:"size:120;not null" json:"name"`
 	Description string    `gorm:"type:text;not null" json:"description"`
-	IsOnSale    bool      `gorm:"not null;default:true" json:"isOnSale"`
+	IsOnSale    bool      `gorm:"not null" json:"isOnSale"`
 	ImagePath   string    `gorm:"size:255;not null" json:"imagePath"`
 	ImageFocus  string    `gorm:"size:120;not null" json:"imageFocus"`
 	ImageScale  int       `gorm:"not null;default:100" json:"imageScale"`
