@@ -811,7 +811,8 @@ func bearerToken(header string) string {
 func toAdminUserResponse(user *domainauth.AdminUser) adminUserResponse {
 	var lastLoginAt *time.Time
 	if !user.LastLoginAt.IsZero() {
-		lastLoginAt = &user.LastLoginAt
+		lastLoginAtValue := user.LastLoginAt
+		lastLoginAt = &lastLoginAtValue
 	}
 
 	return adminUserResponse{
