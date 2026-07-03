@@ -1,0 +1,93 @@
+package gormrepo
+
+import (
+	"context"
+	"errors"
+
+	domaingrape "fukunishifarm/backend/internal/domain/grape"
+	"gorm.io/gorm"
+)
+
+type GrapeRepository struct {
+	db *gorm.DB
+}
+
+func NewGrapeRepository(db *gorm.DB) *GrapeRepository {
+	return &GrapeRepository{db: db}
+}
+
+func (r *GrapeRepository) ListItems(ctx context.Context) ([]domaingrape.Item, error) {
+	var items []domaingrape.Item
+	tx := r.db.WithContext(ctx).Order("sort_order ASC").Find(&items)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return items, nil
+}
+
+func (r *GrapeRepository) ReplaceItems(ctx context.Context, items []domaingrape.Item) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&domaingrape.Item{}).Error; err != nil {
+			return err
+		}
+
+		if len(items) == 0 {
+			return nil
+		}
+
+		normalized := make([]domaingrape.Item, 0, len(items))
+		for index, item := range items {
+			item.ID = 0
+			item.SortOrder = index
+			normalized = append(normalized, item)
+		}
+
+		return tx.Create(&normalized).Error
+	})
+}
+
+func (r *GrapeRepository) CreateItem(ctx context.Context, item domaingrape.Item) (domaingrape.Item, error) {
+	tx := r.db.WithContext(ctx).Create(&item)
+	if tx.Error != nil {
+		return domaingrape.Item{}, tx.Error
+	}
+	return item, nil
+}
+
+func (r *GrapeRepository) UpdateItem(ctx context.Context, item domaingrape.Item) (domaingrape.Item, error) {
+	var saved domaingrape.Item
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.First(&saved, item.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return domaingrape.ErrItemNotFound
+			}
+			return err
+		}
+
+		saved.Name = item.Name
+		saved.Description = item.Description
+		saved.IsOnSale = item.IsOnSale
+		saved.ImagePath = item.ImagePath
+		saved.ImageFocus = item.ImageFocus
+		saved.ImageScale = item.ImageScale
+		saved.SortOrder = item.SortOrder
+
+		return tx.Save(&saved).Error
+	})
+	if err != nil {
+		return domaingrape.Item{}, err
+	}
+
+	return saved, nil
+}
+
+func (r *GrapeRepository) DeleteItem(ctx context.Context, id uint) error {
+	tx := r.db.WithContext(ctx).Delete(&domaingrape.Item{}, id)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return domaingrape.ErrItemNotFound
+	}
+	return nil
+}
