@@ -39,8 +39,13 @@ export function getBlogEyecatchUrl(post: BlogPost) {
   return post.eyecatch?.url?.trim() || post.eyecatch?.src?.trim() || "";
 }
 
-export function getBlogPath(post: BlogPost) {
-  return `/blog/${encodeURIComponent(post.id.trim())}`;
+export function getBlogPath(post: BlogPost | null | undefined) {
+  const normalizedId = post?.id?.trim() ?? "";
+  if (!normalizedId) {
+    return "/blog";
+  }
+
+  return `/blog/${encodeURIComponent(normalizedId)}`;
 }
 
 function getPublicApiBaseUrl() {
