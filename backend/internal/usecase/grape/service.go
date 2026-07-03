@@ -63,6 +63,7 @@ func (s *Service) ReplaceCatalog(ctx context.Context, catalog domaingrape.Catalo
 		return domaingrape.Catalog{}, fmt.Errorf("replace grape items: %w", err)
 	}
 
+	s.clearCache()
 	return s.getCatalog(ctx)
 }
 
@@ -77,6 +78,7 @@ func (s *Service) SaveItem(ctx context.Context, item domaingrape.Item) (domaingr
 		if err != nil {
 			return domaingrape.Item{}, fmt.Errorf("create grape item: %w", err)
 		}
+		s.clearCache()
 		return saved, nil
 	}
 
@@ -85,6 +87,7 @@ func (s *Service) SaveItem(ctx context.Context, item domaingrape.Item) (domaingr
 		return domaingrape.Item{}, fmt.Errorf("update grape item: %w", err)
 	}
 
+	s.clearCache()
 	return saved, nil
 }
 
@@ -97,6 +100,7 @@ func (s *Service) DeleteItem(ctx context.Context, id uint) error {
 		return fmt.Errorf("delete grape item: %w", err)
 	}
 
+	s.clearCache()
 	return nil
 }
 
@@ -198,4 +202,11 @@ func (s *Service) storeCatalog(catalog domaingrape.Catalog) {
 		cachedAt: time.Now(),
 		hasValue: true,
 	}
+}
+
+func (s *Service) clearCache() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.cached = cachedPublicCatalog{}
 }
