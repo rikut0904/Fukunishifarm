@@ -36,11 +36,38 @@ import (
 const publicMutationRateLimit = 10
 const publicMutationRateWindow = time.Minute
 
-func isRouteAllowedWithoutMigration(path string) bool {
-	return path == "/healthz" ||
-		path == "/v1/news" ||
-		path == "/v1/blog" ||
-		strings.HasPrefix(path, "/v1/blog/")
+type routeAvailability struct {
+	auth    bool
+	grape   bool
+	contact bool
+}
+
+func isRouteAvailable(method, path string, availability routeAvailability) bool {
+	if path == "/healthz" || path == "/v1/news" || path == "/v1/blog" || strings.HasPrefix(path, "/v1/blog/") {
+		return true
+	}
+
+	if path == "/v1/grapes" {
+		return availability.grape
+	}
+
+	if path == "/v1/contact" || strings.HasPrefix(path, "/v1/contact/") {
+		return availability.contact
+	}
+
+	if path == "/v1/auth/login" || path == "/v1/auth/session" || strings.HasPrefix(path, "/v1/admin/users") {
+		return availability.auth
+	}
+
+	if path == "/v1/admin/grapes" || strings.HasPrefix(path, "/v1/admin/grapes/") {
+		return availability.auth && availability.grape
+	}
+
+	if path == "/v1/admin/contact" || strings.HasPrefix(path, "/v1/admin/contact/") {
+		return availability.auth && availability.contact
+	}
+
+	return method == http.MethodOptions
 }
 
 func isRateLimitedPublicMutation(method, path string) bool {
@@ -58,6 +85,7 @@ func main() {
 	ctx := context.Background()
 	migrated := true
 	var database *gorm.DB
+	availability := routeAvailability{}
 
 	if strings.TrimSpace(cfg.DatabaseURL) == "" {
 		migrated = false
@@ -69,10 +97,22 @@ func main() {
 			slog.Warn("database is unavailable; starting in public-blog mode", "error", err)
 		} else {
 			database = opened
+			featureAvailability := bootstrap.DetectFeatureAvailability(ctx, database)
+			availability = routeAvailability{
+				auth:    featureAvailability.Auth,
+				grape:   featureAvailability.Grape,
+				contact: featureAvailability.Contact,
+			}
 			if err := bootstrap.RequireMigrated(ctx, database); err != nil {
 				if errors.Is(err, bootstrap.ErrDatabaseNotMigrated) {
 					migrated = false
-					slog.Warn("database not migrated", "hint", "run `make migrate`")
+					slog.Warn(
+						"database not fully migrated",
+						"hint", "run `make migrate`",
+						"auth_ready", availability.auth,
+						"grape_ready", availability.grape,
+						"contact_ready", availability.contact,
+					)
 				} else {
 					migrated = false
 					slog.Warn("check database migration failed; starting in public-blog mode", "error", err)
@@ -102,9 +142,13 @@ func main() {
 	var adminRepository *gormrepo.AdminUserRepository
 	var contactRepository *gormrepo.ContactRepository
 	var grapeRepository *gormrepo.GrapeRepository
-	if database != nil && migrated {
+	if database != nil && availability.auth {
 		adminRepository = gormrepo.NewAdminUserRepository(database)
+	}
+	if database != nil && availability.contact {
 		contactRepository = gormrepo.NewContactRepository(database)
+	}
+	if database != nil && availability.grape {
 		grapeRepository = gormrepo.NewGrapeRepository(database)
 	}
 	var contactReplySender domaincontact.ReplyEmailSender
@@ -165,17 +209,13 @@ func main() {
 	}))
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if migrated {
-				return next(c)
-			}
-
-			if c.Request().Method == http.MethodOptions || isRouteAllowedWithoutMigration(c.Request().URL.Path) {
+			if isRouteAvailable(c.Request().Method, c.Request().URL.Path, availability) {
 				return next(c)
 			}
 
 			return c.JSON(http.StatusServiceUnavailable, map[string]string{
 				"code":    "database_not_migrated",
-				"message": "database migration has not been completed. Run `make migrate`.",
+				"message": "required database tables are not available for this feature. Run `make migrate`.",
 			})
 		}
 	})

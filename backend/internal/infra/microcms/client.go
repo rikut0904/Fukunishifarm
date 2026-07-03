@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -14,9 +15,13 @@ import (
 type ResponseError struct {
 	StatusCode int
 	Status     string
+	Body       string
 }
 
 func (e *ResponseError) Error() string {
+	if strings.TrimSpace(e.Body) != "" {
+		return fmt.Sprintf("microcms request failed: %s: %s", e.Status, e.Body)
+	}
 	return fmt.Sprintf("microcms request failed: %s", e.Status)
 }
 
@@ -26,12 +31,14 @@ type Client struct {
 	httpClient    *http.Client
 }
 
+const defaultHTTPTimeout = 15 * time.Second
+
 func NewClient(serviceDomain, apiKey string) *Client {
 	return &Client{
 		serviceDomain: normalizeServiceDomain(serviceDomain),
 		apiKey:        strings.TrimSpace(apiKey),
 		httpClient: &http.Client{
-			Timeout: 15 * time.Second,
+			Timeout: defaultHTTPTimeout,
 		},
 	}
 }
@@ -45,7 +52,7 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		return fmt.Errorf("microcms service is not configured")
 	}
 
-	basePath := "/api/v1/" + strings.Trim(strings.TrimSpace(endpoint), "/")
+	basePath := normalizeEndpointPath(endpoint)
 	requestURL := url.URL{
 		Scheme: "https",
 		Host:   c.serviceDomain + ".microcms.io",
@@ -90,7 +97,9 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 
 	httpClient := c.httpClient
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{
+			Timeout: defaultHTTPTimeout,
+		}
 	}
 
 	resp, err := httpClient.Do(req)
@@ -100,9 +109,11 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		return &ResponseError{
 			StatusCode: resp.StatusCode,
 			Status:     resp.Status,
+			Body:       strings.TrimSpace(string(body)),
 		}
 	}
 	if out == nil || resp.StatusCode == http.StatusNoContent {
@@ -137,4 +148,33 @@ func normalizeServiceDomain(value string) string {
 	value = strings.TrimSuffix(value, ".microcms.io")
 
 	return strings.TrimSpace(value)
+}
+
+func normalizeEndpointPath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "/api/v1"
+	}
+
+	if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
+		if parsed, err := url.Parse(value); err == nil {
+			value = parsed.Path
+		}
+	}
+
+	value = strings.TrimPrefix(value, "https://")
+	value = strings.TrimPrefix(value, "http://")
+	if index := strings.Index(value, "/"); index >= 0 {
+		value = value[index:]
+	}
+
+	value = "/" + strings.TrimLeft(value, "/")
+	if strings.HasPrefix(value, "/api/v1/") {
+		return strings.TrimRight(value, "/")
+	}
+	if value == "/api/v1" {
+		return value
+	}
+
+	return "/api/v1/" + strings.Trim(value, "/")
 }

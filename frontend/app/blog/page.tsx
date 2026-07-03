@@ -1,9 +1,11 @@
 import AppHeader from "@/components/AppHeader";
 import SiteFooter from "@/components/SiteFooter";
-import { formatBlogDate, getBlogPath, loadPublicBlogPosts } from "@/lib/blog";
+import { formatBlogDate, getBlogEyecatchUrl, getBlogPath, loadPublicBlogPosts } from "@/lib/blog";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -42,16 +44,20 @@ export default async function BlogPage() {
             </div>
           ) : posts && posts.length > 0 ? (
             <div className="blog-grid">
-              {posts.map((post) => (
+              {posts.map((post) => {
+                const eyecatchUrl = getBlogEyecatchUrl(post);
+
+                return (
                 <article className="card blog-card" key={post.id}>
-                  {post.eyecatch?.url ? (
+                  {eyecatchUrl ? (
                     <div className="blog-card__media">
                       <Image
-                        src={post.eyecatch.url}
+                        src={eyecatchUrl}
                         alt={post.title}
                         width={1200}
                         height={675}
                         className="h-full w-full object-cover"
+                        unoptimized
                       />
                     </div>
                   ) : (
@@ -68,7 +74,7 @@ export default async function BlogPage() {
                     </Link>
                   </div>
                 </article>
-              ))}
+              )})}
             </div>
           ) : (
             <div className="card card__body">

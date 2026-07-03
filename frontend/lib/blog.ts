@@ -3,17 +3,20 @@ import { formatBlogDate } from "@/lib/blog-format";
 import type { BlogPost, PublicBlogCatalogState, PublicBlogPostState } from "@/lib/blog-types";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 import { htmlExcerpt, htmlToPlainText } from "@/lib/html";
+import { cache } from "react";
 
 const DEFAULT_LIST_LIMIT = 6;
 
 function normalizeBlogPost(post: BlogPost): BlogPost {
   const content = post.content ?? post.body ?? "";
   const excerpt = normalizeExcerpt(post.excerpt, content);
+  const eyecatch = normalizeBlogImage(post.eyecatch);
 
   return {
     ...post,
     content,
     excerpt,
+    eyecatch,
   };
 }
 
@@ -30,6 +33,10 @@ function normalizeExcerpt(excerpt: string | null | undefined, content: string) {
 
 export function getBlogContent(post: BlogPost) {
   return post.content ?? post.body ?? "";
+}
+
+export function getBlogEyecatchUrl(post: BlogPost) {
+  return post.eyecatch?.url?.trim() || post.eyecatch?.src?.trim() || "";
 }
 
 export function getBlogPath(post: BlogPost) {
@@ -66,7 +73,7 @@ export async function fetchPublicBlogPosts(limit = DEFAULT_LIST_LIMIT) {
   };
 }
 
-export async function fetchPublicBlogPostBySlug(slug: string) {
+const fetchPublicBlogPostBySlugCached = cache(async (slug: string) => {
   const normalizedSlug = slug.trim();
   if (!normalizedSlug) {
     return null;
@@ -88,6 +95,10 @@ export async function fetchPublicBlogPostBySlug(slug: string) {
     throw new ApiError(response.status, "API response did not include a blog post");
   }
   return normalizeBlogPost(payload.post);
+});
+
+export async function fetchPublicBlogPostBySlug(slug: string) {
+  return fetchPublicBlogPostBySlugCached(slug);
 }
 
 export async function loadPublicBlogPosts(limit = DEFAULT_LIST_LIMIT): Promise<PublicBlogCatalogState> {
@@ -105,7 +116,24 @@ export async function loadPublicBlogPosts(limit = DEFAULT_LIST_LIMIT): Promise<P
   }
 }
 
-export async function loadPublicBlogPost(slug: string): Promise<PublicBlogPostState> {
+function normalizeBlogImage(image: BlogPost["eyecatch"]) {
+  if (!image) {
+    return image;
+  }
+
+  const url = image.url?.trim() || image.src?.trim() || "";
+  if (!url) {
+    return null;
+  }
+
+  return {
+    ...image,
+    url,
+    src: url,
+  };
+}
+
+const loadPublicBlogPostCached = cache(async (slug: string): Promise<PublicBlogPostState> => {
   try {
     return {
       post: await fetchPublicBlogPostBySlug(slug),
@@ -117,4 +145,8 @@ export async function loadPublicBlogPost(slug: string): Promise<PublicBlogPostSt
       errorMessage: "ブログ記事を読み込めませんでした。",
     };
   }
+});
+
+export async function loadPublicBlogPost(slug: string): Promise<PublicBlogPostState> {
+  return loadPublicBlogPostCached(slug);
 }

@@ -18,6 +18,12 @@ var ErrDatabaseNotMigrated = errors.New("database not migrated")
 
 const contactThreadBackfillBatchSize = 100
 
+type FeatureAvailability struct {
+	Auth    bool
+	Grape   bool
+	Contact bool
+}
+
 func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 	if err := db.AutoMigrate(&auth.AdminUser{}, &domaingrape.Item{}, &domaincontact.Message{}, &domaincontact.Reply{}); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
@@ -40,15 +46,44 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 }
 
 func RequireMigrated(ctx context.Context, db *gorm.DB) error {
-	if !db.Migrator().HasTable(&auth.AdminUser{}) || !db.Migrator().HasTable(&domaingrape.Item{}) || !db.Migrator().HasTable(&domaincontact.Message{}) || !db.Migrator().HasTable(&domaincontact.Reply{}) {
-		return ErrDatabaseNotMigrated
-	}
-
-	if !db.Migrator().HasColumn(&domaincontact.Message{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "thread_id") || !db.Migrator().HasColumn(&domaincontact.Message{}, "status") || !db.Migrator().HasColumn(&domaincontact.Reply{}, "status") {
+	availability := DetectFeatureAvailability(ctx, db)
+	if !availability.Auth || !availability.Grape || !availability.Contact {
 		return ErrDatabaseNotMigrated
 	}
 
 	return nil
+}
+
+func DetectFeatureAvailability(ctx context.Context, db *gorm.DB) FeatureAvailability {
+	if db == nil {
+		return FeatureAvailability{}
+	}
+
+	return FeatureAvailability{
+		Auth:    hasAuthSchema(ctx, db),
+		Grape:   hasGrapeSchema(ctx, db),
+		Contact: hasContactSchema(ctx, db),
+	}
+}
+
+func hasAuthSchema(ctx context.Context, db *gorm.DB) bool {
+	return db.WithContext(ctx).Migrator().HasTable(&auth.AdminUser{})
+}
+
+func hasGrapeSchema(ctx context.Context, db *gorm.DB) bool {
+	return db.WithContext(ctx).Migrator().HasTable(&domaingrape.Item{})
+}
+
+func hasContactSchema(ctx context.Context, db *gorm.DB) bool {
+	migrator := db.WithContext(ctx).Migrator()
+	if !migrator.HasTable(&domaincontact.Message{}) || !migrator.HasTable(&domaincontact.Reply{}) {
+		return false
+	}
+
+	return migrator.HasColumn(&domaincontact.Message{}, "thread_id") &&
+		migrator.HasColumn(&domaincontact.Reply{}, "thread_id") &&
+		migrator.HasColumn(&domaincontact.Message{}, "status") &&
+		migrator.HasColumn(&domaincontact.Reply{}, "status")
 }
 
 func backfillContactThreadIDs(ctx context.Context, db *gorm.DB) error {

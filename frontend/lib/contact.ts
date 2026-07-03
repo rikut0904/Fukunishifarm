@@ -141,8 +141,29 @@ export type PublicContactThread = {
   replies: AdminContactReply[];
 };
 
+function getPublicApiBaseUrl() {
+  const apiBaseUrl = process.env.API_INTERNAL_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!apiBaseUrl) {
+    throw new Error("API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is required");
+  }
+
+  return apiBaseUrl.replace(/\/$/, "");
+}
+
 export async function fetchPublicContactThread(threadId: string) {
   return apiFetch<PublicContactThread>(`/v1/contact/${threadId}`);
+}
+
+export async function fetchPublicContactThreadServer(threadId: string) {
+  const response = await fetch(`${getPublicApiBaseUrl()}/v1/contact/${encodeURIComponent(threadId)}`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return (await response.json()) as PublicContactThread;
 }
 
 export async function createPublicContactReply(threadId: string, input: AdminContactReplyInput) {

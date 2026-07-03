@@ -1,11 +1,13 @@
 import AppHeader from "@/components/AppHeader";
 import SiteFooter from "@/components/SiteFooter";
-import { formatBlogDate, getBlogContent, loadPublicBlogPost } from "@/lib/blog";
+import { formatBlogDate, getBlogContent, getBlogEyecatchUrl, loadPublicBlogPost } from "@/lib/blog";
 import { htmlExcerpt, renderHtmlContent } from "@/lib/html";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 function buildBlogDescription(content: string) {
   return htmlExcerpt(content, 140);
@@ -43,6 +45,7 @@ export default async function BlogPostPage({
   const resolvedParams = await params;
   const slug = resolvedParams?.slug ?? "";
   const { post, errorMessage } = await loadPublicBlogPost(slug);
+  const eyecatchUrl = post ? getBlogEyecatchUrl(post) : "";
 
   if (!post && !errorMessage) {
     notFound();
@@ -79,15 +82,16 @@ export default async function BlogPostPage({
               </div>
             </div>
 
-            {post.eyecatch?.url ? (
+            {eyecatchUrl ? (
               <div className="blog-article__eyecatch">
                 <Image
-                  src={post.eyecatch.url}
+                  src={eyecatchUrl}
                   alt={post.title}
                   width={1440}
                   height={810}
                   className="h-full w-full object-cover"
                   priority
+                  unoptimized
                 />
               </div>
             ) : null}

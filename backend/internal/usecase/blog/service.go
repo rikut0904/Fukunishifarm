@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
+	"sync"
+	"time"
 
 	domainblog "fukunishifarm/backend/internal/domain/blog"
 	"fukunishifarm/backend/internal/infra/microcms"
@@ -14,10 +15,28 @@ import (
 
 const defaultEndpoint = "blogs"
 const maxCatalogLimit = 100
+const publicBlogRequestTimeout = 15 * time.Second
+const publicBlogCacheTTL = time.Minute
 
 type Service struct {
 	client   *microcms.Client
 	endpoint string
+	mu       sync.RWMutex
+	catalogs map[int]cachedBlogCatalog
+	posts    map[string]cachedBlogPost
+}
+
+type cachedBlogCatalog struct {
+	limit    int
+	value    domainblog.Catalog
+	cachedAt time.Time
+	hasValue bool
+}
+
+type cachedBlogPost struct {
+	value    domainblog.Post
+	cachedAt time.Time
+	hasValue bool
 }
 
 type microCMSListResponse struct {
@@ -30,7 +49,12 @@ type microCMSPost struct {
 	Slug        string               `json:"slug"`
 	Excerpt     string               `json:"excerpt"`
 	Content     string               `json:"content"`
+	Body        string               `json:"body"`
 	Eyecatch    *domainblog.Image    `json:"eyecatch"`
+	EyeCatch    *domainblog.Image    `json:"eyeCatch"`
+	Thumbnail   *domainblog.Image    `json:"thumbnail"`
+	Image       *domainblog.Image    `json:"image"`
+	CoverImage  *domainblog.Image    `json:"coverImage"`
 	Category    *domainblog.Category `json:"category"`
 	PublishedAt string               `json:"publishedAt"`
 	RevisedAt   string               `json:"revisedAt"`
@@ -42,6 +66,8 @@ func NewService(serviceDomain, apiKey, endpoint string) *Service {
 	return &Service{
 		client:   microcms.NewClient(serviceDomain, apiKey),
 		endpoint: strings.TrimSpace(endpoint),
+		catalogs: make(map[int]cachedBlogCatalog),
+		posts:    make(map[string]cachedBlogPost),
 	}
 }
 
@@ -52,15 +78,27 @@ func (s *Service) GetPublicCatalog(ctx context.Context, limit int) (domainblog.C
 		limit = maxCatalogLimit
 	}
 
+	if catalog, ok := s.getCachedCatalog(limit); ok {
+		return catalog, nil
+	}
+
+	requestCtx, cancel := context.WithTimeout(ctx, publicBlogRequestTimeout)
+	defer cancel()
+
 	var response microCMSListResponse
-	if err := s.request(ctx, http.MethodGet, "", map[string]string{
+	if err := s.request(requestCtx, http.MethodGet, "", map[string]string{
 		"limit":  fmt.Sprintf("%d", limit),
 		"orders": "-publishedAt",
 	}, &response); err != nil {
+		if cached, ok := s.getAnyCachedCatalog(limit); ok {
+			return cached, nil
+		}
 		return domainblog.Catalog{}, err
 	}
 
-	return domainblog.Catalog{Posts: toPosts(response.Contents)}, nil
+	catalog := domainblog.Catalog{Posts: toPosts(response.Contents)}
+	s.storeCatalog(limit, catalog)
+	return catalog, nil
 }
 
 func (s *Service) GetPublicPostBySlug(ctx context.Context, slug string) (domainblog.Post, error) {
@@ -69,23 +107,31 @@ func (s *Service) GetPublicPostBySlug(ctx context.Context, slug string) (domainb
 		return domainblog.Post{}, domainblog.ErrInvalidInput
 	}
 
+	if post, ok := s.getCachedPost(slug); ok {
+		return post, nil
+	}
+
+	requestCtx, cancel := context.WithTimeout(ctx, publicBlogRequestTimeout)
+	defer cancel()
+
 	var response microCMSListResponse
-	if err := s.request(ctx, http.MethodGet, "", map[string]string{
+	if err := s.request(requestCtx, http.MethodGet, "", map[string]string{
 		"filters": "slug[equals]" + slug,
 		"limit":   "1",
 	}, &response); err != nil {
+		if cached, ok := s.getAnyCachedPost(slug); ok {
+			return cached, nil
+		}
 		return domainblog.Post{}, err
 	}
 
 	if len(response.Contents) == 0 {
-		var post microCMSPost
-		if err := s.request(ctx, http.MethodGet, "/"+url.PathEscape(slug), nil, &post); err != nil {
-			return domainblog.Post{}, err
-		}
-		return toPost(post), nil
+		return domainblog.Post{}, domainblog.ErrPostNotFound
 	}
 
-	return toPost(response.Contents[0]), nil
+	post := toPost(response.Contents[0])
+	s.storePost(slug, post)
+	return post, nil
 }
 
 func (s *Service) request(ctx context.Context, method, path string, query map[string]string, out any) error {
@@ -114,17 +160,103 @@ func toPosts(contents []microCMSPost) []domainblog.Post {
 }
 
 func toPost(item microCMSPost) domainblog.Post {
+	content := item.Content
+	if strings.TrimSpace(content) == "" {
+		content = item.Body
+	}
+
 	return domainblog.Post{
 		ID:          item.ID,
 		Title:       item.Title,
 		Slug:        item.Slug,
 		Excerpt:     item.Excerpt,
-		Content:     item.Content,
-		Eyecatch:    item.Eyecatch,
+		Content:     content,
+		Eyecatch:    pickBlogImage(item.Eyecatch, item.EyeCatch, item.Thumbnail, item.Image, item.CoverImage),
 		Category:    item.Category,
 		PublishedAt: item.PublishedAt,
 		RevisedAt:   item.RevisedAt,
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
+	}
+}
+
+func pickBlogImage(images ...*domainblog.Image) *domainblog.Image {
+	for _, image := range images {
+		if image != nil && strings.TrimSpace(image.URL) != "" {
+			return image
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) getCachedCatalog(limit int) (domainblog.Catalog, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cached, ok := s.catalogs[limit]
+	if !ok || !cached.hasValue || time.Since(cached.cachedAt) > publicBlogCacheTTL {
+		return domainblog.Catalog{}, false
+	}
+
+	return cached.value, true
+}
+
+func (s *Service) getAnyCachedCatalog(limit int) (domainblog.Catalog, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cached, ok := s.catalogs[limit]
+	if !ok || !cached.hasValue {
+		return domainblog.Catalog{}, false
+	}
+
+	return cached.value, true
+}
+
+func (s *Service) storeCatalog(limit int, catalog domainblog.Catalog) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.catalogs[limit] = cachedBlogCatalog{
+		limit:    limit,
+		value:    catalog,
+		cachedAt: time.Now(),
+		hasValue: true,
+	}
+}
+
+func (s *Service) getCachedPost(slug string) (domainblog.Post, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cached, ok := s.posts[slug]
+	if !ok || !cached.hasValue || time.Since(cached.cachedAt) > publicBlogCacheTTL {
+		return domainblog.Post{}, false
+	}
+
+	return cached.value, true
+}
+
+func (s *Service) getAnyCachedPost(slug string) (domainblog.Post, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cached, ok := s.posts[slug]
+	if !ok || !cached.hasValue {
+		return domainblog.Post{}, false
+	}
+
+	return cached.value, true
+}
+
+func (s *Service) storePost(slug string, post domainblog.Post) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.posts[slug] = cachedBlogPost{
+		value:    post,
+		cachedAt: time.Now(),
+		hasValue: true,
 	}
 }

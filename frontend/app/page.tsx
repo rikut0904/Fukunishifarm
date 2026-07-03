@@ -7,6 +7,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 function varietyCard(item: { name: string; description: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
   return (
     <article className="card">

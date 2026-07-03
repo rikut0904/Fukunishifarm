@@ -4,12 +4,25 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 )
 
+const publicGrapeRequestTimeout = 8 * time.Second
+const publicGrapeCacheTTL = time.Minute
+
 type Service struct {
 	repository domaingrape.Repository
+	mu         sync.RWMutex
+	cached     cachedPublicCatalog
+}
+
+type cachedPublicCatalog struct {
+	value    domaingrape.Catalog
+	cachedAt time.Time
+	hasValue bool
 }
 
 func NewService(repository domaingrape.Repository) *Service {
@@ -17,7 +30,23 @@ func NewService(repository domaingrape.Repository) *Service {
 }
 
 func (s *Service) GetPublicCatalog(ctx context.Context) (domaingrape.Catalog, error) {
-	return s.getCatalog(ctx)
+	if catalog, ok := s.getCachedCatalog(); ok {
+		return catalog, nil
+	}
+
+	requestCtx, cancel := context.WithTimeout(ctx, publicGrapeRequestTimeout)
+	defer cancel()
+
+	catalog, err := s.getCatalog(requestCtx)
+	if err != nil {
+		if cached, ok := s.getAnyCachedCatalog(); ok {
+			return cached, nil
+		}
+		return domaingrape.Catalog{}, err
+	}
+
+	s.storeCatalog(catalog)
+	return catalog, nil
 }
 
 func (s *Service) GetAdminCatalog(ctx context.Context) (domaingrape.Catalog, error) {
@@ -86,6 +115,10 @@ func (s *Service) SeedDefaults(ctx context.Context, defaults domaingrape.Catalog
 }
 
 func (s *Service) getCatalog(ctx context.Context) (domaingrape.Catalog, error) {
+	if s.repository == nil {
+		return domaingrape.Catalog{}, fmt.Errorf("grape repository is not configured")
+	}
+
 	items, err := s.repository.ListItems(ctx)
 	if err != nil {
 		return domaingrape.Catalog{}, fmt.Errorf("list grape items: %w", err)
@@ -132,4 +165,37 @@ func normalizeItem(item domaingrape.Item) (domaingrape.Item, error) {
 	}
 
 	return item, nil
+}
+
+func (s *Service) getCachedCatalog() (domaingrape.Catalog, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if !s.cached.hasValue || time.Since(s.cached.cachedAt) > publicGrapeCacheTTL {
+		return domaingrape.Catalog{}, false
+	}
+
+	return s.cached.value, true
+}
+
+func (s *Service) getAnyCachedCatalog() (domaingrape.Catalog, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if !s.cached.hasValue {
+		return domaingrape.Catalog{}, false
+	}
+
+	return s.cached.value, true
+}
+
+func (s *Service) storeCatalog(catalog domaingrape.Catalog) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.cached = cachedPublicCatalog{
+		value:    catalog,
+		cachedAt: time.Now(),
+		hasValue: true,
+	}
 }

@@ -19,6 +19,8 @@ type Toast = {
 
 type ContactThreadPanelProps = {
   threadId: string;
+  initialDetail?: PublicContactThread | null;
+  initialErrorMessage?: string | null;
 };
 
 function isThreadNotFound(error: unknown) {
@@ -33,10 +35,20 @@ function getSenderLabel(reply: PublicContactThread["replies"][number]) {
   return reply.senderName || "お問い合わせ者";
 }
 
-export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps) {
+export default function ContactThreadPanel({
+  threadId,
+  initialDetail = null,
+  initialErrorMessage = null,
+}: ContactThreadPanelProps) {
   const requestIdRef = useRef(0);
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
-  const [detail, setDetail] = useState<PublicContactThread | null>(null);
+  const [status, setStatus] = useState<Status>(
+    initialDetail
+      ? { kind: "ready" }
+      : initialErrorMessage
+        ? { kind: "error", message: initialErrorMessage }
+        : { kind: "loading" }
+  );
+  const [detail, setDetail] = useState<PublicContactThread | null>(initialDetail);
   const [replyMessage, setReplyMessage] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const replyLoadingRef = useRef(false);
@@ -100,12 +112,14 @@ export default function ContactThreadPanel({ threadId }: ContactThreadPanelProps
   }, [loadThread, replyMessage, threadId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadThread();
+    if (!initialDetail && !initialErrorMessage) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void loadThread();
+    }
     return () => {
       requestIdRef.current += 1;
     };
-  }, [loadThread]);
+  }, [initialDetail, initialErrorMessage, loadThread]);
 
   useEffect(() => {
     if (!toast) {

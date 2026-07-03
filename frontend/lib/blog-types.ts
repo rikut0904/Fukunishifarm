@@ -2,6 +2,7 @@ export type MicroCmsImage = {
   url: string;
   height?: number;
   width?: number;
+  src?: string;
 };
 
 export type BlogCategory = {
@@ -47,4 +48,3 @@ export type PublicBlogPostState = {
   post: BlogPost | null;
   errorMessage: string | null;
 };
-
