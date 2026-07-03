@@ -32,13 +32,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [...staticEntries, ...blogEntries, ...newsEntries];
 }
 
+function toLastModifiedDate(value: string | undefined): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
 async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
   try {
     const { contents } = await fetchPublicBlogPosts(100);
 
     return contents.map((post) => ({
       url: new URL(getBlogPath(post), `${siteBaseUrl}/`).toString(),
-      lastModified: post.updatedAt || post.publishedAt || post.createdAt || undefined,
+      lastModified: toLastModifiedDate(post.updatedAt || post.publishedAt || post.createdAt || undefined),
     }));
   } catch {
     return [];
@@ -68,7 +81,7 @@ async function loadNewsEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitem
     return [
       {
         url: new URL("/news", `${siteBaseUrl}/`).toString(),
-        lastModified: latestPublishedAt,
+        lastModified: toLastModifiedDate(latestPublishedAt),
       },
     ];
   } catch {
