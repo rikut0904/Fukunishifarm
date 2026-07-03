@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	firebase "firebase.google.com/go/v4"
-	firebaseauth "firebase.google.com/go/v4/auth"
+	fbauth "firebase.google.com/go/v4/auth"
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 	"google.golang.org/api/option"
 )
 
 type Verifier struct {
-	client *firebaseauth.Client
+	client *fbauth.Client
 }
 
 func NewVerifier(ctx context.Context, projectID, serviceAccountJSON string) (*Verifier, error) {
@@ -59,7 +59,7 @@ func (v *Verifier) VerifyIDToken(ctx context.Context, token string) (domainauth.
 }
 
 func (v *Verifier) CreateUser(ctx context.Context, email, password, displayName string) (domainauth.VerifiedIdentity, error) {
-	params := (&firebaseauth.UserToCreate{}).
+	params := (&fbauth.UserToCreate{}).
 		Email(email)
 	if password != "" {
 		params = params.Password(password)
@@ -92,7 +92,7 @@ func (v *Verifier) DeleteUser(ctx context.Context, firebaseUID string) error {
 	}
 
 	if err := v.client.DeleteUser(ctx, firebaseUID); err != nil {
-		if firebaseauth.IsUserNotFound(err) {
+		if fbauth.IsUserNotFound(err) {
 			return nil
 		}
 		return fmt.Errorf("delete firebase user: %w", err)
@@ -111,7 +111,7 @@ func (v *Verifier) GeneratePasswordSetupLink(ctx context.Context, email, continu
 		return "", fmt.Errorf("continue URL is required")
 	}
 
-	link, err := v.client.PasswordResetLinkWithSettings(ctx, email, &firebaseauth.ActionCodeSettings{
+	link, err := v.client.PasswordResetLinkWithSettings(ctx, email, &fbauth.ActionCodeSettings{
 		URL: continueURL,
 	})
 	if err != nil {
