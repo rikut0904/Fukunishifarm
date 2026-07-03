@@ -213,6 +213,11 @@ type contactStatusOutput struct {
 	}
 }
 
+type adminContactDetailInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+}
+
 type grapeItemResponse struct {
 	ID          uint      `json:"id"`
 	Name        string    `json:"name"`
@@ -246,6 +251,27 @@ type grapeCatalogInput struct {
 	Body struct {
 		Items []grapeItemInput `json:"items"`
 	}
+}
+
+type adminGrapeCreateInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	Body          grapeItemInput
+}
+
+type adminGrapeUpdateInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+	Body          grapeItemInput
+}
+
+type adminGrapeDeleteInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	ID            uint   `path:"id"`
+}
+
+type adminGrapeReplaceCatalogInput struct {
+	Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
+	Body          grapeCatalogInput
 }
 
 type newsItemResponse struct {
@@ -448,10 +474,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return toGrapeCatalogResponse(catalog), nil
 	})
 
-	huma.Post(api, "/v1/admin/grapes", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          grapeItemInput
-	}) (*grapeItemOutput, error) {
+	huma.Post(api, "/v1/admin/grapes", func(ctx context.Context, input *adminGrapeCreateInput) (*grapeItemOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error401Unauthorized("missing bearer token")
@@ -471,11 +494,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Put(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-		Body          grapeItemInput
-	}) (*grapeItemOutput, error) {
+	huma.Put(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *adminGrapeUpdateInput) (*grapeItemOutput, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error401Unauthorized("missing bearer token")
@@ -495,10 +514,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Delete(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-	}) (*struct{}, error) {
+	huma.Delete(api, "/v1/admin/grapes/{id}", func(ctx context.Context, input *adminGrapeDeleteInput) (*struct{}, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error401Unauthorized("missing bearer token")
@@ -515,10 +531,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return &struct{}{}, nil
 	})
 
-	huma.Put(api, "/v1/admin/grapes", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		Body          grapeCatalogInput
-	}) (*grapeCatalogResponse, error) {
+	huma.Put(api, "/v1/admin/grapes", func(ctx context.Context, input *adminGrapeReplaceCatalogInput) (*grapeCatalogResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error401Unauthorized("missing bearer token")
@@ -604,10 +617,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
-	huma.Get(api, "/v1/admin/contact/{id}", func(ctx context.Context, input *struct {
-		Authorization string `header:"Authorization" required:"true" doc:"Backend session token with Bearer prefix"`
-		ID            uint   `path:"id"`
-	}) (*contactMessageDetailResponse, error) {
+	huma.Get(api, "/v1/admin/contact/{id}", func(ctx context.Context, input *adminContactDetailInput) (*contactMessageDetailResponse, error) {
 		token := bearerToken(input.Authorization)
 		if token == "" {
 			return nil, huma.Error401Unauthorized("missing bearer token")
