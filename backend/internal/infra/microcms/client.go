@@ -114,7 +114,12 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		slog.Error("microcms request returned non-success status", "method", method, "url", requestURL.String(), "endpoint", endpoint, "status_code", resp.StatusCode, "status", resp.Status, "body", strings.TrimSpace(string(body)))
+		logAttrs := []any{"method", method, "url", requestURL.String(), "endpoint", endpoint, "status_code", resp.StatusCode, "status", resp.Status, "body", strings.TrimSpace(string(body))}
+		if resp.StatusCode >= http.StatusInternalServerError {
+			slog.Error("microcms request returned non-success status", logAttrs...)
+		} else {
+			slog.Warn("microcms request returned non-success status", logAttrs...)
+		}
 		return &ResponseError{
 			StatusCode: resp.StatusCode,
 			Status:     resp.Status,
