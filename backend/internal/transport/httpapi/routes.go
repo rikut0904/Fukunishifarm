@@ -101,11 +101,11 @@ type deleteAdminUserOutput struct {
 }
 
 type contactMessagePayload struct {
-	Name     string `json:"name" required:"true" maxLength:"80"`
-	Email    string `json:"email" required:"true" maxLength:"320"`
-	Category string `json:"category" required:"true" maxLength:"64"`
-	Subject  string `json:"subject" required:"true" maxLength:"160"`
-	Message  string `json:"message" required:"true" maxLength:"65535"`
+	Name      string `json:"name" required:"true" maxLength:"80"`
+	Email     string `json:"email" required:"true" maxLength:"320"`
+	Category  string `json:"category" required:"true" maxLength:"64"`
+	Subject   string `json:"subject" required:"true" maxLength:"160"`
+	Message   string `json:"message" required:"true" maxLength:"65535"`
 	FaxNumber string `json:"faxNumber,omitempty" maxLength:"255"`
 }
 
