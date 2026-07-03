@@ -19,8 +19,8 @@ export async function generateMetadata({
   params?: { slug: string } | Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const slug = resolvedParams?.slug ?? "";
-  const { post } = await loadPublicBlogPost(slug);
+  const postId = resolvedParams?.slug ?? "";
+  const { post } = await loadPublicBlogPost(postId);
 
   if (!post) {
     return {
@@ -43,8 +43,8 @@ export default async function BlogPostPage({
   params?: { slug: string } | Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const slug = resolvedParams?.slug ?? "";
-  const { post, errorMessage } = await loadPublicBlogPost(slug);
+  const postId = resolvedParams?.slug ?? "";
+  const { post, errorMessage } = await loadPublicBlogPost(postId);
   const eyecatchUrl = post ? getBlogEyecatchUrl(post) : "";
 
   if (!post && !errorMessage) {

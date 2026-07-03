@@ -39,9 +39,13 @@ export function getBlogEyecatchUrl(post: BlogPost) {
   return post.eyecatch?.url?.trim() || post.eyecatch?.src?.trim() || "";
 }
 
-export function getBlogPath(post: BlogPost) {
-  const segment = (post.slug?.trim() || post.id).trim();
-  return `/blog/${encodeURIComponent(segment)}`;
+export function getBlogPath(post: BlogPost | null | undefined) {
+  const normalizedId = post?.id?.trim() ?? "";
+  if (!normalizedId) {
+    return "/blog";
+  }
+
+  return `/blog/${encodeURIComponent(normalizedId)}`;
 }
 
 function getPublicApiBaseUrl() {
@@ -82,13 +86,13 @@ export async function fetchPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT)
   };
 }
 
-const fetchPublicBlogPostBySlugCached = cache(async (slug: string) => {
-  const normalizedSlug = slug.trim();
-  if (!normalizedSlug) {
+const fetchPublicBlogPostByIdCached = cache(async (id: string) => {
+  const normalizedId = id.trim();
+  if (!normalizedId) {
     return null;
   }
 
-  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog/${encodeURIComponent(normalizedSlug)}`, {
+  const response = await fetch(`${getPublicApiBaseUrl()}/v1/blog/${encodeURIComponent(normalizedId)}`, {
     next: {
       revalidate: PUBLIC_CONTENT_REVALIDATE_SECONDS,
     },
@@ -106,8 +110,8 @@ const fetchPublicBlogPostBySlugCached = cache(async (slug: string) => {
   return normalizeBlogPost(payload.post);
 });
 
-export async function fetchPublicBlogPostBySlug(slug: string) {
-  return fetchPublicBlogPostBySlugCached(slug);
+export async function fetchPublicBlogPostById(id: string) {
+  return fetchPublicBlogPostByIdCached(id);
 }
 
 export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT): Promise<PublicBlogCatalogState> {
@@ -148,10 +152,10 @@ function normalizeBlogImage(image: BlogPost["eyecatch"]) {
   };
 }
 
-const loadPublicBlogPostCached = cache(async (slug: string): Promise<PublicBlogPostState> => {
+const loadPublicBlogPostCached = cache(async (id: string): Promise<PublicBlogPostState> => {
   try {
     return {
-      post: await fetchPublicBlogPostBySlug(slug),
+      post: await fetchPublicBlogPostById(id),
       errorMessage: null,
     };
   } catch {
@@ -162,6 +166,6 @@ const loadPublicBlogPostCached = cache(async (slug: string): Promise<PublicBlogP
   }
 });
 
-export async function loadPublicBlogPost(slug: string): Promise<PublicBlogPostState> {
-  return loadPublicBlogPostCached(slug);
+export async function loadPublicBlogPost(id: string): Promise<PublicBlogPostState> {
+  return loadPublicBlogPostCached(id);
 }
