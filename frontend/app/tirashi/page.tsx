@@ -23,7 +23,7 @@ export default function TirasiPage() {
         <section className="section">
           <div className="section__head">
             <p className="eyebrow">Pamphlet</p>
-            <h1 className="section__title">R7年度ちらし</h1>
+            <h1 className="section__title">R8年度ちらし</h1>
           </div>
           <div className="page-stack">
             <p>
@@ -31,7 +31,7 @@ export default function TirasiPage() {
               <br />ご予約は<Link href="/reservation">こちら</Link>からご覧ください
               <br />FAX：0748-82-1983
               <br />下記のちらしが見れない方は
-              <a href="/PDF/R7_Pamphlet.pdf" target="_blank" rel="noreferrer">
+              <a href="/PDF/R8_Pamphlet.pdf" target="_blank" rel="noreferrer">
                 こちら
               </a>
               からご覧ください
@@ -41,7 +41,7 @@ export default function TirasiPage() {
 
         <section className="section section--soft">
           <div className="media-frame">
-            <iframe src="/PDF/R7_Pamphlet.pdf" width="100%" height="900px" style={{ border: 0 }} title="Pamphlet_PDF" />
+            <iframe src="/PDF/R8_Pamphlet.pdf" width="100%" height="900px" style={{ border: 0 }} title="Pamphlet_PDF" />
           </div>
         </section>
       </main>
