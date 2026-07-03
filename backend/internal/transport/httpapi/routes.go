@@ -19,8 +19,6 @@ import (
 	huma "github.com/danielgtaylor/huma/v2"
 )
 
-const contactReplySenderName = "ふくにしファーム"
-
 type healthOutput struct {
 	Body struct {
 		Status   string `json:"status" example:"ok"`
@@ -654,7 +652,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 
 		reply, err := contactService.ReplyMessage(ctx, input.ID, usecasecontact.ReplyAuthor{
 			UserID: user.ID,
-			Name:   contactReplySenderName,
+			Name:   user.DisplayName,
 			Email:  user.Email,
 		}, input.Body.Message)
 		if err != nil {
