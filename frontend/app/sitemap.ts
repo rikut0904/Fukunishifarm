@@ -49,12 +49,20 @@ function toLastModifiedDate(value: string | undefined): Date | undefined {
 }
 
 async function withSitemapTimeout<T>(promise: Promise<T>): Promise<T> {
-  return await Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => reject(new Error("sitemap fetch timeout")), SITEMAP_FETCH_TIMEOUT_MS);
-    }),
-  ]);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("sitemap fetch timeout")), SITEMAP_FETCH_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitemap> {
