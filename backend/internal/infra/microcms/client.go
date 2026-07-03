@@ -59,7 +59,7 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		Path:   basePath,
 	}
 	if path != "" {
-		parsedPath, err := url.Parse(path)
+		parsedPath, err := url.Parse(normalizeRequestPath(path))
 		if err != nil {
 			return fmt.Errorf("parse microcms request path: %w", err)
 		}
@@ -177,4 +177,16 @@ func normalizeEndpointPath(value string) string {
 	}
 
 	return "/api/v1/" + strings.Trim(value, "/")
+}
+
+func normalizeRequestPath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	if strings.HasPrefix(value, "/") || strings.HasPrefix(value, "?") || strings.HasPrefix(value, "#") {
+		return value
+	}
+
+	return "/" + value
 }
