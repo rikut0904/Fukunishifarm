@@ -140,7 +140,11 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 
 	var response microCMSPost
 	if err := s.request(requestCtx, http.MethodGet, "/"+url.PathEscape(id), nil, &response); err != nil {
-		slog.Error("load public blog post failed", "endpoint", endpoint, "id", id, "error", err)
+		if errors.Is(err, domainblog.ErrPostNotFound) {
+			slog.Warn("public blog post not found", "endpoint", endpoint, "id", id)
+		} else {
+			slog.Error("load public blog post failed", "endpoint", endpoint, "id", id, "error", err)
+		}
 		if cached, ok := s.getAnyCachedPost(id); ok {
 			slog.Warn("serve stale public blog post from cache after error", "endpoint", endpoint, "id", id, "title", cached.Title)
 			return cached, nil
