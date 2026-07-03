@@ -23,7 +23,7 @@ export default function TirasiPage() {
         <section className="section">
           <div className="section__head">
             <p className="eyebrow">Pamphlet</p>
-            <h1 className="section__title">8年度ちらし</h1>
+            <h1 className="section__title">R8年度ちらし</h1>
           </div>
           <div className="page-stack">
             <p>
