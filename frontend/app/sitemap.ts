@@ -38,7 +38,7 @@ async function loadBlogEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitem
 
     return contents.map((post) => ({
       url: new URL(getBlogPath(post), `${siteBaseUrl}/`).toString(),
-      lastModified: post.updatedAt ?? post.publishedAt ?? post.createdAt ?? undefined,
+      lastModified: post.updatedAt || post.publishedAt || post.createdAt || undefined,
     }));
   } catch {
     return [];
@@ -54,10 +54,10 @@ async function loadNewsEntries(siteBaseUrl: string): Promise<MetadataRoute.Sitem
 
     const latestPublishedAt = items.reduce<string | undefined>((latest, item) => {
       if (!latest) {
-        return item.updatedAt ?? item.publishedAt ?? item.createdAt;
+        return item.updatedAt || item.publishedAt || item.createdAt || undefined;
       }
 
-      const candidate = item.updatedAt ?? item.publishedAt ?? item.createdAt;
+      const candidate = item.updatedAt || item.publishedAt || item.createdAt;
       if (!candidate) {
         return latest;
       }
