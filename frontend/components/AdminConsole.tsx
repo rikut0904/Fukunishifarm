@@ -144,16 +144,34 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
       <AdminPageShell title="管理ページ" lead="編集したい項目を選んでください。">
         <div className="admin-home-panel">
           <div className="admin-menu">
-            {menuItems.map((item) => (
-              <Link key={item.href} href={item.href} className="admin-menu-card">
-                <div className="admin-menu-card__head">
-                  <h2 className="admin-menu-card__title">{item.title}</h2>
-                  {item.badge ? <span className="admin-menu-card__badge">{item.badge}</span> : null}
-                </div>
-                <p className="admin-menu-card__description">{item.description}</p>
-                <span className="admin-menu-card__action">開く</span>
-              </Link>
-            ))}
+            {menuItems.map((item) => {
+              const href = item.href.trim();
+              const key = `${item.title}:${href || "disabled"}`;
+
+              if (!href) {
+                return (
+                  <div key={key} className="admin-menu-card" aria-disabled="true">
+                    <div className="admin-menu-card__head">
+                      <h2 className="admin-menu-card__title">{item.title}</h2>
+                      {item.badge ? <span className="admin-menu-card__badge">{item.badge}</span> : null}
+                    </div>
+                    <p className="admin-menu-card__description">{item.description}</p>
+                    <span className="admin-menu-card__action">環境変数未設定</span>
+                  </div>
+                );
+              }
+
+              return (
+                <Link key={key} href={href} className="admin-menu-card">
+                  <div className="admin-menu-card__head">
+                    <h2 className="admin-menu-card__title">{item.title}</h2>
+                    {item.badge ? <span className="admin-menu-card__badge">{item.badge}</span> : null}
+                  </div>
+                  <p className="admin-menu-card__description">{item.description}</p>
+                  <span className="admin-menu-card__action">開く</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </AdminPageShell>

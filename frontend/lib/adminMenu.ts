@@ -49,7 +49,7 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
 }
 
 export const adminMenuItems = buildAdminMenuItems(
-  process.env.MICROCMS_SERVICE_DOMAIN || "fukunishifarm",
+  process.env.MICROCMS_SERVICE_DOMAIN || "",
   process.env.MICROCMS_BLOG_ENDPOINT || "blogs",
   process.env.MICROCMS_NEWS_ENDPOINT || "news",
 );

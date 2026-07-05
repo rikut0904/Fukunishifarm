@@ -36,11 +36,24 @@ export default function AdminHeader() {
           </Link>
 
           <nav className="admin-header__nav" aria-label="管理メニュー">
-            {adminMenuItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                {item.title}
-              </Link>
-            ))}
+            {adminMenuItems.map((item) => {
+              const href = item.href.trim();
+              const key = `${item.title}:${href || "disabled"}`;
+
+              if (!href) {
+                return (
+                  <span key={key} aria-disabled="true" title="MICROCMS_SERVICE_DOMAIN を設定すると利用できます">
+                    {item.title}
+                  </span>
+                );
+              }
+
+              return (
+                <Link key={key} href={href}>
+                  {item.title}
+                </Link>
+              );
+            })}
             <Link href="/">TOPページ</Link>
             <button type="button" className="admin-header__signout" onClick={handleSignOut}>
               ログアウト
@@ -79,12 +92,26 @@ export default function AdminHeader() {
             </button>
           </div>
           <nav className="mobile-menu__links admin-header__mobile-links" aria-label="モバイル管理メニュー">
-            {adminMenuItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
-                <span>{item.title}</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            ))}
+            {adminMenuItems.map((item) => {
+              const href = item.href.trim();
+              const key = `${item.title}:${href || "disabled"}`;
+
+              if (!href) {
+                return (
+                  <span key={key} aria-disabled="true" title="MICROCMS_SERVICE_DOMAIN を設定すると利用できます">
+                    <span>{item.title}</span>
+                    <span aria-hidden="true">-</span>
+                  </span>
+                );
+              }
+
+              return (
+                <Link key={key} href={href} onClick={() => setIsMobileMenuOpen(false)}>
+                  <span>{item.title}</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              );
+            })}
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
               <span>TOPページ</span>
               <span aria-hidden="true">→</span>
