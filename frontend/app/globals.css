@@ -298,15 +298,20 @@ h4 {
   display: grid;
   align-items: start;
   background: rgba(61, 39, 24, 0.28);
+  overscroll-behavior: contain;
 }
 
 .mobile-menu__panel {
   margin-left: auto;
   width: min(92vw, 22rem);
   min-height: 100%;
+  max-height: 100dvh;
   background: var(--surface-strong);
   box-shadow: -18px 0 46px rgba(88, 46, 18, 0.2);
   padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .mobile-menu__head {
@@ -1086,98 +1091,42 @@ h4 {
   }
 
   .table-card {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .info-table,
-  .download-table {
-    display: block;
-  }
-
+  .download-table,
   .price-table {
     display: table;
-  }
-
-  .info-table thead,
-  .download-table thead {
-    display: none;
-  }
-
-  .price-table thead {
-    display: table-header-group;
-  }
-
-  .info-table tbody,
-  .download-table tbody {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .price-table tbody {
-    display: table-row-group;
-  }
-
-  .info-table tr,
-  .download-table tr {
-    display: block;
-    padding: 0.8rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .price-table tr {
-    display: table-row;
-    padding: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .info-table tr:last-child,
-  .download-table tr:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .price-table tr:last-child {
-    border-bottom: 0;
+    width: 100%;
+    min-width: 34rem;
+    table-layout: auto;
   }
 
   .info-table th,
   .info-table td,
   .download-table th,
-  .download-table td {
-    display: block;
-    width: 100%;
-    padding: 0;
-    border-bottom: 0;
-    text-align: left;
-    background: transparent;
-  }
-
+  .download-table td,
   .price-table th,
   .price-table td {
     display: table-cell;
     padding: 0.8rem 0.75rem;
     border-bottom: 1px solid var(--border);
     background: transparent;
+    word-break: break-word;
+    white-space: normal;
   }
 
+  .info-table th,
+  .download-table th,
   .price-table th {
-    width: 42%;
-  }
-
-  .info-table td,
-  .download-table td {
-    margin-top: 0.35rem;
-  }
-
-  .price-table td {
-    margin-top: 0;
+    width: auto;
   }
 
   .download-table td:last-child,
-  .download-table th:last-child {
-    text-align: left;
-  }
-
+  .download-table th:last-child,
   .price-table td:last-child,
   .price-table th:last-child {
     text-align: left;
@@ -1334,6 +1283,34 @@ h4 {
   font-size: 0.88rem;
   font-weight: 700;
   box-shadow: 0 10px 22px rgba(105, 55, 23, 0.06);
+}
+
+@media (max-width: 767px) {
+  .admin-shell__head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .admin-shell__actions {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .admin-shell__actions .button-link {
+    min-height: 2.5rem;
+    padding: 0.72rem 0.9rem;
+    border-radius: 0.95rem;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    box-shadow: 0 8px 18px rgba(105, 55, 23, 0.08);
+  }
+
+  .admin-shell__actions .button-link svg {
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
 .admin-login-form,

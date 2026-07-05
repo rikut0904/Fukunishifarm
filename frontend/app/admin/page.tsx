@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   const menuItems = buildAdminMenuItems(
-    process.env.MICROCMS_SERVICE_DOMAIN?.trim() ?? "",
+    process.env.MICROCMS_SERVICE_DOMAIN?.trim() || "",
     process.env.MICROCMS_BLOG_ENDPOINT?.trim() || "blogs",
     process.env.MICROCMS_NEWS_ENDPOINT?.trim() || "news",
   );
