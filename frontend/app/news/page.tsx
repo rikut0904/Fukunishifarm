@@ -31,7 +31,19 @@ function parseNewsPage(value: string | undefined) {
   return Math.floor(page);
 }
 
-function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
+function getSaleStatusLabel(status: "preparing" | "on_sale" | "ended") {
+  switch (status) {
+    case "preparing":
+      return "販売開始まで今しばらくお待ちください。";
+    case "on_sale":
+      return "販売中!!";
+    case "ended":
+    default:
+      return "本年度販売終了いたしました。";
+  }
+}
+
+function saleStatusCard(item: { name: string; imagePath: string; imageFocus: string; saleStatus: "preparing" | "on_sale" | "ended" }) {
   return (
     <article className="card">
       <div className="card__media card__media--portrait">
@@ -46,7 +58,7 @@ function saleStatusCard(item: { name: string; imagePath: string; imageFocus: str
       </div>
       <div className="card__body">
         <p className="news-sale-card__title">{item.name}</p>
-        <span className="status">{item.isOnSale ? "販売中" : "本年度販売終了いたしました。"}</span>
+        <span className="status">{getSaleStatusLabel(item.saleStatus)}</span>
       </div>
     </article>
   );

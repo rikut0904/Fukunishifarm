@@ -5,7 +5,7 @@ export type GrapeItem = {
   id: number;
   name: string;
   description: string;
-  isOnSale: boolean;
+  saleStatus: "preparing" | "on_sale" | "ended";
   imagePath: string;
   imageFocus: string;
   imageScale: number;
@@ -21,7 +21,7 @@ export type GrapeCatalog = {
 export type GrapeItemInput = {
   name: string;
   description: string;
-  isOnSale: boolean;
+  saleStatus: "preparing" | "on_sale" | "ended";
   imagePath: string;
   imageFocus: string;
   imageScale: number;

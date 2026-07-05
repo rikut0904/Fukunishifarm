@@ -171,6 +171,12 @@ func normalizeItem(item domaingrape.Item) (domaingrape.Item, error) {
 	if item.Name == "" || item.Description == "" || item.ImagePath == "" || item.ImageFocus == "" {
 		return domaingrape.Item{}, domaingrape.ErrInvalidInput
 	}
+	if item.SaleStatus == "" {
+		item.SaleStatus = domaingrape.SaleStatusPreparing
+	}
+	if !item.SaleStatus.IsValid() {
+		return domaingrape.Item{}, domaingrape.ErrInvalidInput
+	}
 	if utf8.RuneCountInString(item.Name) > maxGrapeNameLength {
 		return domaingrape.Item{}, domaingrape.ErrInvalidInput
 	}

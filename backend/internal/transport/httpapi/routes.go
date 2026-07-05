@@ -220,7 +220,7 @@ type grapeItemResponse struct {
 	ID          uint      `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
-	IsOnSale    bool      `json:"isOnSale"`
+	SaleStatus  string    `json:"saleStatus"`
 	ImagePath   string    `json:"imagePath"`
 	ImageFocus  string    `json:"imageFocus"`
 	ImageScale  int       `json:"imageScale"`
@@ -238,7 +238,7 @@ type grapeCatalogResponse struct {
 type grapeItemInput struct {
 	Name        string `json:"name" required:"true"`
 	Description string `json:"description" required:"true"`
-	IsOnSale    bool   `json:"isOnSale"`
+	SaleStatus  string `json:"saleStatus" example:"preparing"`
 	ImagePath   string `json:"imagePath" required:"true"`
 	ImageFocus  string `json:"imageFocus" required:"true"`
 	ImageScale  int    `json:"imageScale"`
@@ -856,7 +856,7 @@ func toGrapeCatalog(input grapeCatalogInput) domaingrape.Catalog {
 		items = append(items, domaingrape.Item{
 			Name:        item.Name,
 			Description: item.Description,
-			IsOnSale:    item.IsOnSale,
+			SaleStatus:  domaingrape.SaleStatus(item.SaleStatus),
 			ImagePath:   item.ImagePath,
 			ImageFocus:  item.ImageFocus,
 			ImageScale:  item.ImageScale,
@@ -871,7 +871,7 @@ func toGrapeItem(input grapeItemInput) domaingrape.Item {
 	return domaingrape.Item{
 		Name:        input.Name,
 		Description: input.Description,
-		IsOnSale:    input.IsOnSale,
+		SaleStatus:  domaingrape.SaleStatus(input.SaleStatus),
 		ImagePath:   input.ImagePath,
 		ImageFocus:  input.ImageFocus,
 		ImageScale:  input.ImageScale,
@@ -900,7 +900,7 @@ func toGrapeItemResponse(item domaingrape.Item) grapeItemResponse {
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
-		IsOnSale:    item.IsOnSale,
+		SaleStatus:  string(item.SaleStatus),
 		ImagePath:   item.ImagePath,
 		ImageFocus:  item.ImageFocus,
 		ImageScale:  item.ImageScale,

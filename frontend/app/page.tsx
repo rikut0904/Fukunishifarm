@@ -9,7 +9,19 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-function varietyCard(item: { name: string; description: string; imagePath: string; imageFocus: string; isOnSale: boolean }) {
+function getSaleStatusLabel(status: "preparing" | "on_sale" | "ended") {
+  switch (status) {
+    case "preparing":
+      return "販売開始まで今しばらくお待ちください。";
+    case "on_sale":
+      return "販売中!!";
+    case "ended":
+    default:
+      return "本年度販売終了いたしました。";
+  }
+}
+
+function varietyCard(item: { name: string; description: string; imagePath: string; imageFocus: string; saleStatus: "preparing" | "on_sale" | "ended" }) {
   return (
     <article className="card">
       <div className="card__media card__media--portrait">
@@ -25,7 +37,7 @@ function varietyCard(item: { name: string; description: string; imagePath: strin
       <div className="card__body">
         <h3 className="card__title">{item.name}</h3>
         <p className="card__text">{item.description}</p>
-        <p className="status">{item.isOnSale ? "販売中" : "本年度販売終了いたしました。"}</p>
+        <p className="status">{getSaleStatusLabel(item.saleStatus)}</p>
       </div>
     </article>
   );
