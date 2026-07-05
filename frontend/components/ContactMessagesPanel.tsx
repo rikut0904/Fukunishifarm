@@ -117,7 +117,12 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
       title="お問い合わせ管理"
       lead="実際に送信されたお問い合わせを一覧で確認できます。"
       actions={
-        <button type="button" className="button-link button-link--secondary" onClick={() => void loadMessages()}>
+        <button
+          type="button"
+          className="button-link button-link--secondary"
+          onClick={() => void loadMessages()}
+          aria-label="再読み込み"
+        >
           <RefreshCcw className="h-4 w-4" />
         </button>
       }
