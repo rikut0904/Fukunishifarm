@@ -298,15 +298,20 @@ h4 {
   display: grid;
   align-items: start;
   background: rgba(61, 39, 24, 0.28);
+  overscroll-behavior: contain;
 }
 
 .mobile-menu__panel {
   margin-left: auto;
   width: min(92vw, 22rem);
   min-height: 100%;
+  max-height: 100dvh;
   background: var(--surface-strong);
   box-shadow: -18px 0 46px rgba(88, 46, 18, 0.2);
   padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .mobile-menu__head {
