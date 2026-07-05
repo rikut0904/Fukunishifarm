@@ -119,7 +119,6 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
       actions={
         <button type="button" className="button-link button-link--secondary" onClick={() => void loadMessages()}>
           <RefreshCcw className="h-4 w-4" />
-          再読み込み
         </button>
       }
     >
