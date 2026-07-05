@@ -22,7 +22,7 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
   return [
     {
       title: "ぶどう情報",
-      description: "品種名、説明文、画像設定、販売中の切り替えを編集します。",
+      description: "品種名、説明文、画像設定、販売状況を編集します。",
       href: "/admin/grape",
     },
     {

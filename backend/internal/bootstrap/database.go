@@ -29,6 +29,10 @@ func MigrateAndSeed(ctx context.Context, db *gorm.DB) error {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
+	if err := backfillGrapeSaleStatuses(ctx, db); err != nil {
+		return fmt.Errorf("backfill grape sale statuses: %w", err)
+	}
+
 	if err := backfillContactThreadIDs(ctx, db); err != nil {
 		return fmt.Errorf("backfill contact thread ids: %w", err)
 	}
@@ -71,7 +75,8 @@ func hasAuthSchema(ctx context.Context, db *gorm.DB) bool {
 }
 
 func hasGrapeSchema(ctx context.Context, db *gorm.DB) bool {
-	return db.WithContext(ctx).Migrator().HasTable(&domaingrape.Item{})
+	migrator := db.WithContext(ctx).Migrator()
+	return migrator.HasTable(&domaingrape.Item{}) && migrator.HasColumn(&domaingrape.Item{}, "sale_status")
 }
 
 func hasContactSchema(ctx context.Context, db *gorm.DB) bool {
@@ -140,5 +145,21 @@ func ensureContactThreadIDIndex(ctx context.Context, db *gorm.DB) error {
 		CREATE UNIQUE INDEX IF NOT EXISTS idx_contact_messages_thread_id
 		ON contact_messages (thread_id)
 		WHERE thread_id IS NOT NULL AND thread_id <> ''
+	`).Error
+}
+
+func backfillGrapeSaleStatuses(ctx context.Context, db *gorm.DB) error {
+	migrator := db.WithContext(ctx).Migrator()
+	if !migrator.HasTable(&domaingrape.Item{}) || !migrator.HasColumn(&domaingrape.Item{}, "sale_status") {
+		return nil
+	}
+
+	return db.WithContext(ctx).Exec(`
+		UPDATE grape_items
+		SET sale_status = CASE
+			WHEN is_on_sale = TRUE THEN 'on_sale'
+			ELSE 'ended'
+		END
+		WHERE sale_status IS NULL OR sale_status = ''
 	`).Error
 }

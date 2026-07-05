@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api";
+import { ApiError, createApiError } from "@/lib/api";
 import { formatBlogDate } from "@/lib/blog-format";
 import type { BlogPost, PublicBlogCatalogState, PublicBlogPostState } from "@/lib/blog-types";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
@@ -117,8 +117,7 @@ export async function fetchPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT)
     },
   });
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}${detail ? `: ${detail}` : ""}`);
+    throw await createApiError(response);
   }
   const payload = (await response.json()) as { posts?: unknown[]; total?: number; page?: number; limit?: number };
   const posts = Array.isArray(payload?.posts) ? payload.posts : [];
@@ -151,8 +150,7 @@ const fetchPublicBlogPostByIdCached = cache(async (id: string) => {
     return null;
   }
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}${detail ? `: ${detail}` : ""}`);
+    throw await createApiError(response);
   }
   const payload = (await response.json()) as { post?: unknown };
   if (!payload?.post) {

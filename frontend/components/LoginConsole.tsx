@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, getDisplayErrorMessage } from "@/lib/api";
 import AdminPageShell from "@/components/AdminPageShell";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
@@ -72,7 +72,7 @@ export default function LoginConsole({ initialEmail = "", invited = false }: Log
 
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+        message: getDisplayErrorMessage(error, "セッションを確認できませんでした。"),
       });
     }
   };
@@ -101,7 +101,7 @@ export default function LoginConsole({ initialEmail = "", invited = false }: Log
         if (!cancelled) {
           setStatus({
             kind: "error",
-            message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+            message: getDisplayErrorMessage(error, "セッションを確認できませんでした。"),
           });
         }
       }
@@ -125,9 +125,7 @@ export default function LoginConsole({ initialEmail = "", invited = false }: Log
       const message =
         error instanceof ApiError && error.status === 401
           ? "メールアドレスまたはパスワードが正しくありません。"
-          : error instanceof Error
-            ? error.message
-            : "サインインできませんでした。";
+          : getDisplayErrorMessage(error, "サインインできませんでした。");
       setStatus({ kind: "error", message });
     }
   };

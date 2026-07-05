@@ -1,6 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import ContactThreadPanel from "@/components/ContactThreadPanel";
 import SiteFooter from "@/components/SiteFooter";
+import { getDisplayErrorMessage } from "@/lib/api";
 import { fetchPublicContactThreadServer, type PublicContactThread } from "@/lib/contact";
 import type { Metadata } from "next";
 
@@ -25,7 +26,7 @@ export default async function ContactThreadPage({ params }: PageProps) {
   try {
     initialDetail = await fetchPublicContactThreadServer(threadId);
   } catch (error) {
-    initialErrorMessage = error instanceof Error ? error.message : "スレッドを読み込めませんでした。";
+    initialErrorMessage = getDisplayErrorMessage(error, "スレッドを読み込めませんでした。");
   }
 
   return (

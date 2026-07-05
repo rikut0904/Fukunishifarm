@@ -2545,14 +2545,6 @@ h4 {
   min-width: 0;
 }
 
-.admin-grape-row__publish input[type="checkbox"] {
-  width: 1.35rem;
-  height: 1.35rem;
-  margin: 0;
-  accent-color: var(--brand-strong);
-  flex-shrink: 0;
-}
-
 .admin-grape-row__status {
   display: inline-flex;
   align-items: center;
@@ -2567,6 +2559,12 @@ h4 {
   background: rgba(235, 249, 240, 0.95);
   color: #1e6b39;
   border: 1px solid rgba(40, 130, 76, 0.16);
+}
+
+.admin-grape-row__status--preparing {
+  background: rgba(242, 240, 228, 0.96);
+  color: #725d14;
+  border: 1px solid rgba(176, 144, 27, 0.18);
 }
 
 .admin-grape-row__status--off {

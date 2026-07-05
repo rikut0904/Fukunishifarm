@@ -66,7 +66,7 @@ func (r *GrapeRepository) UpdateItem(ctx context.Context, item domaingrape.Item)
 
 		saved.Name = item.Name
 		saved.Description = item.Description
-		saved.IsOnSale = item.IsOnSale
+		saved.SaleStatus = item.SaleStatus
 		saved.ImagePath = item.ImagePath
 		saved.ImageFocus = item.ImageFocus
 		saved.ImageScale = item.ImageScale

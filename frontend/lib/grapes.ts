@@ -1,11 +1,11 @@
-import { ApiError, apiFetch, isMigrationRequiredError } from "@/lib/api";
+import { ApiError, apiFetch, createApiError, isMigrationRequiredError } from "@/lib/api";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type GrapeItem = {
   id: number;
   name: string;
   description: string;
-  isOnSale: boolean;
+  saleStatus: "preparing" | "on_sale" | "ended";
   imagePath: string;
   imageFocus: string;
   imageScale: number;
@@ -21,7 +21,7 @@ export type GrapeCatalog = {
 export type GrapeItemInput = {
   name: string;
   description: string;
-  isOnSale: boolean;
+  saleStatus: "preparing" | "on_sale" | "ended";
   imagePath: string;
   imageFocus: string;
   imageScale: number;
@@ -86,24 +86,7 @@ export async function fetchPublicGrapeCatalog() {
   });
 
   if (!response.ok) {
-    const contentType = response.headers.get("content-type") ?? "";
-    const text = await response.text();
-
-    if (contentType.includes("application/json")) {
-      let parsed: { message?: string; code?: string } | null = null;
-      try {
-        parsed = JSON.parse(text) as { message?: string; code?: string };
-      } catch {
-        parsed = null;
-      }
-
-      if (parsed) {
-        const message = parsed.message ?? `API request failed: ${response.status} ${response.statusText}`;
-        throw new ApiError(response.status, message, parsed.code);
-      }
-    }
-
-    throw new ApiError(response.status, text || `API request failed: ${response.status} ${response.statusText}`);
+    throw await createApiError(response);
   }
 
   const catalog = (await response.json()) as GrapeCatalog;

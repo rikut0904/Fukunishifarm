@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api";
+import { apiFetch, createApiError } from "@/lib/api";
 
 export type ContactMessageInput = {
   name: string;
@@ -160,7 +160,7 @@ export async function fetchPublicContactThreadServer(threadId: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    throw await createApiError(response);
   }
 
   return (await response.json()) as PublicContactThread;

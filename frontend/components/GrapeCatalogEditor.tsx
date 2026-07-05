@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import AdminPageShell from "@/components/AdminPageShell";
 import {
   createAdminGrapeItem,
@@ -48,7 +48,7 @@ function createNewItem(sortOrder: number): EditableGrapeItem {
     clientKey: `new-${Date.now()}-${sortOrder}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`,
     name: "",
     description: "",
-    isOnSale: false,
+    saleStatus: "preparing",
     imagePath: "",
     imageFocus: "center 50%",
     imageScale: 100,
@@ -62,7 +62,7 @@ function toItemInput(item: EditableGrapeItem): GrapeItemInput {
   return {
     name: item.name,
     description: item.description,
-    isOnSale: item.isOnSale,
+    saleStatus: item.saleStatus,
     imagePath: item.imagePath,
     imageFocus: item.imageFocus,
     imageScale: item.imageScale,
@@ -103,7 +103,27 @@ function getItemLabel(item: EditableGrapeItem, index: number) {
 }
 
 function getSaleLabel(item: EditableGrapeItem) {
-  return item.isOnSale ? "販売中" : "販売終了";
+  switch (item.saleStatus) {
+    case "preparing":
+      return "販売前";
+    case "on_sale":
+      return "販売中";
+    case "ended":
+    default:
+      return "販売終了";
+  }
+}
+
+function getSaleStatusClassName(item: EditableGrapeItem) {
+  switch (item.saleStatus) {
+    case "preparing":
+      return "preparing";
+    case "on_sale":
+      return "on";
+    case "ended":
+    default:
+      return "off";
+  }
 }
 
 function getFriendlyErrorMessage(error: unknown, fallback: string) {
@@ -137,7 +157,7 @@ function GrapeListRow({
   index,
   onOpen,
   onMove,
-  onToggleSale,
+  onChangeSaleStatus,
   isMoving,
   isSaving,
 }: {
@@ -145,7 +165,7 @@ function GrapeListRow({
   index: number;
   onOpen: (item: EditableGrapeItem) => void;
   onMove: (index: number, direction: -1 | 1) => void;
-  onToggleSale: (item: EditableGrapeItem, nextSale: boolean) => void;
+  onChangeSaleStatus: (item: EditableGrapeItem, saleStatus: GrapeItem["saleStatus"]) => void;
   isMoving: boolean;
   isSaving: boolean;
 }) {
@@ -185,13 +205,17 @@ function GrapeListRow({
       </button>
       <div className="admin-grape-row__actions">
         <label className="admin-grape-row__publish">
-          <input
-            type="checkbox"
-            checked={item.isOnSale}
-            onChange={(event) => onToggleSale(item, event.target.checked)}
+          <select
+            className="admin-input admin-input--compact"
+            value={item.saleStatus}
+            onChange={(event) => onChangeSaleStatus(item, event.target.value as GrapeItem["saleStatus"])}
             disabled={isSaving || item.id === 0}
-          />
-          <span className={`admin-grape-row__status admin-grape-row__status--${item.isOnSale ? "on" : "off"}`}>
+          >
+            <option value="preparing">販売前</option>
+            <option value="on_sale">販売中</option>
+            <option value="ended">販売終了</option>
+          </select>
+          <span className={`admin-grape-row__status admin-grape-row__status--${getSaleStatusClassName(item)}`}>
             {getSaleLabel(item)}
           </span>
         </label>
@@ -255,13 +279,17 @@ function GrapeItemModal({
         <div className="admin-grape-modal__body">
           {errorMessage ? <div className="admin-grape-modal__error">{errorMessage}</div> : null}
           <div className="admin-grape-modal__form">
-            <label className="admin-field admin-field--checkbox">
-              <span>販売中</span>
-              <input
-                type="checkbox"
-                checked={item.isOnSale}
-                onChange={(event) => onChange({ ...item, isOnSale: event.target.checked })}
-              />
+            <label className="admin-field">
+              <span>販売状況</span>
+              <select
+                value={item.saleStatus}
+                onChange={(event) => onChange({ ...item, saleStatus: event.target.value as GrapeItem["saleStatus"] })}
+                className="admin-input"
+              >
+                <option value="preparing">販売開始まで今しばらくお待ちください。</option>
+                <option value="on_sale">販売中!!</option>
+                <option value="ended">本年度販売終了いたしました。</option>
+              </select>
             </label>
 
             <label className="admin-field">
@@ -365,7 +393,7 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
         if (!cancelled) {
           setStatus({
             kind: "error",
-            message: error instanceof Error ? error.message : "ぶどう情報を読み込めませんでした。",
+            message: getDisplayErrorMessage(error, "ぶどう情報を読み込めませんでした。"),
           });
         }
       }
@@ -402,8 +430,8 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
     openEditor(nextItem);
   };
 
-  const toggleSale = async (item: EditableGrapeItem, nextSale: boolean) => {
-    const nextItem = { ...item, isOnSale: nextSale };
+  const updateSaleStatus = async (item: EditableGrapeItem, saleStatus: GrapeItem["saleStatus"]) => {
+    const nextItem = { ...item, saleStatus };
     setModalError(null);
     setSavingClientKey(item.clientKey);
     setFeedback("");
@@ -623,7 +651,7 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
 
   const currentEditingItem =
     editingClientKey && catalog ? catalog.items.find((item) => item.clientKey === editingClientKey) ?? null : null;
-  const publishedCount = catalog?.items.filter((item) => item.isOnSale).length ?? 0;
+  const onSaleCount = catalog?.items.filter((item) => item.saleStatus === "on_sale").length ?? 0;
 
   return (
     <AdminPageShell
@@ -632,10 +660,10 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
         catalog ? (
           <span className="admin-shell__summary">
             <span>{catalog.items.length}品種</span>
-            <span>{publishedCount}件が販売中</span>
+            <span>{onSaleCount}件が販売中</span>
           </span>
         ) : (
-          "品種名、説明文、画像設定、販売中の切り替えを編集します。"
+          "品種名、説明文、画像設定、販売状況を編集します。"
         )
       }
       actions={
@@ -684,7 +712,7 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
                     index={index}
                     onOpen={openEditor}
                     onMove={moveItem}
-                    onToggleSale={toggleSale}
+                    onChangeSaleStatus={updateSaleStatus}
                     isMoving={orderingClientKey === item.clientKey}
                     isSaving={savingClientKey === item.clientKey}
                   />
