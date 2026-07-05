@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -138,8 +137,11 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 	requestCtx, cancel := context.WithTimeout(ctx, publicBlogRequestTimeout)
 	defer cancel()
 
-	var response microCMSPost
-	if err := s.request(requestCtx, http.MethodGet, "/"+url.PathEscape(id), nil, &response); err != nil {
+	var response microCMSListResponse
+	if err := s.request(requestCtx, http.MethodGet, "", map[string]string{
+		"ids":   id,
+		"limit": "1",
+	}, &response); err != nil {
 		if errors.Is(err, domainblog.ErrPostNotFound) {
 			slog.Warn("public blog post not found", "endpoint", endpoint, "id", id)
 		} else {
@@ -152,7 +154,12 @@ func (s *Service) GetPublicPostByID(ctx context.Context, id string) (domainblog.
 		return domainblog.Post{}, err
 	}
 
-	post := toPost(response)
+	if len(response.Contents) == 0 {
+		slog.Warn("public blog post not found", "endpoint", endpoint, "id", id)
+		return domainblog.Post{}, domainblog.ErrPostNotFound
+	}
+
+	post := toPost(response.Contents[0])
 	s.storePost(id, post)
 	slog.Info("loaded public blog post", "endpoint", endpoint, "id", id, "title", post.Title)
 	return post, nil
@@ -191,8 +198,9 @@ func toPosts(contents []microCMSPost) []domainblog.Post {
 
 func toPost(item microCMSPost) domainblog.Post {
 	content := item.Content
+	body := item.Body
 	if strings.TrimSpace(content) == "" {
-		content = item.Body
+		content = body
 	}
 
 	return domainblog.Post{
