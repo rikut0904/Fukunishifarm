@@ -40,8 +40,8 @@ export default function TirasiPage() {
         </section>
 
         <section className="section section--soft">
-          <div className="media-frame">
-            <iframe src="/PDF/R8_Pamphlet.pdf" width="100%" height="900px" style={{ border: 0 }} title="Pamphlet_PDF" />
+          <div className="media-frame pamphlet-frame">
+            <iframe src="/PDF/R8_Pamphlet.pdf" className="pamphlet-frame__viewer" style={{ border: 0 }} title="Pamphlet_PDF" />
           </div>
         </section>
       </main>
