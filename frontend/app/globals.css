@@ -1097,7 +1097,7 @@ h4 {
     display: table;
     width: 100%;
     min-width: 34rem;
-    table-layout: fixed;
+    table-layout: auto;
   }
 
   .info-table th,
