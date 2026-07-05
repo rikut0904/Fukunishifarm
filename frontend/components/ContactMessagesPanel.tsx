@@ -1,7 +1,7 @@
 "use client";
 
 import AdminPageShell from "@/components/AdminPageShell";
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
 import { fetchAdminContactCatalog, getCategoryLabel, type AdminContactMessage } from "@/lib/contact";
 import { Loader2, LogOut, RefreshCcw } from "lucide-react";
@@ -81,7 +81,7 @@ export default function ContactMessagesPanel({ token, onSignOut }: ContactMessag
 
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "お問い合わせを読み込めませんでした。",
+        message: getDisplayErrorMessage(error, "お問い合わせを読み込めませんでした。"),
       });
     }
   }, [onSignOut, token, filterStatus, page, limit]);

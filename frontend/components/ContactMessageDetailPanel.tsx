@@ -1,7 +1,7 @@
 "use client";
 
 import AdminPageShell from "@/components/AdminPageShell";
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
 import {
   createAdminContactReply,
@@ -77,7 +77,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
 
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "お問い合わせ詳細を読み込めませんでした。",
+        message: getDisplayErrorMessage(error, "お問い合わせ詳細を読み込めませんでした。"),
       });
     }
   }, [id, onSignOut, token]);
@@ -128,7 +128,7 @@ export default function ContactMessageDetailPanel({ token, id, onSignOut }: Cont
         return;
       }
 
-      setReplyError(error instanceof Error ? error.message : "返信の送信に失敗しました。");
+      setReplyError(getDisplayErrorMessage(error, "返信の送信に失敗しました。"));
       setToast({ kind: "error", message: "返信の送信に失敗しました。" });
     } finally {
       replyLoadingRef.current = false;

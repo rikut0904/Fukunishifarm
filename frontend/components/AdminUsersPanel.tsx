@@ -1,7 +1,7 @@
 "use client";
 
 import AdminPageShell from "@/components/AdminPageShell";
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import { type AdminUser, deleteAdminUser, fetchAdminUsers, inviteAdminUser, resendAdminUserInvitation } from "@/lib/adminUsers";
 import { formatDateTime } from "@/lib/datetime";
 import { ChevronRight, Loader2, Send, Trash2, X } from "lucide-react";
@@ -78,7 +78,7 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
 
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "管理者ユーザーを読み込めませんでした。",
+        message: getDisplayErrorMessage(error, "管理者ユーザーを読み込めませんでした。"),
       });
     }
   }, [onSignOut, token]);
@@ -131,7 +131,7 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
       setStatus({ kind: "ready" });
       setToast({
         kind: "error",
-        message: error instanceof Error ? error.message : "管理者ユーザーを招待できませんでした。",
+        message: getDisplayErrorMessage(error, "管理者ユーザーを招待できませんでした。"),
       });
     }
   };
@@ -153,7 +153,7 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
 
       setToast({
         kind: "error",
-        message: error instanceof Error ? error.message : "招待メールを再送できませんでした。",
+        message: getDisplayErrorMessage(error, "招待メールを再送できませんでした。"),
       });
     } finally {
       setResendingUserId(null);
@@ -184,7 +184,7 @@ export default function AdminUsersPanel({ token, currentUserId, onSignOut }: Adm
 
       setToast({
         kind: "error",
-        message: error instanceof Error ? error.message : "管理者アカウントを削除できませんでした。",
+        message: getDisplayErrorMessage(error, "管理者アカウントを削除できませんでした。"),
       });
     } finally {
       setDeletingUserId(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import { formatDateTime } from "@/lib/datetime";
 import { createPublicContactReply, fetchPublicContactThread, getCategoryLabel, type PublicContactThread } from "@/lib/contact";
 import { ArrowLeft, Loader2, RefreshCcw, Send } from "lucide-react";
@@ -75,9 +75,7 @@ export default function ContactThreadPanel({
         kind: "error",
         message: isThreadNotFound(error)
           ? "このスレッドは見つかりませんでした。"
-          : error instanceof Error
-            ? error.message
-            : "スレッドを読み込めませんでした。",
+          : getDisplayErrorMessage(error, "スレッドを読み込めませんでした。"),
       });
     }
   }, [threadId]);
@@ -103,7 +101,7 @@ export default function ContactThreadPanel({
       setToast({ kind: "success", message: "返信を送信しました。" });
       await loadThread();
     } catch (error) {
-      setReplyError(error instanceof Error ? error.message : "返信の送信に失敗しました。");
+      setReplyError(getDisplayErrorMessage(error, "返信の送信に失敗しました。"));
       setToast({ kind: "error", message: "返信の送信に失敗しました。" });
     } finally {
       replyLoadingRef.current = false;

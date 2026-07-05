@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, getDisplayErrorMessage } from "@/lib/api";
 import type { AdminMenuItem } from "@/lib/adminMenu";
 import AdminPageShell from "@/components/AdminPageShell";
 import ContactMessagesPanel from "@/components/ContactMessagesPanel";
@@ -71,7 +71,7 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
 
       setStatus({
         kind: "error",
-        message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+        message: getDisplayErrorMessage(error, "セッションを確認できませんでした。"),
       });
     }
   };
@@ -101,7 +101,7 @@ export default function AdminConsole({ mode = "home", menuItems = [] }: AdminCon
         if (!cancelled) {
           setStatus({
             kind: "error",
-            message: error instanceof Error ? error.message : "セッションを確認できませんでした。",
+            message: getDisplayErrorMessage(error, "セッションを確認できませんでした。"),
           });
         }
       }

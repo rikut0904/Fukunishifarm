@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, getDisplayErrorMessage } from "@/lib/api";
 import AdminPageShell from "@/components/AdminPageShell";
 import {
   createAdminGrapeItem,
@@ -365,7 +365,7 @@ export default function GrapeCatalogEditor({ token, onSignOut }: GrapeCatalogEdi
         if (!cancelled) {
           setStatus({
             kind: "error",
-            message: error instanceof Error ? error.message : "ぶどう情報を読み込めませんでした。",
+            message: getDisplayErrorMessage(error, "ぶどう情報を読み込めませんでした。"),
           });
         }
       }
