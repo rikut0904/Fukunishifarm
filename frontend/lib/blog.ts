@@ -117,7 +117,8 @@ export async function fetchPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT)
     },
   });
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
+    const detail = await response.text().catch(() => "");
+    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}${detail ? `: ${detail}` : ""}`);
   }
   const payload = (await response.json()) as { posts?: unknown[]; total?: number; page?: number; limit?: number };
   const posts = Array.isArray(payload?.posts) ? payload.posts : [];
@@ -150,7 +151,8 @@ const fetchPublicBlogPostByIdCached = cache(async (id: string) => {
     return null;
   }
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
+    const detail = await response.text().catch(() => "");
+    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}${detail ? `: ${detail}` : ""}`);
   }
   const payload = (await response.json()) as { post?: unknown };
   if (!payload?.post) {
@@ -179,7 +181,8 @@ export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT):
       limit: response.limit,
       errorMessage: null,
     };
-  } catch {
+  } catch (error) {
+    console.error("failed to load public blog posts", { page, limit, error });
     return {
       posts: null,
       totalCount: 0,
@@ -215,7 +218,8 @@ const loadPublicBlogPostCached = cache(async (id: string): Promise<PublicBlogPos
       post: await fetchPublicBlogPostById(id),
       errorMessage: null,
     };
-  } catch {
+  } catch (error) {
+    console.error("failed to load public blog post", { id, error });
     return {
       post: null,
       errorMessage: "ブログ記事を読み込めませんでした。",
