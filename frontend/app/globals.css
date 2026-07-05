@@ -791,6 +791,12 @@ h4 {
   min-height: 26rem;
 }
 
+.pamphlet-frame__viewer {
+  display: block;
+  width: 100%;
+  height: 56rem;
+}
+
 .contact-hero {
   display: grid;
   gap: 1rem;
@@ -2871,6 +2877,20 @@ h4 {
 
 .media-frame iframe {
   height: clamp(24rem, 70vw, 56rem);
+}
+
+@media (max-width: 767px) {
+  .pamphlet-frame {
+    margin-inline: calc(50% - 50vw + 0.625rem);
+    border-radius: 1rem;
+  }
+
+  .pamphlet-frame__viewer {
+    width: 100%;
+    min-height: 0;
+    height: calc((100vw - 1.25rem) * 1.4142);
+    max-height: 88svh;
+  }
 }
 
 @media (min-width: 768px) {
