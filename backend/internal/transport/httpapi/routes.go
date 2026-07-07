@@ -749,6 +749,8 @@ func mapAuthError(message string, err error) error {
 		return huma.Error403Forbidden("forbidden")
 	case errors.Is(err, domainauth.ErrMailNotConfigured):
 		return huma.Error503ServiceUnavailable("invitation mail is not configured")
+	case errors.Is(err, domainauth.ErrEmailAlreadyExists):
+		return huma.Error409Conflict("email already exists", err)
 	case errors.Is(err, domainauth.ErrUserNotFound):
 		return huma.Error404NotFound("admin user not found", err)
 	default:

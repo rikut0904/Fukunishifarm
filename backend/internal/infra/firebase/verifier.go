@@ -70,6 +70,9 @@ func (v *Verifier) CreateUser(ctx context.Context, email, password, displayName 
 
 	user, err := v.client.CreateUser(ctx, params)
 	if err != nil {
+		if fbauth.IsEmailAlreadyExists(err) {
+			return domainauth.VerifiedIdentity{}, domainauth.ErrEmailAlreadyExists
+		}
 		return domainauth.VerifiedIdentity{}, fmt.Errorf("create firebase user: %w", err)
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	domainauth "fukunishifarm/backend/internal/domain/auth"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +30,10 @@ func (r *AdminUserRepository) CreateAdminUser(ctx context.Context, identity doma
 
 	tx := r.db.WithContext(ctx).Create(&user)
 	if tx.Error != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(tx.Error, &pgErr) && pgErr.Code == "23505" {
+			return nil, domainauth.ErrEmailAlreadyExists
+		}
 		return nil, tx.Error
 	}
 
