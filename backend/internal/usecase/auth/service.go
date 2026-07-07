@@ -86,39 +86,48 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 }
 
 func (s *Service) CreateUser(ctx context.Context, sessionToken, email, displayName string) (*domainauth.AdminUser, error) {
+	email = strings.TrimSpace(email)
+	displayName = strings.TrimSpace(displayName)
+
 	if strings.TrimSpace(sessionToken) == "" {
 		return nil, ErrUnauthorized
 	}
-	if strings.TrimSpace(email) == "" {
+	if email == "" {
 		return nil, ErrInvalidInput
 	}
 	if s.mailer == nil || s.loginURL == "" {
+		slog.Warn("create admin user mail is not configured", "email", email, "has_mailer", s.mailer != nil, "login_url", s.loginURL)
 		return nil, domainauth.ErrMailNotConfigured
 	}
 
 	if _, err := s.GetSession(ctx, sessionToken); err != nil {
+		slog.Warn("create admin user unauthorized", "email", email, "error", err)
 		return nil, err
 	}
 
 	identity, err := s.creator.CreateInvitedUser(ctx, email, displayName)
 	if err != nil {
+		slog.Warn("create invited firebase user failed", "email", email, "error", err)
 		return nil, fmt.Errorf("create firebase user: %w", err)
 	}
 
 	user, err := s.repository.CreateAdminUser(ctx, identity)
 	if err != nil {
+		slog.Warn("create admin user record failed", "email", identity.Email, "firebase_uid", identity.FirebaseUID, "error", err)
 		rollbackInvite(ctx, s.creator, s.repository, identity.FirebaseUID)
 		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 
 	passwordSetupLink, err := s.creator.GeneratePasswordSetupLink(ctx, identity.Email, buildLoginContinueURL(s.loginURL, identity.Email))
 	if err != nil {
+		slog.Error("generate password setup link failed", "email", identity.Email, "login_url", s.loginURL, "error", err)
 		rollbackInvite(ctx, s.creator, s.repository, identity.FirebaseUID)
 		return nil, fmt.Errorf("generate password setup link: %w", err)
 	}
 
 	subject, body := buildInvitationEmail(identity.Email, displayName, passwordSetupLink, s.loginURL)
 	if err := s.mailer.SendInvitationEmail(ctx, identity.Email, subject, body); err != nil {
+		slog.Error("send invitation email failed", "email", identity.Email, "error", err)
 		rollbackInvite(ctx, s.creator, s.repository, identity.FirebaseUID)
 		return nil, fmt.Errorf("send invitation email: %w", err)
 	}
@@ -169,10 +178,12 @@ func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, use
 		return ErrInvalidInput
 	}
 	if s.mailer == nil || s.loginURL == "" {
+		slog.Warn("resend invitation mail is not configured", "user_id", userID, "has_mailer", s.mailer != nil, "login_url", s.loginURL)
 		return domainauth.ErrMailNotConfigured
 	}
 
 	if _, err := s.GetSession(ctx, sessionToken); err != nil {
+		slog.Warn("resend invitation unauthorized", "user_id", userID, "error", err)
 		return err
 	}
 
@@ -181,19 +192,23 @@ func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, use
 		if errors.Is(err, domainauth.ErrUserNotFound) {
 			return err
 		}
+		slog.Error("find admin user by id failed", "user_id", userID, "error", err)
 		return fmt.Errorf("find admin user by id: %w", err)
 	}
 	if !user.LastLoginAt.IsZero() {
+		slog.Warn("resend invitation rejected for active user", "user_id", userID, "email", user.Email)
 		return ErrInvalidInput
 	}
 
 	passwordSetupLink, err := s.creator.GeneratePasswordSetupLink(ctx, user.Email, buildLoginContinueURL(s.loginURL, user.Email))
 	if err != nil {
+		slog.Error("generate password setup link failed", "user_id", userID, "email", user.Email, "login_url", s.loginURL, "error", err)
 		return fmt.Errorf("generate password setup link: %w", err)
 	}
 
 	subject, body := buildInvitationEmail(user.Email, user.DisplayName, passwordSetupLink, s.loginURL)
 	if err := s.mailer.SendInvitationEmail(ctx, user.Email, subject, body); err != nil {
+		slog.Error("send invitation email failed", "user_id", userID, "email", user.Email, "error", err)
 		return fmt.Errorf("send invitation email: %w", err)
 	}
 
