@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -371,6 +372,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 
 		user, err := authService.CreateUser(ctx, token, input.Body.Email, input.Body.DisplayName)
 		if err != nil {
+			logAuthHandlerError(ctx, "create admin user failed", err, "email", input.Body.Email)
 			return nil, mapAuthError("failed to create firebase user", err)
 		}
 
@@ -406,6 +408,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		}
 
 		if err := authService.ResendInvitation(ctx, token, input.ID); err != nil {
+			logAuthHandlerError(ctx, "resend invitation failed", err, "user_id", input.ID)
 			return nil, mapAuthError("failed to resend invitation email", err)
 		}
 
@@ -735,6 +738,24 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		return output, nil
 	})
 
+}
+
+func logAuthHandlerError(ctx context.Context, message string, err error, args ...any) {
+	logArgs := append([]any{}, args...)
+	logArgs = append(logArgs, "error", err)
+
+	switch {
+	case errors.Is(err, usecaseauth.ErrUnauthorized),
+		errors.Is(err, usecaseauth.ErrForbidden),
+		errors.Is(err, usecaseauth.ErrInvalidInput),
+		errors.Is(err, domainauth.ErrInvalidInput),
+		errors.Is(err, domainauth.ErrUserNotFound),
+		errors.Is(err, domainauth.ErrMailNotConfigured),
+		errors.Is(err, domainauth.ErrEmailAlreadyExists):
+		slog.WarnContext(ctx, message, logArgs...)
+	default:
+		slog.ErrorContext(ctx, message, logArgs...)
+	}
 }
 
 func mapAuthError(message string, err error) error {
