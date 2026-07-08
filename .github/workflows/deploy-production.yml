@@ -59,12 +59,13 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy production to Railway
-        working-directory: backend
         run: |
-          railway up \
+          railway up backend \
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment production \
+            --path-as-root \
+            --verbose \
             --ci
 
       - name: Write deployment summary
