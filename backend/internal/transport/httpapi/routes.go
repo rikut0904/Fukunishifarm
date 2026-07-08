@@ -741,8 +741,10 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 }
 
 func logAuthHandlerError(ctx context.Context, message string, err error, args ...any) {
-	logArgs := append([]any{}, args...)
-	logArgs = append(logArgs, "error", err)
+	logArgs := make([]any, 2, len(args)+2)
+	logArgs[0] = "error"
+	logArgs[1] = err
+	logArgs = append(logArgs, args...)
 
 	switch {
 	case errors.Is(err, usecaseauth.ErrUnauthorized),
