@@ -1,0 +1,87 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  vercel-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Validate Vercel secrets
+        run: |
+          test -n "$VERCEL_ORG_ID"
+          test -n "$VERCEL_PROJECT_ID"
+          test -n "$VERCEL_TOKEN"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Pull Vercel production environment
+        working-directory: frontend
+        run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build staging deployment
+        working-directory: frontend
+        run: npx vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy staging to Vercel
+        id: deploy
+        working-directory: frontend
+        run: |
+          url=$(npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Write deployment summary
+        run: |
+          {
+            echo "## Staging"
+            echo
+            echo "- Vercel URL: ${{ steps.deploy.outputs.url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  railway-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      RAILWAY_DEPLOY_HOOK_URL: ${{ secrets.RAILWAY_STAGING_DEPLOY_HOOK_URL }}
+
+    steps:
+      - name: Validate Railway staging hook
+        run: test -n "$RAILWAY_DEPLOY_HOOK_URL"
+
+      - name: Trigger Railway staging deployment
+        run: curl --fail --silent --show-error --location --request POST "$RAILWAY_DEPLOY_HOOK_URL"
+
+      - name: Write deployment summary
+        run: |
+          {
+            echo "## Staging"
+            echo
+            echo "- Railway: staging deploy hook triggered"
+          } >> "$GITHUB_STEP_SUMMARY"
