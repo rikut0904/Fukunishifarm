@@ -63,7 +63,7 @@ jobs:
         run: |
           railway up \
             --project "$RAILWAY_PROJECT_ID" \
-            --service "${RAILWAY_SERVICE_NAME:-backend}" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment production \
             --ci
 

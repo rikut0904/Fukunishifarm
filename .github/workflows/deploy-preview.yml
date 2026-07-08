@@ -93,8 +93,8 @@ jobs:
         run: |
           railway up \
             --project "$RAILWAY_PROJECT_ID" \
-            --service "${RAILWAY_SERVICE_NAME:-backend}" \
-            --environment preview \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment preview-v2 \
             --ci
 
       - name: Write deployment summary
