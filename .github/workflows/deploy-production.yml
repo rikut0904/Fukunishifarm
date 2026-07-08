@@ -37,21 +37,42 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      RAILWAY_DEPLOY_HOOK_URL: ${{ secrets.RAILWAY_PRODUCTION_DEPLOY_HOOK_URL }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
 
     steps:
-      - name: Validate Railway production hook
-        run: test -n "$RAILWAY_DEPLOY_HOOK_URL"
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-      - name: Trigger Railway production deployment
-        run: curl --fail --silent --show-error --location --request POST "$RAILWAY_DEPLOY_HOOK_URL"
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Validate Railway secrets
+        run: |
+          test -n "$RAILWAY_TOKEN"
+          test -n "$RAILWAY_PROJECT_ID"
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy production to Railway
+        working-directory: backend
+        run: |
+          railway up \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-backend}" \
+            --environment production \
+            --ci
 
       - name: Write deployment summary
         run: |
           {
             echo "## Production"
             echo
-            echo "- Railway: production deploy hook triggered"
+            echo "- Railway: production backend deploy completed"
           } >> "$GITHUB_STEP_SUMMARY"
 
   cloudflare-production:
