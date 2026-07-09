@@ -1,12 +1,32 @@
-name: Migrate on main
+name: Migrate
 
 on:
-  workflow_dispatch: {}
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Migration target environment
+        required: true
+        default: both
+        type: choice
+        options:
+          - staging
+          - production
+          - both
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate-${{ github.event_name }}-${{ github.event.inputs.target || 'staging' }}
+  cancel-in-progress: true
 
 jobs:
-  migrate:
+  migrate-staging:
+    if: github.event_name == 'push' || github.event.inputs.target == 'staging' || github.event.inputs.target == 'both'
     runs-on: ubuntu-latest
-    environment: DB
+    environment: staging
 
     steps:
       - name: Checkout code
@@ -18,16 +38,65 @@ jobs:
           go-version: "1.26"
           cache-dependency-path: backend/go.sum
 
-      - name: Validate migration secrets
+      - name: Validate staging migration secrets
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -z "${DATABASE_URL}" ]; then
-            echo "DATABASE_URL secret is not configured for this workflow." >&2
+            echo "DATABASE_URL secret is not configured for the staging environment." >&2
             exit 1
           fi
 
-      - name: Run migration
+      - name: Run staging migration
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: make migrate
+
+      - name: Write staging migration summary
+        run: |
+          {
+            echo "## Staging Migration"
+            echo
+            echo "- Commit: ${{ github.sha }}"
+            echo "- Environment: staging"
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  migrate-production:
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'production' || github.event.inputs.target == 'both')
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Validate production migration secrets
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "DATABASE_URL secret is not configured for the production environment." >&2
+            exit 1
+          fi
+
+      - name: Run production migration
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: make migrate
+
+      - name: Write production migration summary
+        run: |
+          {
+            echo "## Production Migration"
+            echo
+            echo "- Commit: ${{ github.sha }}"
+            echo "- Environment: production"
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"

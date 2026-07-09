@@ -1,0 +1,61 @@
+name: Notify DB Migration Requirement
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check changed files and notify PR author
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const dbPatterns = [
+              /^backend\/internal\/domain\/.*\.go$/,
+              /^backend\/internal\/bootstrap\/database\.go$/,
+              /^backend\/internal\/infra\/persistence\/gorm\/.*\.go$/,
+              /^backend\/internal\/db\/.*\.go$/,
+              /^backend\/cmd\/migrate\/.*\.go$/,
+            ];
+
+            const matched = files
+              .map((file) => file.filename)
+              .filter((filename) => dbPatterns.some((pattern) => pattern.test(filename)));
+
+            if (matched.length === 0) {
+              core.info("No DB-related changes detected.");
+              return;
+            }
+
+            const author = pr.user?.login ? `@${pr.user.login}` : "PR author";
+            const body = [
+              `${author} DB 変更を含む PR が \`main\` にマージされました。`,
+              ``,
+              `本番 DB へ migration が必要な可能性があります。 \`make migrate\` を実行してください。`,
+              ``,
+              `検知したファイル:`,
+              ...matched.map((filename) => `- \`${filename}\``),
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body,
+            });

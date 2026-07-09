@@ -86,10 +86,13 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 }
 
 func (s *Service) CreateUser(ctx context.Context, sessionToken, email, displayName string) (*domainauth.AdminUser, error) {
+	email = strings.TrimSpace(email)
+	displayName = strings.TrimSpace(displayName)
+
 	if strings.TrimSpace(sessionToken) == "" {
 		return nil, ErrUnauthorized
 	}
-	if strings.TrimSpace(email) == "" {
+	if email == "" {
 		return nil, ErrInvalidInput
 	}
 	if s.mailer == nil || s.loginURL == "" {
