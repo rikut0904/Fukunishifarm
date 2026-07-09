@@ -32,6 +32,37 @@ jobs:
             exit 1
           fi
 
+  migrate-production:
+    needs: validate-release-inputs
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Validate production migration secrets
+        run: test -n "$DATABASE_URL"
+
+      - name: Run production migration
+        run: make migrate
+
+      - name: Write migration summary
+        run: |
+          {
+            echo "## Production Migration"
+            echo
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy-production:
     needs: validate-release-inputs
     runs-on: ubuntu-latest
@@ -40,7 +71,6 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.CF_NEXT_PUBLIC_API_BASE_URL }}
@@ -58,17 +88,10 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: "1.26"
-          cache-dependency-path: backend/go.sum
-
-      - name: Validate production secrets
+      - name: Validate production deploy secrets
         run: |
           test -n "$RAILWAY_TOKEN"
           test -n "$RAILWAY_PROJECT_ID"
-          test -n "$DATABASE_URL"
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$NEXT_PUBLIC_API_BASE_URL"
@@ -80,9 +103,6 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-
-      - name: Run production migration
-        run: make migrate
 
       - name: Deploy production to Railway
         run: |
@@ -102,7 +122,6 @@ jobs:
           {
             echo "## Production"
             echo
-            echo "- Migration: production completed"
             echo "- Railway: production backend deploy completed"
             echo "- Cloudflare: production deploy completed"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -110,6 +129,7 @@ jobs:
   release-production:
     needs:
       - validate-release-inputs
+      - migrate-production
       - deploy-production
     uses: ./.github/workflows/release-production.yml
     with:

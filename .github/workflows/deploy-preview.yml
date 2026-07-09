@@ -1,20 +1,19 @@
 name: Deploy Preview
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-preview-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+  group: deploy-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   deploy-preview:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     environment: preview
     env:
@@ -28,8 +27,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

@@ -1,10 +1,8 @@
 name: Deploy Staging
 
 on:
-  workflow_run:
-    workflows: [Migrate]
+  push:
     branches: [main]
-    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -15,8 +13,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  migrate-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Validate staging migration secrets
+        run: test -n "$DATABASE_URL"
+
+      - name: Run staging migration
+        run: make migrate
+
+      - name: Write migration summary
+        run: |
+          {
+            echo "## Staging Migration"
+            echo
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy-staging:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run')
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -30,8 +57,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
