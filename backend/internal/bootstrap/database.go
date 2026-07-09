@@ -155,11 +155,7 @@ func backfillGrapeSaleStatuses(ctx context.Context, db *gorm.DB) error {
 	}
 
 	if !migrator.HasColumn(&domaingrape.Item{}, "is_on_sale") {
-		return db.WithContext(ctx).
-			Model(&domaingrape.Item{}).
-			Where("sale_status IS NULL OR sale_status = ''").
-			UpdateColumn("sale_status", domaingrape.SaleStatusPreparing).
-			Error
+		return nil
 	}
 
 	return db.WithContext(ctx).Exec(`
