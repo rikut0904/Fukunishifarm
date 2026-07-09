@@ -1,8 +1,10 @@
 name: Migrate
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
     branches: [main]
+    types: [completed]
   workflow_dispatch:
     inputs:
       target:
@@ -19,18 +21,20 @@ permissions:
   contents: read
 
 concurrency:
-  group: migrate-${{ github.event_name }}-${{ github.event.inputs.target || 'staging' }}
+  group: migrate-${{ github.event_name }}-${{ github.event.inputs.target || github.event.workflow_run.head_sha || 'staging' }}
   cancel-in-progress: true
 
 jobs:
   migrate-staging:
-    if: github.event_name == 'push' || github.event.inputs.target == 'staging' || github.event.inputs.target == 'both'
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || github.event.inputs.target == 'staging' || github.event.inputs.target == 'both'
     runs-on: ubuntu-latest
     environment: staging
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Go
         uses: actions/setup-go@v6

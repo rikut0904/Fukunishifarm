@@ -1,8 +1,10 @@
 name: Deploy Staging
 
 on:
-  push:
+  workflow_run:
+    workflows: [Migrate]
     branches: [main]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -13,17 +15,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  vercel-staging:
+  deploy-staging:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run')
     runs-on: ubuntu-latest
     environment: staging
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -37,6 +45,8 @@ jobs:
           test -n "$VERCEL_ORG_ID"
           test -n "$VERCEL_PROJECT_ID"
           test -n "$VERCEL_TOKEN"
+          test -n "$RAILWAY_TOKEN"
+          test -n "$RAILWAY_PROJECT_ID"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -62,28 +72,6 @@ jobs:
             echo "- Vercel URL: ${{ steps.deploy.outputs.url }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  railway-staging:
-    runs-on: ubuntu-latest
-    environment: staging
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
-      - name: Validate Railway secrets
-        run: |
-          test -n "$RAILWAY_TOKEN"
-          test -n "$RAILWAY_PROJECT_ID"
-
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
@@ -93,7 +81,6 @@ jobs:
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment staging \
-            --path-as-root \
             --verbose \
             --ci
 
