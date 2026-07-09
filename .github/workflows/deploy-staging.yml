@@ -1,10 +1,8 @@
 name: Deploy Staging
 
 on:
-  workflow_run:
-    workflows: [CI]
+  push:
     branches: [main]
-    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,7 +14,6 @@ concurrency:
 
 jobs:
   migrate-staging:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -25,8 +22,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -49,7 +44,6 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-staging:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -63,8 +57,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
