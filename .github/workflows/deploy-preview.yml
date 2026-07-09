@@ -72,7 +72,7 @@ jobs:
 
       - name: Deploy preview to Railway
         run: |
-          railway up backend \
+          railway up \
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment preview-v2 \
