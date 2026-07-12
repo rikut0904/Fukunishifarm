@@ -82,7 +82,8 @@ jobs:
 
       - name: Validate Vercel staging app environment
         run: |
-          if ! grep -q '^NEXT_PUBLIC_API_BASE_URL=' .vercel/.env.production.local; then
+          api_base_url=$(grep '^NEXT_PUBLIC_API_BASE_URL=' .vercel/.env.production.local | tail -n 1 | cut -d= -f2- | tr -d '"')
+          if [ -z "$api_base_url" ]; then
             echo "NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Production environment for the staging project." >&2
             exit 1
           fi

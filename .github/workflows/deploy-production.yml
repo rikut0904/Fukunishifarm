@@ -111,8 +111,9 @@ jobs:
       - name: Validate Cloudflare production app environment
         working-directory: frontend
         run: |
-          if ! npx wrangler secret list --format json | grep -q '"name"[[:space:]]*:[[:space:]]*"NEXT_PUBLIC_API_BASE_URL"'; then
-            echo "NEXT_PUBLIC_API_BASE_URL is not configured as a Cloudflare Worker secret for production." >&2
+          secrets=$(npx wrangler secret list --format json)
+          if ! printf '%s' "$secrets" | grep -Eq '"name"[[:space:]]*:[[:space:]]*"(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)"'; then
+            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured as a Cloudflare Worker secret for production." >&2
             exit 1
           fi
 
