@@ -25,6 +25,9 @@ jobs:
       RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
       API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
+      MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
+      MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -46,6 +49,7 @@ jobs:
           test -n "$RAILWAY_PROJECT_ID"
           test -n "$API_INTERNAL_BASE_URL"
           test -n "$NEXT_PUBLIC_API_BASE_URL"
+          test -n "$MICROCMS_SERVICE_DOMAIN"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -60,6 +64,9 @@ jobs:
           mv .vercel/.env.preview.local.tmp .vercel/.env.preview.local
           printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> .vercel/.env.preview.local
           printf '%s\n' "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}" >> .vercel/.env.preview.local
 
       - name: Build preview deployment
         run: npx vercel build --token="$VERCEL_TOKEN"
@@ -80,6 +87,16 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
+
+      - name: Sync preview Railway variables
+        run: |
+          railway variables \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment preview-v2 \
+            --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
+            --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
 
       - name: Deploy preview to Railway
         run: |

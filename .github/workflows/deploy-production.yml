@@ -75,6 +75,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
+      MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
+      MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -95,6 +98,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$API_INTERNAL_BASE_URL"
           test -n "$NEXT_PUBLIC_API_BASE_URL"
+          test -n "$MICROCMS_SERVICE_DOMAIN"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -102,6 +106,16 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
+
+      - name: Sync production Railway variables
+        run: |
+          railway variables \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment production \
+            --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
+            --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
 
       - name: Deploy production to Railway
         run: |
