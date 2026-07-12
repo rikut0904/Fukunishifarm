@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"strings"
@@ -30,7 +31,7 @@ type Config struct {
 func Load() Config {
 	loadDotEnvFiles(".env", "backend/.env")
 
-	serviceAccountJSON := os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+	serviceAccountJSON := resolveFirebaseServiceAccountJSON()
 	firebaseProjectID := strings.TrimSpace(os.Getenv("FIREBASE_PROJECT_ID"))
 	if resolved := resolveFirebaseProjectID(firebaseProjectID, serviceAccountJSON); resolved != "" {
 		firebaseProjectID = resolved
@@ -62,6 +63,24 @@ func Load() Config {
 		FirebaseWebAPIKey:      getenvAny("FIREBASE_WEB_API_KEY", "FIREBASE_API_KEY"),
 		SessionJWTSecret:       os.Getenv("SESSION_JWT_SECRET"),
 	}
+}
+
+func resolveFirebaseServiceAccountJSON() string {
+	if value := strings.TrimSpace(os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON")); value != "" {
+		return value
+	}
+
+	encoded := strings.TrimSpace(os.Getenv("FIREBASE_SERVICE_ACCOUNT_JSON_BASE64"))
+	if encoded == "" {
+		return ""
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return ""
+	}
+
+	return string(decoded)
 }
 
 func resolveFirebaseProjectID(envProjectID, serviceAccountJSON string) string {
