@@ -154,6 +154,10 @@ func backfillGrapeSaleStatuses(ctx context.Context, db *gorm.DB) error {
 		return nil
 	}
 
+	if !migrator.HasColumn(&domaingrape.Item{}, "is_on_sale") {
+		return nil
+	}
+
 	return db.WithContext(ctx).Exec(`
 		UPDATE grape_items
 		SET sale_status = CASE

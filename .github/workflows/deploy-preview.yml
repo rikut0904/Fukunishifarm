@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  vercel-preview:
+  deploy-preview:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     environment: preview
@@ -20,6 +20,14 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
+      API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
+      MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
+      MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -37,6 +45,11 @@ jobs:
           test -n "$VERCEL_ORG_ID"
           test -n "$VERCEL_PROJECT_ID"
           test -n "$VERCEL_TOKEN"
+          test -n "$RAILWAY_TOKEN"
+          test -n "$RAILWAY_PROJECT_ID"
+          test -n "$API_INTERNAL_BASE_URL"
+          test -n "$NEXT_PUBLIC_API_BASE_URL"
+          test -n "$MICROCMS_SERVICE_DOMAIN"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -44,6 +57,16 @@ jobs:
 
       - name: Pull Vercel preview environment
         run: npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      - name: Write GitHub preview app environment
+        run: |
+          awk '!/^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=/' .vercel/.env.preview.local > .vercel/.env.preview.local.tmp
+          mv .vercel/.env.preview.local.tmp .vercel/.env.preview.local
+          printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> .vercel/.env.preview.local
+          printf '%s\n' "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" >> .vercel/.env.preview.local
+          printf '%s\n' "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}" >> .vercel/.env.preview.local
 
       - name: Build preview deployment
         run: npx vercel build --token="$VERCEL_TOKEN"
@@ -62,39 +85,25 @@ jobs:
             echo "- Vercel URL: ${{ steps.deploy.outputs.url }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  railway-preview:
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    environment: preview
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
-      - name: Validate Railway secrets
-        run: |
-          test -n "$RAILWAY_TOKEN"
-          test -n "$RAILWAY_PROJECT_ID"
-
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy preview to Railway
+      - name: Sync preview Railway variables
         run: |
-          railway up backend \
+          railway variables \
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment preview-v2 \
-            --path-as-root \
+            --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
+            --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
+
+      - name: Deploy preview to Railway
+        run: |
+          railway up \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment preview-v2 \
             --verbose \
             --ci
 

@@ -13,13 +13,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  vercel-staging:
+  migrate-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Validate staging migration secrets
+        run: test -n "$DATABASE_URL"
+
+      - name: Run staging migration
+        run: make migrate
+
+      - name: Write migration summary
+        run: |
+          {
+            echo "## Staging Migration"
+            echo
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-staging:
     runs-on: ubuntu-latest
     environment: staging
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
+      API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
+      MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
+      MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -37,6 +75,11 @@ jobs:
           test -n "$VERCEL_ORG_ID"
           test -n "$VERCEL_PROJECT_ID"
           test -n "$VERCEL_TOKEN"
+          test -n "$RAILWAY_TOKEN"
+          test -n "$RAILWAY_PROJECT_ID"
+          test -n "$API_INTERNAL_BASE_URL"
+          test -n "$NEXT_PUBLIC_API_BASE_URL"
+          test -n "$MICROCMS_SERVICE_DOMAIN"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -44,6 +87,16 @@ jobs:
 
       - name: Pull Vercel production environment
         run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Write GitHub staging app environment
+        run: |
+          awk '!/^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=/' .vercel/.env.production.local > .vercel/.env.production.local.tmp
+          mv .vercel/.env.production.local.tmp .vercel/.env.production.local
+          printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> .vercel/.env.production.local
+          printf '%s\n' "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL" >> .vercel/.env.production.local
+          printf '%s\n' "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" >> .vercel/.env.production.local
+          printf '%s\n' "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" >> .vercel/.env.production.local
+          printf '%s\n' "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}" >> .vercel/.env.production.local
 
       - name: Build staging deployment
         run: npx vercel build --prod --token="$VERCEL_TOKEN"
@@ -62,38 +115,25 @@ jobs:
             echo "- Vercel URL: ${{ steps.deploy.outputs.url }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  railway-staging:
-    runs-on: ubuntu-latest
-    environment: staging
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-      RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
-      - name: Validate Railway secrets
-        run: |
-          test -n "$RAILWAY_TOKEN"
-          test -n "$RAILWAY_PROJECT_ID"
-
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy staging to Railway
+      - name: Sync staging Railway variables
         run: |
-          railway up backend \
+          railway variables \
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment staging \
-            --path-as-root \
+            --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
+            --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
+
+      - name: Deploy staging to Railway
+        run: |
+          railway up \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment staging \
             --verbose \
             --ci
 

@@ -32,7 +32,38 @@ jobs:
             exit 1
           fi
 
-  railway-production:
+  migrate-production:
+    needs: validate-release-inputs
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
+      - name: Validate production migration secrets
+        run: test -n "$DATABASE_URL"
+
+      - name: Run production migration
+        run: make migrate
+
+      - name: Write migration summary
+        run: |
+          {
+            echo "## Production Migration"
+            echo
+            echo "- Status: completed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-production:
     needs: validate-release-inputs
     runs-on: ubuntu-latest
     environment: production
@@ -40,52 +71,13 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-
-      - name: Validate Railway secrets
-        run: |
-          test -n "$RAILWAY_TOKEN"
-          test -n "$RAILWAY_PROJECT_ID"
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy production to Railway
-        run: |
-          railway up backend \
-            --project "$RAILWAY_PROJECT_ID" \
-            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
-            --environment production \
-            --path-as-root \
-            --verbose \
-            --ci
-
-      - name: Write deployment summary
-        run: |
-          {
-            echo "## Production"
-            echo
-            echo "- Railway: production backend deploy completed"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  cloudflare-production:
-    needs: validate-release-inputs
-    runs-on: ubuntu-latest
-    environment: production
-    env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.CF_NEXT_PUBLIC_API_BASE_URL }}
-      NEXT_PUBLIC_SITE_BASE_URL: ${{ secrets.CF_NEXT_PUBLIC_SITE_BASE_URL }}
-      API_INTERNAL_BASE_URL: ${{ secrets.CF_API_INTERNAL_BASE_URL }}
+      API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
+      MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
+      MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
+      MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -98,16 +90,41 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Validate Cloudflare secrets
+      - name: Validate production deploy secrets
         run: |
+          test -n "$RAILWAY_TOKEN"
+          test -n "$RAILWAY_PROJECT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$API_INTERNAL_BASE_URL"
           test -n "$NEXT_PUBLIC_API_BASE_URL"
-          test -n "$NEXT_PUBLIC_SITE_BASE_URL"
+          test -n "$MICROCMS_SERVICE_DOMAIN"
 
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Sync production Railway variables
+        run: |
+          railway variables \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment production \
+            --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
+            --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
+
+      - name: Deploy production to Railway
+        run: |
+          railway up \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
+            --environment production \
+            --verbose \
+            --ci
 
       - name: Deploy production to Cloudflare
         working-directory: frontend
@@ -118,14 +135,15 @@ jobs:
           {
             echo "## Production"
             echo
+            echo "- Railway: production backend deploy completed"
             echo "- Cloudflare: production deploy completed"
           } >> "$GITHUB_STEP_SUMMARY"
 
   release-production:
     needs:
       - validate-release-inputs
-      - railway-production
-      - cloudflare-production
+      - migrate-production
+      - deploy-production
     uses: ./.github/workflows/release-production.yml
     with:
       target_sha: ${{ github.sha }}
