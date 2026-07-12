@@ -49,7 +49,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const { catalog, errorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
+  const { catalog, status, errorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
   const varietySlides = catalog
     ? catalog.items.map((item) => ({
         id: `${item.id}`,
@@ -99,9 +99,13 @@ export default async function Home() {
             <h2 className="section__title">販売種</h2>
             <p className="section__lead">現地で楽しめる主な品種を、味わいの特徴とあわせてご紹介します。</p>
           </div>
-          {errorMessage ? (
+          {status === "error" ? (
             <div className="card card__body">
-              <p className="m-0">{errorMessage}</p>
+              <p className="m-0">{errorMessage ?? "データが取得できませんでした。"}</p>
+            </div>
+          ) : status === "empty" ? (
+            <div className="card card__body">
+              <p className="m-0">現在表示できるぶどう情報はありません。</p>
             </div>
           ) : varietySlides.length > 0 ? (
             <ResponsiveCarousel ariaLabel="販売種のカルーセル" items={varietySlides} desktopColumns={2} />

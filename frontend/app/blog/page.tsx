@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const { posts, errorMessage } = await loadPublicBlogPosts(1, 3);
+  const { posts, status, errorMessage } = await loadPublicBlogPosts(1, 3);
 
   return (
     <div className="site-shell">
@@ -38,9 +38,13 @@ export default async function BlogPage() {
             <h2 className="section__title">新着記事</h2>
           </div>
 
-          {errorMessage ? (
+          {status === "error" ? (
             <div className="card card__body">
-              <p className="m-0">{errorMessage}</p>
+              <p className="m-0">{errorMessage ?? "ブログ記事を読み込めませんでした。"}</p>
+            </div>
+          ) : status === "empty" ? (
+            <div className="card card__body">
+              <p className="m-0">現在表示できるブログ記事はありません。</p>
             </div>
           ) : posts && posts.length > 0 ? (
             <>

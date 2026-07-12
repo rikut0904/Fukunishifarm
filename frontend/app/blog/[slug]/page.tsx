@@ -3,7 +3,6 @@ import SiteFooter from "@/components/SiteFooter";
 import { formatBlogDate, getBlogContent, getBlogEyecatchUrl, loadPublicBlogPost } from "@/lib/blog";
 import { renderHtmlContent } from "@/lib/html-sanitize";
 import { htmlExcerpt } from "@/lib/html";
-import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -45,12 +44,8 @@ export default async function BlogPostPage({
 }) {
   const resolvedParams = await params;
   const postId = resolvedParams?.slug ?? "";
-  const { post, errorMessage } = await loadPublicBlogPost(postId);
+  const { post, status, errorMessage } = await loadPublicBlogPost(postId);
   const eyecatchUrl = post ? getBlogEyecatchUrl(post) : "";
-
-  if (!post && !errorMessage) {
-    notFound();
-  }
 
   return (
     <div className="site-shell">
@@ -66,10 +61,16 @@ export default async function BlogPostPage({
           <li>{post ? post.title : "記事"}</li>
         </ol>
 
-        {errorMessage ? (
+        {status === "error" ? (
           <section className="section">
             <div className="card card__body">
-              <p className="m-0">{errorMessage}</p>
+              <p className="m-0">{errorMessage ?? "ブログ記事を読み込めませんでした。"}</p>
+            </div>
+          </section>
+        ) : status === "empty" || !post ? (
+          <section className="section">
+            <div className="card card__body">
+              <p className="m-0">現在表示できるブログ記事はありません。</p>
             </div>
           </section>
         ) : post ? (

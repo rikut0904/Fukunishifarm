@@ -7,12 +7,14 @@ export default function PublicBlogArchiveFeed({
   totalCount,
   page,
   limit,
+  status,
   errorMessage,
 }: {
   posts: BlogPost[] | null;
   totalCount: number;
   page: number;
   limit: number;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 }) {
   const totalPages = Math.max(1, Math.ceil(totalCount / Math.max(limit, 1)));
@@ -21,15 +23,15 @@ export default function PublicBlogArchiveFeed({
   const previousHref = currentPage <= 2 ? "/blog/archive" : `/blog/archive?page=${currentPage - 1}`;
   const nextHref = `/blog/archive?page=${currentPage + 1}`;
 
-  if (errorMessage) {
+  if (status === "error") {
     return (
       <div className="card card__body">
-        <p className="m-0">{errorMessage}</p>
+        <p className="m-0">{errorMessage ?? "ブログ記事を読み込めませんでした。"}</p>
       </div>
     );
   }
 
-  if (!posts || posts.length === 0) {
+  if (status === "empty" || !posts || posts.length === 0) {
     return (
       <div className="card card__body">
         <p className="m-0">現在表示できるブログ記事はありません。</p>

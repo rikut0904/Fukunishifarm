@@ -30,7 +30,7 @@ function parseArchivePage(value: string | undefined) {
 export default async function BlogArchivePage({ searchParams }: BlogArchivePageProps) {
   const params = (await searchParams) ?? {};
   const page = parseArchivePage(params.page);
-  const { posts, totalCount, limit, errorMessage } = await loadPublicBlogPosts(page, 15);
+  const { posts, totalCount, limit, status, errorMessage } = await loadPublicBlogPosts(page, 15);
 
   return (
     <div className="site-shell">
@@ -58,7 +58,7 @@ export default async function BlogArchivePage({ searchParams }: BlogArchivePageP
             <h2 className="section__title">すべての記事</h2>
           </div>
 
-          <PublicBlogArchiveFeed posts={posts} totalCount={totalCount} page={page} limit={limit} errorMessage={errorMessage} />
+          <PublicBlogArchiveFeed posts={posts} totalCount={totalCount} page={page} limit={limit} status={status} errorMessage={errorMessage} />
         </section>
       </main>
       <SiteFooter />

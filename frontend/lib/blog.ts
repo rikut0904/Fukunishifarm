@@ -4,6 +4,7 @@ import type { BlogPost, PublicBlogCatalogState, PublicBlogPostState } from "@/li
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 import { htmlExcerpt, htmlToPlainText } from "@/lib/html";
 import { cache } from "react";
+import { getDisplayErrorMessage } from "@/lib/api";
 
 const DEFAULT_LIST_LIMIT = 6;
 
@@ -172,11 +173,13 @@ export async function fetchPublicBlogPostById(id: string) {
 export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT): Promise<PublicBlogCatalogState> {
   try {
     const response = await fetchPublicBlogPosts(page, limit);
+    const isEmpty = response.contents.length === 0;
     return {
       posts: response.contents,
       totalCount: response.totalCount,
       page: response.page,
       limit: response.limit,
+      status: isEmpty ? "empty" : "loaded",
       errorMessage: null,
     };
   } catch (error) {
@@ -186,7 +189,8 @@ export async function loadPublicBlogPosts(page = 1, limit = DEFAULT_LIST_LIMIT):
       totalCount: 0,
       page,
       limit,
-      errorMessage: "ブログ記事を読み込めませんでした。",
+      status: "error",
+      errorMessage: getDisplayErrorMessage(error, "ブログ記事を読み込めませんでした。"),
     };
   }
 }
@@ -212,15 +216,18 @@ function normalizeBlogImage(image: unknown): BlogPost["eyecatch"] {
 
 const loadPublicBlogPostCached = cache(async (id: string): Promise<PublicBlogPostState> => {
   try {
+    const post = await fetchPublicBlogPostById(id);
     return {
-      post: await fetchPublicBlogPostById(id),
+      post,
+      status: post ? "loaded" : "empty",
       errorMessage: null,
     };
   } catch (error) {
     console.error("failed to load public blog post", { id, error });
     return {
       post: null,
-      errorMessage: "ブログ記事を読み込めませんでした。",
+      status: "error",
+      errorMessage: getDisplayErrorMessage(error, "ブログ記事を読み込めませんでした。"),
     };
   }
 });
