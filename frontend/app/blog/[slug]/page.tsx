@@ -6,7 +6,6 @@ import { htmlExcerpt } from "@/lib/html";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
