@@ -41,8 +41,8 @@ func sanitizeCredentialError(err error) error {
 		return nil
 	}
 
-	message := err.Error()
-	if strings.Contains(message, "-----BEGIN PRIVATE KEY-----") || strings.Contains(message, "private_key") {
+	message := strings.ToLower(err.Error())
+	if strings.Contains(message, "private_key") || strings.Contains(message, "private key") || strings.Contains(message, "begin private key") {
 		return fmt.Errorf("initialize firebase app: invalid FIREBASE_SERVICE_ACCOUNT_JSON")
 	}
 
