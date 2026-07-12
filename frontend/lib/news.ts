@@ -55,7 +55,7 @@ export async function loadPublicNewsCatalog(page = 1, limit = 5): Promise<Public
     return {
       catalog: null,
       status: "error",
-      errorMessage: getDisplayErrorMessage(error, "データが取得できませんでした."),
+      errorMessage: getDisplayErrorMessage(error, "データが取得できませんでした。"),
     };
   }
 }
