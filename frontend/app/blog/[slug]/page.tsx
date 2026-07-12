@@ -5,6 +5,7 @@ import { renderHtmlContent } from "@/lib/html-sanitize";
 import { htmlExcerpt } from "@/lib/html";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +21,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const postId = resolvedParams?.slug ?? "";
-  const { post } = await loadPublicBlogPost(postId);
+  const { post, status } = await loadPublicBlogPost(postId);
 
-  if (!post) {
-    return {
-      title: "Blog",
-      description: "ふくにしファームのブログです。",
-    };
+  if (status === "empty" || !post) {
+    notFound();
   }
 
   const content = getBlogContent(post);
@@ -65,12 +63,6 @@ export default async function BlogPostPage({
           <section className="section">
             <div className="card card__body">
               <p className="m-0">{errorMessage ?? "ブログ記事を読み込めませんでした。"}</p>
-            </div>
-          </section>
-        ) : status === "empty" || !post ? (
-          <section className="section">
-            <div className="card card__body">
-              <p className="m-0">現在表示できるブログ記事はありません。</p>
             </div>
           </section>
         ) : post ? (
