@@ -19,6 +19,10 @@ type ApiErrorPayload = {
 };
 
 export function getApiBaseUrl() {
+  if (typeof window !== "undefined") {
+    return "";
+  }
+
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!apiBaseUrl) {
     return "";
