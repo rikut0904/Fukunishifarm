@@ -1108,7 +1108,7 @@ h4 {
     display: table;
     width: 100%;
     min-width: 0;
-    table-layout: fixed;
+    table-layout: auto;
   }
 
   .info-table th,
