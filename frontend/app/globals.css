@@ -1097,11 +1097,17 @@ h4 {
   }
 
   .info-table,
-  .download-table,
-  .price-table {
+  .download-table {
     display: table;
     width: 100%;
     min-width: 34rem;
+    table-layout: auto;
+  }
+
+  .price-table {
+    display: table;
+    width: 100%;
+    min-width: 0;
     table-layout: auto;
   }
 
