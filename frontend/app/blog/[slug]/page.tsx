@@ -3,6 +3,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { formatBlogDate, getBlogContent, getBlogEyecatchUrl, loadPublicBlogPost } from "@/lib/blog";
 import { renderHtmlContent } from "@/lib/html-sanitize";
 import { htmlExcerpt } from "@/lib/html";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
