@@ -78,10 +78,14 @@ jobs:
         run: npm ci
 
       - name: Pull Vercel production environment
+        working-directory: frontend
         run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Validate Vercel staging app environment
+        working-directory: frontend
         run: |
+          echo "Pulled Vercel Production env keys:"
+          sed -n 's/^\([^=#][^=]*\)=.*/- \1/p' .vercel/.env.production.local | sort
           api_base_url=$(grep -E '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.production.local | tail -n 1 | cut -d= -f2- | tr -d '"')
           if [ -z "$api_base_url" ]; then
             echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Production environment for the staging project." >&2
@@ -89,10 +93,12 @@ jobs:
           fi
 
       - name: Build staging deployment
+        working-directory: frontend
         run: npx vercel build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy staging to Vercel
         id: deploy
+        working-directory: frontend
         run: |
           url=$(npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
