@@ -25,7 +25,7 @@ func NewVerifier(ctx context.Context, projectID, serviceAccountJSON string) (*Ve
 
 	app, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: projectID}, option.WithCredentialsJSON([]byte(serviceAccountJSON)))
 	if err != nil {
-		return nil, fmt.Errorf("initialize firebase app: %w", err)
+		return nil, sanitizeCredentialError(err)
 	}
 
 	client, err := app.Auth(ctx)
@@ -34,6 +34,19 @@ func NewVerifier(ctx context.Context, projectID, serviceAccountJSON string) (*Ve
 	}
 
 	return &Verifier{client: client}, nil
+}
+
+func sanitizeCredentialError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	message := err.Error()
+	if strings.Contains(message, "-----BEGIN PRIVATE KEY-----") || strings.Contains(message, "private_key") {
+		return fmt.Errorf("initialize firebase app: invalid FIREBASE_SERVICE_ACCOUNT_JSON")
+	}
+
+	return fmt.Errorf("initialize firebase app: %w", err)
 }
 
 func (v *Verifier) VerifyIDToken(ctx context.Context, token string) (domainauth.VerifiedIdentity, error) {
