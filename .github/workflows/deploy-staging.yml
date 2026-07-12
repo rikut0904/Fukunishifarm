@@ -86,9 +86,13 @@ jobs:
         run: |
           echo "Pulled Vercel Production env keys:"
           sed -n 's/^\([^=#][^=]*\)=.*/- \1/p' .vercel/.env.production.local | sort
+          if ! grep -Eq '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.production.local; then
+            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Production environment for the staging project." >&2
+            exit 1
+          fi
           api_base_url=$(grep -E '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.production.local | tail -n 1 | cut -d= -f2- | tr -d '"')
           if [ -z "$api_base_url" ]; then
-            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Production environment for the staging project." >&2
+            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is configured in Vercel Production for the staging project, but its value is empty." >&2
             exit 1
           fi
 

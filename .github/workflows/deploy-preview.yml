@@ -56,9 +56,13 @@ jobs:
         run: |
           echo "Pulled Vercel Preview env keys:"
           sed -n 's/^\([^=#][^=]*\)=.*/- \1/p' .vercel/.env.preview.local | sort
+          if ! grep -Eq '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.preview.local; then
+            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Preview environment for this project." >&2
+            exit 1
+          fi
           api_base_url=$(grep -E '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.preview.local | tail -n 1 | cut -d= -f2- | tr -d '"')
           if [ -z "$api_base_url" ]; then
-            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Preview environment for this project." >&2
+            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is configured in Vercel Preview, but its value is empty." >&2
             exit 1
           fi
 
