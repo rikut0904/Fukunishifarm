@@ -73,6 +73,7 @@ jobs:
       RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
 
     steps:
       - name: Checkout code
@@ -91,6 +92,7 @@ jobs:
           test -n "$RAILWAY_PROJECT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$API_INTERNAL_BASE_URL"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -107,15 +109,6 @@ jobs:
             --environment production \
             --verbose \
             --ci
-
-      - name: Validate Cloudflare production app environment
-        working-directory: frontend
-        run: |
-          secrets=$(npx wrangler secret list --format json)
-          if ! printf '%s' "$secrets" | grep -Eq '"name"[[:space:]]*:[[:space:]]*"(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)"'; then
-            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured as a Cloudflare Worker secret for production." >&2
-            exit 1
-          fi
 
       - name: Deploy production to Cloudflare
         working-directory: frontend

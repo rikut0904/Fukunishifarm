@@ -23,6 +23,7 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_SERVICE_NAME: ${{ vars.RAILWAY_SERVICE_NAME }}
+      API_INTERNAL_BASE_URL: ${{ secrets.API_INTERNAL_BASE_URL }}
 
     steps:
       - name: Checkout code
@@ -42,6 +43,7 @@ jobs:
           test -n "$VERCEL_TOKEN"
           test -n "$RAILWAY_TOKEN"
           test -n "$RAILWAY_PROJECT_ID"
+          test -n "$API_INTERNAL_BASE_URL"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -51,20 +53,12 @@ jobs:
         working-directory: frontend
         run: npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
 
-      - name: Validate Vercel preview app environment
+      - name: Write GitHub preview app environment
         working-directory: frontend
         run: |
-          echo "Pulled Vercel Preview env keys:"
-          sed -n 's/^\([^=#][^=]*\)=.*/- \1/p' .vercel/.env.preview.local | sort
-          if ! grep -Eq '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.preview.local; then
-            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is not configured in the Vercel Preview environment for this project." >&2
-            exit 1
-          fi
-          api_base_url=$(grep -E '^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=' .vercel/.env.preview.local | tail -n 1 | cut -d= -f2- | tr -d '"')
-          if [ -z "$api_base_url" ]; then
-            echo "API_INTERNAL_BASE_URL or NEXT_PUBLIC_API_BASE_URL is configured in Vercel Preview, but its value is empty." >&2
-            exit 1
-          fi
+          awk '!/^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=/' .vercel/.env.preview.local > .vercel/.env.preview.local.tmp
+          mv .vercel/.env.preview.local.tmp .vercel/.env.preview.local
+          printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> .vercel/.env.preview.local
 
       - name: Build preview deployment
         working-directory: frontend
