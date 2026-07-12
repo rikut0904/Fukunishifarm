@@ -1,7 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { formatBlogDate, getBlogContent, getBlogEyecatchUrl, loadPublicBlogPost } from "@/lib/blog";
-import { renderHtmlContent } from "@/lib/html-sanitize";
+import BlogHtmlContent from "@/components/BlogHtmlContent";
 import { htmlExcerpt } from "@/lib/html";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -99,7 +99,7 @@ export default async function BlogPostPage({
               <p className="m-0">{post.excerpt}</p>
             </div>
 
-            <div className="blog-article__content card card__body" dangerouslySetInnerHTML={{ __html: renderHtmlContent(getBlogContent(post)) }} />
+            <BlogHtmlContent html={getBlogContent(post)} className="blog-article__content card card__body" />
             <div className="blog-article__footer">
               <Link href="/blog" className="button-link button-link--secondary">
                 一覧へ戻る
