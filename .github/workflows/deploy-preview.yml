@@ -50,23 +50,19 @@ jobs:
         run: npm ci
 
       - name: Pull Vercel preview environment
-        working-directory: frontend
         run: npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
 
       - name: Write GitHub preview app environment
-        working-directory: frontend
         run: |
           awk '!/^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL)=/' .vercel/.env.preview.local > .vercel/.env.preview.local.tmp
           mv .vercel/.env.preview.local.tmp .vercel/.env.preview.local
           printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> .vercel/.env.preview.local
 
       - name: Build preview deployment
-        working-directory: frontend
         run: npx vercel build --token="$VERCEL_TOKEN"
 
       - name: Deploy preview to Vercel
         id: deploy
-        working-directory: frontend
         run: |
           url=$(npx vercel deploy --prebuilt --token="$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
