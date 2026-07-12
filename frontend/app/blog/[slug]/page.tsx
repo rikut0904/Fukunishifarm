@@ -44,7 +44,12 @@ export default async function BlogPostPage({
   const resolvedParams = await params;
   const postId = resolvedParams?.slug ?? "";
   const { post, status, errorMessage } = await loadPublicBlogPost(postId);
-  const eyecatchUrl = post ? getBlogEyecatchUrl(post) : "";
+
+  if (status === "empty" || !post) {
+    notFound();
+  }
+
+  const eyecatchUrl = getBlogEyecatchUrl(post);
 
   return (
     <div className="site-shell">
@@ -57,7 +62,7 @@ export default async function BlogPostPage({
           <li>
             <Link href="/blog">Blog</Link>
           </li>
-          <li>{post ? post.title : "記事"}</li>
+          <li>{post.title}</li>
         </ol>
 
         {status === "error" ? (
@@ -66,7 +71,7 @@ export default async function BlogPostPage({
               <p className="m-0">{errorMessage ?? "ブログ記事を読み込めませんでした。"}</p>
             </div>
           </section>
-        ) : post ? (
+        ) : (
           <article className="section blog-article">
             <div className="section__head">
               <p className="eyebrow">Blog</p>
@@ -102,7 +107,7 @@ export default async function BlogPostPage({
               </Link>
             </div>
           </article>
-        ) : null}
+        )}
       </main>
       <SiteFooter />
     </div>
