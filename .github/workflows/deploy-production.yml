@@ -108,6 +108,14 @@ jobs:
             --verbose \
             --ci
 
+      - name: Validate Cloudflare production app environment
+        working-directory: frontend
+        run: |
+          if ! npx wrangler secret list --format json | grep -q '"name"[[:space:]]*:[[:space:]]*"NEXT_PUBLIC_API_BASE_URL"'; then
+            echo "NEXT_PUBLIC_API_BASE_URL is not configured as a Cloudflare Worker secret for production." >&2
+            exit 1
+          fi
+
       - name: Deploy production to Cloudflare
         working-directory: frontend
         run: npm run deploy
