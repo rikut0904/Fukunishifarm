@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -18,6 +19,11 @@ type ResponseError struct {
 	Status     string
 	Body       string
 }
+
+var (
+	ErrUnauthorized  = errors.New("microcms unauthorized")
+	ErrNotConfigured = errors.New("microcms not configured")
+)
 
 func (e *ResponseError) Error() string {
 	if strings.TrimSpace(e.Body) != "" {
@@ -50,7 +56,7 @@ func (c *Client) IsConfigured() bool {
 
 func (c *Client) Request(ctx context.Context, endpoint, method, path string, query map[string]string, body any, out any) error {
 	if !c.IsConfigured() {
-		return fmt.Errorf("microcms service is not configured")
+		return ErrNotConfigured
 	}
 
 	basePath := normalizeEndpointPath(endpoint)
@@ -120,11 +126,15 @@ func (c *Client) Request(ctx context.Context, endpoint, method, path string, que
 		} else {
 			slog.Warn("microcms request returned non-success status", logAttrs...)
 		}
-		return &ResponseError{
+		responseErr := &ResponseError{
 			StatusCode: resp.StatusCode,
 			Status:     resp.Status,
 			Body:       strings.TrimSpace(string(body)),
 		}
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			return fmt.Errorf("%w: %w", ErrUnauthorized, responseErr)
+		}
+		return responseErr
 	}
 
 	slog.Info("microcms request completed", "method", method, "url", requestURL.String(), "endpoint", endpoint, "status_code", resp.StatusCode)

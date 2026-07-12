@@ -45,10 +45,12 @@ export type PublicBlogCatalogState = {
   totalCount: number;
   page: number;
   limit: number;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 };
 
 export type PublicBlogPostState = {
   post: BlogPost | null;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 };

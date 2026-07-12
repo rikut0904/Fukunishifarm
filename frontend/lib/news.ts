@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api";
+import { createApiError, getDisplayErrorMessage } from "@/lib/api";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type NewsItem = {
@@ -19,6 +19,7 @@ export type NewsCatalog = {
 
 export type PublicNewsCatalogState = {
   catalog: NewsCatalog | null;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 };
 
@@ -43,14 +44,18 @@ function getPublicApiBaseUrl() {
 
 export async function loadPublicNewsCatalog(page = 1, limit = 5): Promise<PublicNewsCatalogState> {
   try {
+    const catalog = await fetchPublicNewsCatalog(page, limit);
+    const isEmpty = catalog.items.length === 0;
     return {
-      catalog: await fetchPublicNewsCatalog(page, limit),
+      catalog,
+      status: isEmpty ? "empty" : "loaded",
       errorMessage: null,
     };
-  } catch {
+  } catch (error) {
     return {
       catalog: null,
-      errorMessage: "データが取得できませんでした。",
+      status: "error",
+      errorMessage: getDisplayErrorMessage(error, "データが取得できませんでした。"),
     };
   }
 }
@@ -68,7 +73,7 @@ export async function fetchPublicNewsCatalog(page = 1, limit = 5) {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API request failed: ${response.status} ${response.statusText}`);
+    throw await createApiError(response);
   }
 
   const catalog = (await response.json()) as NewsCatalog;

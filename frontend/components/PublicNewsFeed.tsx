@@ -9,12 +9,14 @@ export default function PublicNewsFeed({
   total,
   page,
   limit,
+  status,
   errorMessage,
 }: {
   items: NewsItem[] | null;
   total: number;
   page: number;
   limit: number;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / Math.max(limit, 1)));
@@ -23,15 +25,15 @@ export default function PublicNewsFeed({
   const previousHref = currentPage <= 2 ? "/news" : `/news?page=${currentPage - 1}`;
   const nextHref = `/news?page=${currentPage + 1}`;
 
-  if (errorMessage) {
+  if (status === "error") {
     return (
       <div className="card card__body">
-        <p className="m-0">{errorMessage}</p>
+        <p className="m-0">{errorMessage ?? "データが取得できませんでした。"}</p>
       </div>
     );
   }
 
-  if (!items || items.length === 0) {
+  if (status === "empty" || !items || items.length === 0) {
     return (
       <div className="card card__body">
         <p className="m-0">現在表示できるお知らせはありません。</p>

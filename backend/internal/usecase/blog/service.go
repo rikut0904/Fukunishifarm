@@ -116,6 +116,11 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 		Limit:      response.Limit,
 	}
 	s.storeCatalog(cacheKey, catalog)
+	if catalog.TotalCount == 0 || len(catalog.Posts) == 0 {
+		slog.Info("microcms blog catalog is empty", "endpoint", endpoint, "page", page, "limit", limit, "total", catalog.TotalCount)
+		return catalog, nil
+	}
+
 	slog.Info("loaded public blog catalog", "endpoint", endpoint, "page", page, "limit", limit, "count", len(catalog.Posts), "total", catalog.TotalCount)
 	return catalog, nil
 }

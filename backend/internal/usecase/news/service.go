@@ -3,6 +3,7 @@ package news
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
@@ -64,8 +65,12 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 	}
 	offset := (page - 1) * limit
 	cacheKey := catalogCacheKey(page, limit)
+	endpoint := s.getEndpoint()
+
+	slog.Info("load public news catalog", "endpoint", endpoint, "page", page, "limit", limit, "offset", offset)
 
 	if catalog, ok := s.getCachedCatalog(cacheKey); ok {
+		slog.Info("serve public news catalog from cache", "endpoint", endpoint, "page", page, "limit", limit, "count", len(catalog.Items))
 		return catalog, nil
 	}
 
@@ -78,7 +83,9 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 		"limit":  fmt.Sprintf("%d", limit),
 		"orders": "-publishedAt",
 	}, &response); err != nil {
+		slog.Error("load public news catalog failed", "endpoint", endpoint, "page", page, "limit", limit, "offset", offset, "error", err)
 		if cached, ok := s.getAnyCachedCatalog(cacheKey); ok {
+			slog.Warn("serve stale public news catalog from cache after error", "endpoint", endpoint, "page", page, "limit", limit, "count", len(cached.Items))
 			return cached, nil
 		}
 		return domainnews.Catalog{}, err
@@ -91,20 +98,32 @@ func (s *Service) GetPublicCatalog(ctx context.Context, page, limit int) (domain
 		Limit:      response.Limit,
 	}
 	s.storeCatalog(cacheKey, catalog)
+	if catalog.TotalCount == 0 || len(catalog.Items) == 0 {
+		slog.Info("microcms news catalog is empty", "endpoint", endpoint, "page", page, "limit", limit, "total", catalog.TotalCount)
+		return catalog, nil
+	}
+
+	slog.Info("loaded public news catalog", "endpoint", endpoint, "page", page, "limit", limit, "count", len(catalog.Items), "total", catalog.TotalCount)
 	return catalog, nil
 }
 
 func (s *Service) request(ctx context.Context, query map[string]string, out any) error {
-	endpoint := s.endpoint
-	if endpoint == "" {
-		endpoint = defaultEndpoint
-	}
+	endpoint := s.getEndpoint()
 
 	if err := s.client.Request(ctx, endpoint, http.MethodGet, "", query, nil, out); err != nil {
 		return fmt.Errorf("load microcms news: %w", err)
 	}
 
 	return nil
+}
+
+func (s *Service) getEndpoint() string {
+	endpoint := s.endpoint
+	if endpoint == "" {
+		endpoint = defaultEndpoint
+	}
+
+	return endpoint
 }
 
 func toItems(contents []microCMSNewsItem, offset int) []domainnews.Item {

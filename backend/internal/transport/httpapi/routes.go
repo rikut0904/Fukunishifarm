@@ -12,6 +12,7 @@ import (
 	domaincontact "fukunishifarm/backend/internal/domain/contact"
 	domaingrape "fukunishifarm/backend/internal/domain/grape"
 	domainnews "fukunishifarm/backend/internal/domain/news"
+	"fukunishifarm/backend/internal/infra/microcms"
 	usecaseauth "fukunishifarm/backend/internal/usecase/auth"
 	usecaseblog "fukunishifarm/backend/internal/usecase/blog"
 	usecasecontact "fukunishifarm/backend/internal/usecase/contact"
@@ -798,6 +799,8 @@ func mapNewsError(message string, err error) error {
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domainnews.ErrItemNotFound):
 		return huma.Error404NotFound("not found", err)
+	case errors.Is(err, microcms.ErrUnauthorized):
+		return huma.Error503ServiceUnavailable("microCMS認証に失敗しました", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}
@@ -809,6 +812,8 @@ func mapBlogError(message string, err error) error {
 		return huma.Error400BadRequest("invalid input", err)
 	case errors.Is(err, domainblog.ErrPostNotFound):
 		return huma.Error404NotFound("not found", err)
+	case errors.Is(err, microcms.ErrUnauthorized):
+		return huma.Error503ServiceUnavailable("microCMS認証に失敗しました", err)
 	default:
 		return huma.Error500InternalServerError(message, err)
 	}

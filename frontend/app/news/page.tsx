@@ -67,8 +67,8 @@ function saleStatusCard(item: { name: string; imagePath: string; imageFocus: str
 export default async function NewsPage({ searchParams }: NewsPageProps) {
   const params = (await searchParams) ?? {};
   const page = parseNewsPage(params.page);
-  const { catalog: grapeCatalog, errorMessage: grapeErrorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
-  const { catalog, errorMessage } = await loadPublicNewsCatalog(page, 5);
+  const { catalog: grapeCatalog, status: grapeStatus, errorMessage: grapeErrorMessage } = await loadPublicGrapeCatalog(() => redirect("/migration"));
+  const { catalog, status, errorMessage } = await loadPublicNewsCatalog(page, 5);
   const saleSlides = grapeCatalog
     ? grapeCatalog.items.map((item) => ({
         id: `${item.id}`,
@@ -98,6 +98,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
             total={catalog?.total ?? 0}
             page={catalog?.page ?? page}
             limit={catalog?.limit ?? 5}
+            status={status}
             errorMessage={errorMessage}
           />
         </section>
@@ -107,9 +108,13 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
             <p className="eyebrow">Sale Status</p>
             <h2 className="section__title">販売状況</h2>
           </div>
-          {grapeErrorMessage ? (
+          {grapeStatus === "error" ? (
             <div className="card card__body">
-              <p className="m-0">{grapeErrorMessage}</p>
+              <p className="m-0">{grapeErrorMessage ?? "データが取得できませんでした。"}</p>
+            </div>
+          ) : grapeStatus === "empty" ? (
+            <div className="card card__body">
+              <p className="m-0">現在表示できる販売状況はありません。</p>
             </div>
           ) : saleSlides.length > 0 ? (
             <ResponsiveCarousel ariaLabel="販売状況のカルーセル" items={saleSlides} desktopColumns={2} />

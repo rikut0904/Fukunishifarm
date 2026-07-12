@@ -1,4 +1,4 @@
-import { ApiError, apiFetch, createApiError, isMigrationRequiredError } from "@/lib/api";
+import { ApiError, apiFetch, createApiError, getDisplayErrorMessage, isMigrationRequiredError } from "@/lib/api";
 import { PUBLIC_CONTENT_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export type GrapeItem = {
@@ -34,6 +34,7 @@ export type GrapeCatalogInput = {
 
 export type PublicGrapeCatalogState = {
   catalog: GrapeCatalog | null;
+  status: "loaded" | "empty" | "error";
   errorMessage: string | null;
 };
 
@@ -62,8 +63,11 @@ function getPublicApiBaseUrl() {
 
 export async function loadPublicGrapeCatalog(onMigrationRequired: () => never): Promise<PublicGrapeCatalogState> {
   try {
+    const catalog = await fetchPublicGrapeCatalog();
+    const isEmpty = catalog.items.length === 0;
     return {
-      catalog: await fetchPublicGrapeCatalog(),
+      catalog,
+      status: isEmpty ? "empty" : "loaded",
       errorMessage: null,
     };
   } catch (error) {
@@ -73,7 +77,8 @@ export async function loadPublicGrapeCatalog(onMigrationRequired: () => never): 
 
     return {
       catalog: null,
-      errorMessage: "データが取得できませんでした。",
+      status: "error",
+      errorMessage: getDisplayErrorMessage(error, "データが取得できませんでした。"),
     };
   }
 }
