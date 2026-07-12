@@ -77,7 +77,7 @@ func resolveFirebaseServiceAccountJSON() string {
 
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return encoded
+		return ""
 	}
 
 	return string(decoded)
