@@ -3,7 +3,7 @@ module fukunishifarm/backend
 go 1.26
 
 require (
-	firebase.google.com/go/v4 v4.20.0
+	firebase.google.com/go/v4 v4.21.0
 	github.com/aws/aws-sdk-go-v2 v1.42.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.29
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.28
