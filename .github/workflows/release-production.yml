@@ -147,7 +147,7 @@ jobs:
 
     steps:
       - name: Create release tag and notes
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TARGET_SHA: ${{ needs.prepare.outputs.target_sha }}
           PREVIOUS_TAG: ${{ needs.prepare.outputs.previous_tag }}
