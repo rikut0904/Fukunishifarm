@@ -31,7 +31,7 @@ export default function TirasiPage() {
               <br />ご予約は<Link href="/reservation">こちら</Link>からご覧ください
               <br />FAX：0748-82-1983
               <br />下記のちらしが見れない方は
-              <a href="/PDF/R8_Pamphlet.pdf" target="_blank" rel="noreferrer">
+              <a href="/download" target="_blank" rel="noreferrer">
                 こちら
               </a>
               からご覧ください

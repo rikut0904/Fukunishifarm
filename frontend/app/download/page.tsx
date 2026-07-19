@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 const downloads = [
-  { label: "R9_Pamphlet.pdf", href: "/PDF/R9_Pamphlet.pdf", section: "ちらし" },
+  { label: "R8_Pamphlet.pdf", href: "/PDF/R8_Pamphlet.pdf", section: "ちらし" },
   { label: "shipping_fee.pdf", href: "/PDF/shipping_fee.pdf", section: "地域別発送料" },
 ];
 
