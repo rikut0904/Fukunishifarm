@@ -11,7 +11,7 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.38.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.6.0
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/labstack/echo/v4 v4.15.4
 	google.golang.org/api v0.288.0
 	gorm.io/driver/postgres v1.6.0
