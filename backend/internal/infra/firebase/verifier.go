@@ -86,6 +86,15 @@ func (v *Verifier) CreateUser(ctx context.Context, email, password, displayName 
 		if fbauth.IsEmailAlreadyExists(err) {
 			return domainauth.VerifiedIdentity{}, domainauth.ErrEmailAlreadyExists
 		}
+		if isFirebaseAuthConfigError(err) {
+			return domainauth.VerifiedIdentity{}, domainauth.ErrFirebaseAuthConfig
+		}
+		if isFirebasePermissionError(err) {
+			return domainauth.VerifiedIdentity{}, domainauth.ErrFirebasePermission
+		}
+		if isFirebaseInvalidEmailError(err) {
+			return domainauth.VerifiedIdentity{}, domainauth.ErrInvalidInput
+		}
 		return domainauth.VerifiedIdentity{}, fmt.Errorf("create firebase user: %w", err)
 	}
 
@@ -131,8 +140,41 @@ func (v *Verifier) GeneratePasswordSetupLink(ctx context.Context, email, continu
 		URL: continueURL,
 	})
 	if err != nil {
+		if fbauth.IsUnauthorizedContinueURI(err) || isFirebaseUnauthorizedURLMessage(err) {
+			return "", domainauth.ErrUnauthorizedURL
+		}
+		if fbauth.IsConfigurationNotFound(err) || isFirebaseAuthConfigError(err) {
+			return "", domainauth.ErrFirebaseAuthConfig
+		}
+		if isFirebasePermissionError(err) {
+			return "", domainauth.ErrFirebasePermission
+		}
 		return "", fmt.Errorf("generate password setup link: %w", err)
 	}
 
 	return link, nil
+}
+
+func isFirebaseAuthConfigError(err error) bool {
+	message := strings.ToUpper(err.Error())
+	return strings.Contains(message, "CONFIGURATION_NOT_FOUND") ||
+		strings.Contains(message, "OPERATION_NOT_ALLOWED") ||
+		strings.Contains(message, "PROJECT_NOT_FOUND")
+}
+
+func isFirebasePermissionError(err error) bool {
+	message := strings.ToUpper(err.Error())
+	return strings.Contains(message, "PERMISSION_DENIED") ||
+		strings.Contains(message, "INSUFFICIENT_PERMISSION")
+}
+
+func isFirebaseInvalidEmailError(err error) bool {
+	return strings.Contains(strings.ToUpper(err.Error()), "INVALID_EMAIL")
+}
+
+func isFirebaseUnauthorizedURLMessage(err error) bool {
+	message := strings.ToUpper(err.Error())
+	return strings.Contains(message, "UNAUTHORIZED_CONTINUE_URI") ||
+		strings.Contains(message, "INVALID_DYNAMIC_LINK_DOMAIN") ||
+		strings.Contains(message, "INVALID_HOSTING_LINK_DOMAIN")
 }
