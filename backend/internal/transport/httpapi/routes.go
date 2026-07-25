@@ -374,7 +374,7 @@ func Register(api huma.API, authService *usecaseauth.Service, grapeService *usec
 		user, err := authService.CreateUser(ctx, token, input.Body.Email, input.Body.DisplayName)
 		if err != nil {
 			logAuthHandlerError(ctx, "create admin user failed", err, "email", input.Body.Email)
-			return nil, mapAuthError("failed to create firebase user", err)
+			return nil, mapAuthError("failed to invite admin user", err)
 		}
 
 		output := &createUserOutput{}
@@ -775,6 +775,12 @@ func mapAuthError(message string, err error) error {
 		return huma.Error503ServiceUnavailable("invitation mail is not configured")
 	case errors.Is(err, domainauth.ErrEmailAlreadyExists):
 		return huma.Error409Conflict("email already exists", err)
+	case errors.Is(err, domainauth.ErrFirebaseAuthConfig):
+		return huma.Error503ServiceUnavailable("Firebase Authentication is not configured or enabled", err)
+	case errors.Is(err, domainauth.ErrFirebasePermission):
+		return huma.Error503ServiceUnavailable("Firebase service account does not have permission to manage users", err)
+	case errors.Is(err, domainauth.ErrUnauthorizedURL):
+		return huma.Error400BadRequest("ADMIN_LOGIN_URL or SITE_BASE_URL is not allowed by Firebase Authentication authorized domains", err)
 	case errors.Is(err, domainauth.ErrUserNotFound):
 		return huma.Error404NotFound("admin user not found", err)
 	default:

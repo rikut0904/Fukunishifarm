@@ -8,4 +8,7 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 	ErrMailNotConfigured  = errors.New("mail sender not configured")
 	ErrEmailAlreadyExists = errors.New("email already exists")
+	ErrFirebaseAuthConfig = errors.New("firebase authentication is not configured")
+	ErrFirebasePermission = errors.New("firebase service account has insufficient permission")
+	ErrUnauthorizedURL    = errors.New("unauthorized firebase action URL")
 )

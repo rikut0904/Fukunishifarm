@@ -48,8 +48,10 @@ export function buildAdminMenuItems(serviceDomain: string, blogEndpoint: string,
   ];
 }
 
-export const adminMenuItems = buildAdminMenuItems(
-  process.env.MICROCMS_SERVICE_DOMAIN || "",
-  process.env.MICROCMS_BLOG_ENDPOINT || "blogs",
-  process.env.MICROCMS_NEWS_ENDPOINT || "news",
-);
+export function buildAdminMenuItemsFromEnv() {
+  return buildAdminMenuItems(
+    process.env.MICROCMS_SERVICE_DOMAIN?.trim() || "",
+    process.env.MICROCMS_BLOG_ENDPOINT?.trim() || "blogs",
+    process.env.MICROCMS_NEWS_ENDPOINT?.trim() || "news",
+  );
+}
