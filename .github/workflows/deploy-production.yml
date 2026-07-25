@@ -107,6 +107,17 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Write GitHub production app environment
+        run: |
+          touch frontend/.env.production.local
+          awk '!/^(API_INTERNAL_BASE_URL|NEXT_PUBLIC_API_BASE_URL|MICROCMS_SERVICE_DOMAIN|MICROCMS_BLOG_ENDPOINT|MICROCMS_NEWS_ENDPOINT)=/' frontend/.env.production.local > frontend/.env.production.local.tmp
+          mv frontend/.env.production.local.tmp frontend/.env.production.local
+          printf '%s\n' "API_INTERNAL_BASE_URL=$API_INTERNAL_BASE_URL" >> frontend/.env.production.local
+          printf '%s\n' "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL" >> frontend/.env.production.local
+          printf '%s\n' "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" >> frontend/.env.production.local
+          printf '%s\n' "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" >> frontend/.env.production.local
+          printf '%s\n' "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}" >> frontend/.env.production.local
+
       - name: Sync production Railway variables
         run: |
           railway variables \

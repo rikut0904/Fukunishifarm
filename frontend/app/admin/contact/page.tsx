@@ -1,6 +1,7 @@
 import AdminHeader from "@/components/AdminHeader";
 import AdminConsole from "@/components/AdminConsole";
 import SiteFooter from "@/components/SiteFooter";
+import { buildAdminMenuItemsFromEnv } from "@/lib/adminMenu";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,9 +9,11 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContactPage() {
+  const menuItems = buildAdminMenuItemsFromEnv();
+
   return (
     <div className="site-shell">
-      <AdminHeader />
+      <AdminHeader menuItems={menuItems} />
       <main>
         <AdminConsole mode="contact" />
       </main>
