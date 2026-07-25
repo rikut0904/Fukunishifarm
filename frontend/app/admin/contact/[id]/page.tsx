@@ -1,6 +1,7 @@
 import AdminHeader from "@/components/AdminHeader";
 import ContactMessageDetailRoute from "@/components/ContactMessageDetailRoute";
 import SiteFooter from "@/components/SiteFooter";
+import { buildAdminMenuItemsFromEnv } from "@/lib/adminMenu";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -15,6 +16,7 @@ type PageProps = {
 };
 
 export default async function AdminContactDetailPage({ params }: PageProps) {
+  const menuItems = buildAdminMenuItemsFromEnv();
   const { id: idParam } = await params;
   const id = Number.parseInt(idParam, 10);
   if (Number.isNaN(id)) {
@@ -23,7 +25,7 @@ export default async function AdminContactDetailPage({ params }: PageProps) {
 
   return (
     <div className="site-shell">
-      <AdminHeader />
+      <AdminHeader menuItems={menuItems} />
       <main>
         <ContactMessageDetailRoute id={id} />
       </main>

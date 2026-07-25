@@ -5,11 +5,15 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminMenuItems } from "@/lib/adminMenu";
+import type { AdminMenuItem } from "@/lib/adminMenu";
 
 const SESSION_STORAGE_KEY = "fukunishifarm.admin.session";
 
-export default function AdminHeader() {
+type AdminHeaderProps = {
+  menuItems: AdminMenuItem[];
+};
+
+export default function AdminHeader({ menuItems }: AdminHeaderProps) {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -53,7 +57,7 @@ export default function AdminHeader() {
           </Link>
 
           <nav className="admin-header__nav" aria-label="管理メニュー">
-            {adminMenuItems.map((item) => {
+            {menuItems.map((item) => {
               const href = item.href.trim();
               const key = `${item.title}:${href || "disabled"}`;
 
@@ -109,7 +113,7 @@ export default function AdminHeader() {
             </button>
           </div>
           <nav className="mobile-menu__links admin-header__mobile-links" aria-label="モバイル管理メニュー">
-            {adminMenuItems.map((item) => {
+            {menuItems.map((item) => {
               const href = item.href.trim();
               const key = `${item.title}:${href || "disabled"}`;
 

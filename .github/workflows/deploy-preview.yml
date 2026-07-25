@@ -28,6 +28,11 @@ jobs:
       MICROCMS_SERVICE_DOMAIN: ${{ secrets.MICROCMS_SERVICE_DOMAIN }}
       MICROCMS_BLOG_ENDPOINT: ${{ secrets.MICROCMS_BLOG_ENDPOINT }}
       MICROCMS_NEWS_ENDPOINT: ${{ secrets.MICROCMS_NEWS_ENDPOINT }}
+      SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      SES_FROM_EMAIL: ${{ secrets.SES_FROM_EMAIL }}
 
     steps:
       - name: Checkout code
@@ -50,6 +55,11 @@ jobs:
           test -n "$API_INTERNAL_BASE_URL"
           test -n "$NEXT_PUBLIC_API_BASE_URL"
           test -n "$MICROCMS_SERVICE_DOMAIN"
+          test -n "$SITE_BASE_URL"
+          test -n "$AWS_REGION"
+          test -n "$AWS_ACCESS_KEY_ID"
+          test -n "$AWS_SECRET_ACCESS_KEY"
+          test -n "$SES_FROM_EMAIL"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -90,13 +100,19 @@ jobs:
 
       - name: Sync preview Railway variables
         run: |
-          railway variables \
+          railway_args=(variables \
             --project "$RAILWAY_PROJECT_ID" \
             --service "${RAILWAY_SERVICE_NAME:-Fukunishifarm}" \
             --environment preview-v2 \
             --set "MICROCMS_SERVICE_DOMAIN=$MICROCMS_SERVICE_DOMAIN" \
             --set "MICROCMS_BLOG_ENDPOINT=${MICROCMS_BLOG_ENDPOINT:-blogs}" \
-            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}"
+            --set "MICROCMS_NEWS_ENDPOINT=${MICROCMS_NEWS_ENDPOINT:-news}" \
+            --set "SITE_BASE_URL=$SITE_BASE_URL" \
+            --set "AWS_REGION=$AWS_REGION" \
+            --set "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+            --set "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+            --set "SES_FROM_EMAIL=$SES_FROM_EMAIL")
+          railway "${railway_args[@]}"
 
       - name: Deploy preview to Railway
         run: |

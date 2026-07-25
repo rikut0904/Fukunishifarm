@@ -19,6 +19,7 @@ var (
 )
 
 const rollbackInviteTimeout = 10 * time.Second
+const inviteTimeout = 20 * time.Second
 
 type Service struct {
 	authenticator domainauth.PasswordAuthenticator
@@ -86,6 +87,9 @@ func (s *Service) LoginAdmin(ctx context.Context, email, password string) (*Logi
 }
 
 func (s *Service) CreateUser(ctx context.Context, sessionToken, email, displayName string) (*domainauth.AdminUser, error) {
+	ctx, cancel := context.WithTimeout(ctx, inviteTimeout)
+	defer cancel()
+
 	email = strings.TrimSpace(email)
 	displayName = strings.TrimSpace(displayName)
 
@@ -168,6 +172,9 @@ func (s *Service) ListUsers(ctx context.Context, sessionToken string) ([]domaina
 }
 
 func (s *Service) ResendInvitation(ctx context.Context, sessionToken string, userID uint) error {
+	ctx, cancel := context.WithTimeout(ctx, inviteTimeout)
+	defer cancel()
+
 	if strings.TrimSpace(sessionToken) == "" || userID == 0 {
 		return ErrInvalidInput
 	}
