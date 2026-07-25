@@ -158,13 +158,17 @@ func main() {
 	var contactReplySender domaincontact.ReplyEmailSender
 	var invitationMailer domainauth.InvitationEmailSender
 	if strings.TrimSpace(cfg.AWSRegion) != "" && strings.TrimSpace(cfg.SESFromEmail) != "" {
-		sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
-		if err != nil {
-			slog.Error("initialize SES reply sender", "error", err)
-			os.Exit(1)
+		if strings.TrimSpace(cfg.AWSAccessKeyID) == "" || strings.TrimSpace(cfg.AWSSecretAccessKey) == "" {
+			slog.Warn("SES sender is disabled", "hint", "set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to enable mail delivery")
+		} else {
+			sender, err := emailses.NewSESReplySender(ctx, cfg.AWSRegion, cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSSessionToken, cfg.SESFromEmail)
+			if err != nil {
+				slog.Error("initialize SES reply sender", "error", err)
+				os.Exit(1)
+			}
+			contactReplySender = sender
+			invitationMailer = sender
 		}
-		contactReplySender = sender
-		invitationMailer = sender
 	} else {
 		slog.Warn("SES sender is disabled", "hint", "set AWS_REGION and SES_FROM_EMAIL to enable mail delivery")
 	}
