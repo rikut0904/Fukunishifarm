@@ -11,8 +11,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"gorm.io/gorm"
 
 	"fukunishifarm/backend/internal/bootstrap"
@@ -182,9 +182,8 @@ func main() {
 	blogService := usecaseblog.NewService(cfg.MicroCMSServiceDomain, cfg.MicroCMSAPIKey, cfg.MicroCMSBlogEndpoint)
 
 	e := echo.New()
-	e.HideBanner = true
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     cfg.CORSAllowOrigins,
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
@@ -192,23 +191,23 @@ func main() {
 		AllowCredentials: false,
 	}))
 	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
-		Skipper: func(c echo.Context) bool {
+		Skipper: func(c *echo.Context) bool {
 			return !isRateLimitedPublicMutation(c.Request().Method, c.Request().URL.Path)
 		},
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
 			Rate:      publicMutationRateLimit,
 			ExpiresIn: publicMutationRateWindow,
 		}),
-		IdentifierExtractor: func(c echo.Context) (string, error) {
+		IdentifierExtractor: func(c *echo.Context) (string, error) {
 			return c.RealIP() + ":" + c.Request().Method + ":" + c.Path(), nil
 		},
-		ErrorHandler: func(c echo.Context, err error) error {
+		ErrorHandler: func(c *echo.Context, err error) error {
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"code":    "rate_limiter_error",
 				"message": "rate limiter error",
 			})
 		},
-		DenyHandler: func(c echo.Context, identifier string, err error) error {
+		DenyHandler: func(c *echo.Context, identifier string, err error) error {
 			return c.JSON(http.StatusTooManyRequests, map[string]string{
 				"code":    "rate_limited",
 				"message": "too many requests, please try again later",
@@ -216,7 +215,7 @@ func main() {
 		},
 	}))
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if isRouteAvailable(c.Request().Method, c.Request().URL.Path, availability) {
 				return next(c)
 			}
