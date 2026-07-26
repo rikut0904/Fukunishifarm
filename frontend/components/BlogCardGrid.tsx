@@ -38,7 +38,7 @@ export default function BlogCardGrid({ posts, compact = false }: BlogCardGridPro
               <p className="news-card__date">{formatBlogDate(post.publishedAt)}</p>
               <h3 className="card__title">{post.title}</h3>
               <p className="card__text blog-card__excerpt">{post.excerpt}</p>
-              <Link href={getBlogPath(post)} className="button-link button-link--secondary">
+              <Link href={getBlogPath(post)} className="button-link button-link--secondary blog-card__action">
                 記事を読む
               </Link>
             </div>
