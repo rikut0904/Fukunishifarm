@@ -2368,7 +2368,7 @@ h4 {
   display: grid;
   gap: 1rem;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .blog-article__content :where(h2, h3, h4, p, li, blockquote, a) {
