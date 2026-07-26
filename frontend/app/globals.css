@@ -2176,14 +2176,25 @@ h4 {
 
 .blog-card {
   display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
   overflow: hidden;
 }
 
 .blog-card__media {
   display: grid;
   place-items: center;
+  position: relative;
   aspect-ratio: 16 / 9;
+  max-height: 13rem;
+  overflow: hidden;
   background: linear-gradient(135deg, rgba(234, 139, 58, 0.08), rgba(208, 109, 38, 0.08));
+}
+
+.blog-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .blog-card__media--placeholder,
@@ -2226,7 +2237,18 @@ h4 {
 
 .blog-card__body {
   display: grid;
+  grid-template-rows: auto auto 1fr auto;
   gap: 0.75rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+.blog-card__body .card__title {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .blog-card__excerpt {
@@ -2234,6 +2256,16 @@ h4 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.blog-card__action {
+  align-self: end;
+  justify-self: start;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
 }
 
 .blog-archive-cta {
@@ -2283,6 +2315,16 @@ h4 {
 .blog-article {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+}
+
+.blog-article .section__head,
+.blog-article .section__title {
+  min-width: 0;
+}
+
+.blog-article .section__title {
+  overflow-wrap: anywhere;
 }
 
 .blog-article__meta {
@@ -2302,6 +2344,8 @@ h4 {
 .blog-article__eyecatch {
   display: grid;
   place-items: center;
+  aspect-ratio: 16 / 9;
+  max-height: clamp(13rem, 55vw, 30rem);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 1.25rem;
@@ -2316,12 +2360,20 @@ h4 {
 
 .blog-article__eyecatch img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
 }
 
 .blog-article__content {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.blog-article__content * {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .blog-article__content h2,
@@ -2354,8 +2406,11 @@ h4 {
 }
 
 .blog-article__content img {
+  display: block;
   width: 100%;
+  max-height: clamp(12rem, 58vw, 30rem);
   height: auto;
+  object-fit: cover;
   border-radius: 1rem;
 }
 
@@ -2369,7 +2424,15 @@ h4 {
 
 .blog-article__footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
+}
+
+.blog-article__back-link {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
 }
 
 .admin-blog-layout {

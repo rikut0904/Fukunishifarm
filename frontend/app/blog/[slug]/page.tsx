@@ -97,7 +97,7 @@ export default async function BlogPostPage({
 
             <BlogHtmlContent html={getBlogContent(post)} className="blog-article__content card card__body" />
             <div className="blog-article__footer">
-              <Link href="/blog" className="button-link button-link--secondary">
+              <Link href="/blog" className="button-link button-link--secondary blog-article__back-link">
                 一覧へ戻る
               </Link>
             </div>
