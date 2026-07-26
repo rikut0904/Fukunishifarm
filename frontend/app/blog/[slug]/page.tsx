@@ -95,10 +95,6 @@ export default async function BlogPostPage({
               </div>
             ) : null}
 
-            <div className="blog-article__excerpt card card__body">
-              <p className="m-0">{post.excerpt}</p>
-            </div>
-
             <BlogHtmlContent html={getBlogContent(post)} className="blog-article__content card card__body" />
             <div className="blog-article__footer">
               <Link href="/blog" className="button-link button-link--secondary">
