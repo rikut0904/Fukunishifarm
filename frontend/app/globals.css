@@ -2371,9 +2371,14 @@ h4 {
   overflow: hidden;
 }
 
-.blog-article__content * {
+.blog-article__content :where(h2, h3, h4, p, li, blockquote, a) {
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.blog-article__content pre {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .blog-article__content h2,
